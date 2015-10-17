@@ -1,0 +1,30 @@
+
+db record format:
+. md5sum -- for both:
+.. filename
+.. uniqueness
+. label name 
+. coordinates
+. altitude
+. date/time
+
+import steps:
+1) prompt for label name for
+imported files (ie, '2015 vacation')
+
+2) read files
+. md5sum compare against DB entries
+ ( and file system ?? ) 
+. if unique:
+.. copy file with md5sum name
+into directory... 
+.... if copy successful:
+
+3) put as much of above info as possible
+into db
+... if you can't read any of it, store only
+	the file name (md5sum)
+... if db entry NOT successful:
+..... delete file
+
+
