@@ -50,7 +50,7 @@ def process(jpeg, collection, dest_folder):
 			print('Failed to instantiate Jpgps object: %s' % e)
 			return
 		the_dict = jpeg_obj.as_dict()
-		the_dict['checksum'] = md5sum
+		the_dict['md5sum'] = md5sum
 		try:
 			collection.insert_one(the_dict)
 		except Exception as e:
