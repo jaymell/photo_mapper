@@ -7,81 +7,83 @@ import dateutil.tz
 import json
 from pymongo import MongoClient
 import re
+import jpgps
+import sys
+import hashlib
 
-def is_duplicate(md5sum, collection):
-	'''check whether a record with same md5sum
-		already exists in given mongo collection'''
+
+class Jpeg:
+	""" quick n dirty way to get extra
+		attributes along with file handle """
+
+	def __init__(self, f):
+		self.fh = open(f, 'rb')
+		self.name = self.fh.name
+		self.file_name, self.path = os.path.split(self.fh.name)
+		self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
+	def close(self):
+		self.fh.close()
+
+def get_db_duplicates(md5sum, collection):
 	results = [ i for i in collection.find({'md5sum': md5sum}) ]
-	if results:
-		print('\nDuplicate found! %s\n' % item)
-		return True
+	return results
+
+def process(jpeg, collection):
+	""" figure out whether it's a db duplicate; act
+		accordingly """
+
+	db_dupes = get_db_duplicates(jpeg.md5sum, collection)
+	if db_dupes:
+		if len(db_dupes) > 1:
+			print('Multiple DB duplicates found. Exiting: ', jpeg.name)
+			sys.exit(3)
+		elif os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.md5sum)):
+			print('Duplicate found. Skipping: ', jpeg.name)
+			return
+
+	# try to update database AND
+	# put files in right place; if one
+	# fails, undo the other:	
+	try:
+		jpeg.fh.seek(0)
+		db_entry = jpgps.Jpgps(jpeg.fh).as_dict()
+	except Exception as e:
+		print('Failed to instantiate Jpgps object for %s: %s' % (jpeg.name, e))
+		return
+
+	# add the md5sum from jpeg to the gps data to be inserted:
+	db_entry['md5sum'] = jpeg.md5sum
+
+	try:
+		collection.insert_one(db_entry)
+	except Exception as e:
+		print('Failed to update database with %s: %s' % (jpeg.name, e))
+		return
 	else:
-		return False
-
-def process(jpeg, collection, dest_folder):
-	''' expects to be passed a jpeg file handle, and
-		a db collection handle '''
-
-	'''
-	hashlib.md5(open('/home/backup/pictures/2015 vacation/20150907_130923.jpg', 'rb').read()).hexdigest()
-
-	) open, generate md5sum
-	) check if it's duplicate in DB
-	if yes: 
-		if file exists on file system:
-			if md5sum(file) == file name:
-				it's a duplicate -- return True
-		else:
-			delete db entry
-			return False
-	if no:
-		write db entry
-		write file (possibly overwriting)
-
-	'''
-	md5sum = hashlib.md5(jpeg.read()).hexdigest()
-	if not is_duplicate(md5sum, collection): 
-		# try to update database AND
-		# put files in right place; if one
-		# fails, undo the other:	
+		# write file:
 		try:
-			jpeg_obj = jpgps.Jpgps(jpeg)
+			with open(os.path.join(PHOTO_FOLDER, jpeg.md5sum), 'wb') as f:
+				jpeg.fh.seek(0)
+				f.write(jpeg.fh.read())
 		except Exception as e:
-			print('Failed to instantiate Jpgps object: %s' % e)
-			return
-		the_dict = jpeg_obj.as_dict()
-		the_dict['md5sum'] = md5sum
-		try:
-			collection.insert_one(the_dict)
-		except Exception as e:
-			print('Failed to update database with %s: %s' % (jpeg.name, e))
-			return
-		else:
-			# write file:
+			# if write failed, try to remove DB entry just added:
 			try:
-				with open('%s/%s' % (dest_folder, md5sum), 'wb') as f:
-					jpeg.seek(0)
-					f.write(jpeg.read())
+				collection.remove(db_entry)
 			except Exception as e:
-				try:
-					collection.remove(the_dict)
-				except Exception as e:
-					print('Failed to remove item from database -- db is no longer consistent w/ file system: %s' % e)
-		
+				print('Failed to remove item from database -- db is no longer consistent w/ file system: %s' % e)
+				sys.exit(4)
+		finally:
+			jpeg.close()
+	
 if __name__ == '__main__':
-	''' iterate through images in directory passed and 
-		process appropriately '''
-
-	import jpgps
-	import sys
-	import hashlib
 
 	MONGODB_HOST = 'localhost'
 	MONGODB_PORT = 27017
-	connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
 	DB_NAME = 'photo_mapper'
-	collection = connection[DB_NAME]['photo_mapper']
-	DEST_FOLDER = './photos'
+	COLLECTION_NAME='photo_mapper'
+	PHOTO_FOLDER = './photos'
+	connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
+	collection = connection[DB_NAME][COLLECTION_NAME]
 
 	if len(sys.argv) != 2:
 		print('Usage: %s <directory name>' % sys.argv[0])
@@ -93,7 +95,18 @@ if __name__ == '__main__':
 		print('Failed to open directory: %s' % e)	
 		sys.exit(2)
 	for item in dir_items:
+		# is there better way to discern jpeg-edness?
+		# furthermore, TIFFs are also theoretically possible
 		if item[-3:].lower() == 'jpg' or item[-4:].lower() == 'jpeg':
-			with open(os.path.join(location,item), 'rb') as f:
-				print('FILE NAME: %s' % item)
-				process(f, collection, DEST_FOLDER)
+			try:
+				jpeg = Jpeg(os.path.join(location, item))
+			except Exception as e:
+				print('Failed to create jpeg object from %s: %s' % (item, e))
+			else:
+				print('FILE NAME: %s' % jpeg.name)
+				try:
+					process(jpeg, collection)
+				finally:
+					jpeg.close()
+
+
