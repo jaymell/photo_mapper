@@ -1,4 +1,7 @@
-
 block content
-    h1= title
-    p Welcome to Pictures
+    h1.
+        Pictures
+    each picture, i in pictures
+        li
+            p "#{picture.date}" 
+                    

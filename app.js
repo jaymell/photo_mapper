@@ -1,3 +1,5 @@
+var DB = 'photo_mapper';
+
 // Load required packages
 var express = require('express');
 var path = require('path');
@@ -5,9 +7,20 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var routes = require('./routes/index');
+var mongo = require('mongodb');
+var monk = require('monk');
+var db = monk('localhost:27017/'+DB);
 
 // Create our Express application
 var app = express();
+
+// Make our db accessible to our router
+// Note: binding it to EVERY HTTP request
+// sub-optimal performance-wise:
+app.use(function(req,res,next){
+    req.db = db;
+    next();
+});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
