@@ -17,6 +17,12 @@ router.get('/pictures', function(req, res) {
     });
 });
 
-
+router.get('/json', function(req, res) {
+	var db = req.db;
+	var collection = db.get(COLLECTION);
+	collection.find({}, {}, function(e,docs) {
+		res.json(docs);
+	});
+});
 
 module.exports = router;
