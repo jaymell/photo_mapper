@@ -19,8 +19,9 @@ class Jpeg:
 	def __init__(self, f):
 		self.fh = open(f, 'rb')
 		self.name = self.fh.name
-		self.file_name, self.path = os.path.split(self.fh.name)
+		self.file_name_orig, self.path = os.path.split(self.fh.name)
 		self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
+		self.file_name_new = str(self.md5sum) + '.jpg'
 	def close(self):
 		self.fh.close()
 
@@ -35,10 +36,10 @@ def process(jpeg, collection):
 	db_dupes = get_db_duplicates(jpeg.md5sum, collection)
 	if db_dupes:
 		if len(db_dupes) > 1:
-			print('Multiple DB duplicates found. Exiting: ', jpeg.name)
+			print('Multiple DB duplicates found. Exiting: ', jpeg.file_name_orig)
 			sys.exit(3)
-		elif os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.md5sum)):
-			print('Duplicate found. Skipping: ', jpeg.name)
+		elif os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.file_name_new)):
+			print('Duplicate found. Skipping: ', jpeg.file_name_orig)
 			return
 
 	# try to update database AND
@@ -48,21 +49,22 @@ def process(jpeg, collection):
 		jpeg.fh.seek(0)
 		db_entry = jpgps.Jpgps(jpeg.fh).as_dict()
 	except Exception as e:
-		print('Failed to instantiate Jpgps object for %s: %s' % (jpeg.name, e))
+		print('Failed to instantiate Jpgps object for %s: %s' % (jpeg.file_name_orig, e))
 		return
 
-	# add the md5sum from jpeg to the gps data to be inserted:
+	# add the md5sum and file_name_new from jpeg to the gps data to be inserted:
 	db_entry['md5sum'] = jpeg.md5sum
+	db_entry['file_name'] = jpeg.file_name_new
 
 	try:
 		collection.insert_one(db_entry)
 	except Exception as e:
-		print('Failed to update database with %s: %s' % (jpeg.name, e))
+		print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
 		return
 	else:
 		# write file:
 		try:
-			with open(os.path.join(PHOTO_FOLDER, jpeg.md5sum), 'wb') as f:
+			with open(os.path.join(PHOTO_FOLDER, jpeg.file_name_new), 'wb') as f:
 				jpeg.fh.seek(0)
 				f.write(jpeg.fh.read())
 		except Exception as e:
@@ -81,7 +83,7 @@ if __name__ == '__main__':
 	MONGODB_PORT = 27017
 	DB_NAME = 'photo_mapper'
 	COLLECTION_NAME='photo_mapper'
-	PHOTO_FOLDER = './photos'
+	PHOTO_FOLDER = './public/img'
 	connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
 	collection = connection[DB_NAME][COLLECTION_NAME]
 
@@ -103,7 +105,7 @@ if __name__ == '__main__':
 			except Exception as e:
 				print('Failed to create jpeg object from %s: %s' % (item, e))
 			else:
-				print('FILE NAME: %s' % jpeg.name)
+				print('FILE NAME: %s' % jpeg.file_name_orig)
 				try:
 					process(jpeg, collection)
 				finally:

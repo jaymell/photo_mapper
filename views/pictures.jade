@@ -2,6 +2,4 @@ block content
     h1.
         Pictures
     each picture, i in pictures
-        li
-            p "#{picture.date}" 
-                    
+        a(href='/img/#{picture.file_name}') #{picture.date}
