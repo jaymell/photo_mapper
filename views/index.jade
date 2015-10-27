@@ -1,4 +1,8 @@
-
-block content
-    h1= title
-    p Welcome to #{title}
+html
+  head
+    title #{title} 
+    link(rel='stylesheet', href='/css/style.css')
+    script(src='https://maps.googleapis.com/maps/api/js')
+    script(src='/js/gmaps.js')
+  body
+    .rcorners#map-canvas

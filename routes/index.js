@@ -3,8 +3,8 @@ var router = express.Router();
 var COLLECTION = 'photo_mapper';
 
 /* GET home page. */
-router.get('/test', function(req, res) {
-    res.render('index', { title: 'Express' });
+router.get('/', function(req, res) {
+    res.render('index', { title: 'Photo Map' });
 });
 
 router.get('/pictures', function(req, res) {

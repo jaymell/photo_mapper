@@ -42,13 +42,6 @@ app.use(express.static(__dirname + '/public', {maxAge: oneDay}));
 // Create our Express router
 var router = express.Router();
 
-// Initial dummy route for testing
-router.get('/', function(req, res) {
-  // console.log(req);
-  // console.log(res);
-  res.end('Testing');
-});
-
 // Register all our routes
 app.use(router);
 
