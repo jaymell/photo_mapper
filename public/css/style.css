@@ -1,9 +1,12 @@
 html, body {
         height: 100%;
- }
+}
+
 #map-canvas { 
         margin-left: 20px;
         margin-top: 20px;
         float: left;
+	width: 100%;
+	height: 100%;
 }
 

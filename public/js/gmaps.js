@@ -6,10 +6,7 @@ var map = (function() {
                 zoom: 2,
                 mapTypeId: google.maps.MapTypeId.SATELLITE // TERRAIN, SATELLITE, HYBRID, ROADMAP
         };
-        console.log(mapOptions.mapTypeId);
-
-        var map = new google.maps.Map(document.getElementById('map'), mapOptions);
-
+        var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
 	return {
 		addPins: function(photoList) {
 			photoList.forEach(function(photo, index, array) {
@@ -31,5 +28,4 @@ window.onload = function() {
 	xhReq.open("GET", url, false);
 	xhReq.send(null);
 	var json = JSON.parse(xhReq.responseText);
-
 }();
