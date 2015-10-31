@@ -2,7 +2,12 @@ html
   head
     title #{title} 
     link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/magnific/magnific-popup.css')
   body
+    #map-left
     #map-canvas
     script(src='https://maps.googleapis.com/maps/api/js?key=#{gmapsKey}')
     script(src='/js/gmaps.js')
+    script(src='//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
+    script(src='/magnific/jquery.magnific-popup.js')
+    
