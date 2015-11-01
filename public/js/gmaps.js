@@ -6,7 +6,7 @@ var map = (function() {
                 zoom: 2,
                 mapTypeId: google.maps.MapTypeId.SATELLITE // TERRAIN, SATELLITE, HYBRID, ROADMAP
         };
-        var map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
+        var map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
 	return {
 		addPins: function(photoList) {
 			photoList.forEach(function(photo, index, array) {
@@ -41,11 +41,18 @@ var map = (function() {
 	}		
 })();
 		
-window.onload = function() {
-	var xhReq = new XMLHttpRequest();
-	var url = '/json';
-	xhReq.open("GET", url, false);
-	xhReq.send(null);
-	var json = JSON.parse(xhReq.responseText);
-	map.addPins(json);
-}();
+$('#photoList').magnificPopup({
+	delegate: 'a', // child items selector, by clicking on it popup will open
+	type: 'image'
+});
+$(document).ready(function() {
+	$.getJSON('/json', function(json) {
+		console.log('got json');
+		map.addPins(json);
+		json.forEach(function(item) {
+			$('#photoList').append(
+				'<li><a href="/img/' + item.file_name + '">' + item.date + '</a></li>' 
+			);
+		});
+	});
+});
