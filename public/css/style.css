@@ -5,14 +5,15 @@ html, body {
 #mapCanvas { 
 	margin-top: 20px;
 	float: right;
-	height: 60%;
-	width: 60%;
+	height: 80%;
+	width: 75%;
 }
 
 #mapLeft {
+	margin-top: 20px;
 	float: left;	
-	width: 35%;
-	height: 60%;
+	width: 20%;
+	height: 80%;
 	overflow: auto;	
 	margin-left: 5%;
 }
