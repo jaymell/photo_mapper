@@ -20,20 +20,52 @@ var map = (function() {
 	var basePin = setPinColor('FE7569');
 	var changedPin = setPinColor('8169fe');
 
+	// array for markers so they can be stored and modified:
+	var markerArray = [];
+
+	// add jitter to pins based on a given zoom level;
+	// return jitter latitude/longitude:
+	function jitter(lat, lon, zoom) {
+		// plusOrMinus to get sign:
+		var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
+		return {
+			latitude: lat + (Math.random() * plusOrMinus() / (zoom*2)),
+			longitude: lon + (Math.random() * plusOrMinus() / (zoom*2)),
+		}	
+	};
+
+	google.maps.event.addListener(map, 'zoom_changed', function() {
+		markerArray.forEach(function(marker, index, array) {
+	        var jittered = jitter(marker.latitude, marker.longitude, map.getZoom());
+			marker.setPosition(new google.maps.LatLng(jittered.latitude, jittered.longitude));
+		});
+	});
+		
 	return {
+		zoom: function() { console.log(map.getZoom()); },
 		addPins: function(photoList) {
 			photoList.forEach(function(photo, index, array) {
+				// only if photo actually has coordinates:
 				if (photo.latitude && photo.longitude) {
+					var jittered = jitter(photo.latitude, photo.longitude, map.getZoom());	
+					console.log(jittered);
 					var marker = new google.maps.Marker({
-						position: new google.maps.LatLng(photo.latitude, photo.longitude),
+						// set actual lat/long for future reference:
+						latitude: photo.latitude,
+						longitude: photo.longitude,
+						//position: new google.maps.LatLng(photo.latitude, photo.longitude),
+						position: new google.maps.LatLng(jittered.latitude, jittered.longitude),
 						title: photo.date,
 						map: map,
 						icon: basePin,
 					});
+
+					markerArray.push(marker);	
+
 					marker.addListener('click', function() {
 						map.setCenter(marker.getPosition());	
 						marker.setIcon(changedPin);	
-						//eventFire(document.getElementById(photo.md5sum), 'click');
+						// initiliaze magnific Popup:
 						$.magnificPopup.open({
 							items: {
 								src: '/img/' + photo.file_name,
@@ -44,6 +76,7 @@ var map = (function() {
 				}
 			});	
 		}
+		
 	}		
 })();
 		
