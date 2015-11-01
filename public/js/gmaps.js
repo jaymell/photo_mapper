@@ -23,38 +23,41 @@ var map = (function() {
 	// array for markers so they can be stored and modified:
 	var markerArray = [];
 
-	// add jitter to pins based on a given zoom level;
-	// return jitter latitude/longitude:
-	function jitter(lat, lon, zoom) {
+	// return random amount scaled by
+	// zoom level:
+	function jitter(zoom) {
 		// plusOrMinus to get sign:
 		var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
-		return {
-			latitude: lat + (Math.random() * plusOrMinus() / (zoom*2)),
-			longitude: lon + (Math.random() * plusOrMinus() / (zoom*2)),
-		}	
+		return Math.random() * plusOrMinus() / (zoom);
 	};
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
+		var zoom = map.getZoom()
 		markerArray.forEach(function(marker, index, array) {
-	        var jittered = jitter(marker.latitude, marker.longitude, map.getZoom());
-			marker.setPosition(new google.maps.LatLng(jittered.latitude, jittered.longitude));
+			marker.setPosition(new google.maps.LatLng(
+				marker.latitude + jitter(zoom),
+				marker.longitude + jitter(zoom)
+			));
 		});
 	});
 		
 	return {
+		jitter: function() { console.log(jitter(map.getZoom())); },
 		zoom: function() { console.log(map.getZoom()); },
 		addPins: function(photoList) {
+			var zoom = map.getZoom();
 			photoList.forEach(function(photo, index, array) {
 				// only if photo actually has coordinates:
 				if (photo.latitude && photo.longitude) {
-					var jittered = jitter(photo.latitude, photo.longitude, map.getZoom());	
-					console.log(jittered);
 					var marker = new google.maps.Marker({
 						// set actual lat/long for future reference:
 						latitude: photo.latitude,
 						longitude: photo.longitude,
 						//position: new google.maps.LatLng(photo.latitude, photo.longitude),
-						position: new google.maps.LatLng(jittered.latitude, jittered.longitude),
+						position: new google.maps.LatLng(
+							 photo.latitude + jitter(zoom),
+							 photo.longitude + jitter(zoom)
+						),
 						title: photo.date,
 						map: map,
 						icon: basePin,
@@ -75,9 +78,8 @@ var map = (function() {
 					});
 				}
 			});	
-		}
-		
-	}		
+		},
+	};		
 })();
 		
 $('#photoList').magnificPopup({
