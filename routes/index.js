@@ -25,7 +25,9 @@ router.get('/json', function(req, res) {
 	var db = req.db;
 	var collection = db.get(COLLECTION);
 	collection.find({}, {}, function(e,docs) {
-		res.json(docs);
+		res.json(docs.sort(function(a,b) {
+			return new Date(a.date) - new Date(b.date)
+		}));	
 	});
 });
 

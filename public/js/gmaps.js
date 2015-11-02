@@ -23,16 +23,21 @@ var map = (function() {
 	// array for markers so they can be stored and modified:
 	var markerArray = [];
 
-	// return random amount scaled by
-	// zoom level:
+	// return random amount scaled by zoom level:
 	function jitter(zoom) {
 		// plusOrMinus to get sign:
 		var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
-		return Math.random() * plusOrMinus() / (zoom);
+		if(zoom <= 8) {
+			return Math.random() * plusOrMinus() / (zoom/2);
+		} else {
+			return 0;
+		}
+		
 	};
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
-		var zoom = map.getZoom()
+		var zoom = map.getZoom();
+		console.log(zoom);
 		markerArray.forEach(function(marker, index, array) {
 			marker.setPosition(new google.maps.LatLng(
 				marker.latitude + jitter(zoom),
