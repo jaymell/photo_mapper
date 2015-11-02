@@ -18,7 +18,21 @@ html, body {
 	margin-left: 5%;
 }
 
-.item {
+#photoList {
+	list-style-type: none;
+}
+
+.photo {
 	padding: 10px;
 	cursor: pointer;
+	border: solid 1px;
+	background-color: #98bf21;
+
 }
+
+#photoList a {
+	color: inherit; 
+	text-decoration: inherit; 
+}
+
+

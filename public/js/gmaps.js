@@ -71,7 +71,6 @@ var map = (function() {
 					markerArray.push(marker);	
 
 					marker.addListener('click', function() {
-						map.setCenter(marker.getPosition());	
 						marker.setIcon(changedPin);	
 						// initiliaze magnific Popup:
 						$.magnificPopup.open({
@@ -97,7 +96,7 @@ $(document).ready(function() {
 		console.log('got json');
 		json.forEach(function(item) {
 			$('#photoList').append(
-				'<li><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a></li>' 
+				'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a></li>' 
 			);
 		});
 		map.addPins(json);

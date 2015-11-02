@@ -6,6 +6,8 @@ To do:
 * Fix and remember fixes to mis-rotated photos
 * Remove photos that suck
 * Improve pin jittering
+* Clicked photo changes color of corresponding pin and 
+clicking on pin changes color of list item
 * Add in stuff that's not actually geo-tagged based on time
 * Album label in heading
 * User accounts
