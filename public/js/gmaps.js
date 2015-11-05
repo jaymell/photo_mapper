@@ -24,15 +24,9 @@ var map = (function() {
 	var markerArray = [];
 
 	// return random amount scaled by zoom level:
+	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
 	function jitter(zoom) {
-		// plusOrMinus to get sign:
-		var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
-		if(zoom <= 8) {
-			return Math.random() * plusOrMinus() / (zoom/2);
-		} else {
-			return 0;
-		}
-		
+		return zoom < 12 ? (Math.random() * plusOrMinus() / (zoom*10)) : 0;
 	};
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
@@ -47,8 +41,10 @@ var map = (function() {
 	});
 		
 	return {
+		// for debugging:
 		jitter: function() { console.log(jitter(map.getZoom())); },
 		zoom: function() { console.log(map.getZoom()); },
+
 		addPins: function(photoList) {
 			var zoom = map.getZoom();
 			photoList.forEach(function(photo, index, array) {

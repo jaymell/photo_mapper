@@ -3,6 +3,8 @@ Put pictures in a database on a map. Images displayed using Magnific Popup JS li
 
 To do:
 * Show which photo in list is currently selected
+* Center on selected pin when choosing picture on left,
+if applicable
 * Fix and remember fixes to mis-rotated photos
 * Remove photos that suck
 * Improve pin jittering
@@ -12,3 +14,4 @@ clicking on pin changes color of list item
 * Album label in heading
 * User accounts
 * Quick way to click through pictures 
+* Look decent on phone

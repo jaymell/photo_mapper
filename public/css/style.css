@@ -15,7 +15,6 @@ html, body {
 	width: 20%;
 	height: 80%;
 	overflow: auto;	
-	margin-left: 5%;
 }
 
 #photoList {
@@ -23,7 +22,10 @@ html, body {
 }
 
 .photo {
-	padding: 10px;
+	padding-left: 20px;
+	padding-right: 8px;
+	padding-top: 8px;
+	padding-bottom: 8px;
 	cursor: pointer;
 	border: solid 1px;
 	background-color: #98bf21;
