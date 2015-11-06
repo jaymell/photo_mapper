@@ -21,7 +21,7 @@ var map = (function() {
 	var changedPin = setPinColor('8169fe');
 
 	// array for markers so they can be stored and modified:
-	var markerArray = [];
+	var markerObj = {};
 
 	// return random amount scaled by zoom level:
 	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
@@ -32,12 +32,12 @@ var map = (function() {
 	google.maps.event.addListener(map, 'zoom_changed', function() {
 		var zoom = map.getZoom();
 		console.log(zoom);
-		markerArray.forEach(function(marker, index, array) {
+		for (var marker in markerObj) {
 			marker.setPosition(new google.maps.LatLng(
 				marker.latitude + jitter(zoom),
 				marker.longitude + jitter(zoom)
 			));
-		});
+		}
 	});
 		
 	return {
@@ -54,7 +54,6 @@ var map = (function() {
 						// set actual lat/long for future reference:
 						latitude: photo.latitude,
 						longitude: photo.longitude,
-						//position: new google.maps.LatLng(photo.latitude, photo.longitude),
 						position: new google.maps.LatLng(
 							 photo.latitude + jitter(zoom),
 							 photo.longitude + jitter(zoom)
@@ -62,16 +61,18 @@ var map = (function() {
 						title: photo.date,
 						map: map,
 						icon: basePin,
+						fileName: photo.file_name
 					});
 
-					markerArray.push(marker);	
+					markerObj[marker.fileName] = marker;	
 
 					marker.addListener('click', function() {
 						marker.setIcon(changedPin);	
 						// initiliaze magnific Popup:
+						var that = this;
 						$.magnificPopup.open({
 							items: {
-								src: '/img/' + photo.file_name,
+								src: '/img/' + that.fileName,
 							},
 							type: 'image'
 						});

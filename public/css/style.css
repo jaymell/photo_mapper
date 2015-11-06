@@ -21,6 +21,10 @@ html, body {
 	list-style-type: none;
 }
 
+#photoList > li > a {
+	outline: 0;
+}
+
 .photo {
 	padding-left: 20px;
 	padding-right: 8px;

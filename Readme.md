@@ -14,4 +14,5 @@ clicking on pin changes color of list item
 * Album label in heading
 * User accounts
 * Quick way to click through pictures 
+* Set map labels on by default
 * Look decent on phone

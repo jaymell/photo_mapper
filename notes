@@ -29,3 +29,23 @@ into db
 ..... delete file
 
 
+--------------
+keeping map and list in sync:
+. not ever item in list has pin
+. every pin has an item in list
+
+when list item clicked:
+. set pin center of map
+.. animate?
+. change zoom level ?
+.. animate?
+. change pin color
+. set active color on list item
+. set previously selected item to gray
+
+when pin clicked
+. change pin color
+. set active color on list item
+. set previously selected item to gray
+
+
