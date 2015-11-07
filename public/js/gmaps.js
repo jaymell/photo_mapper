@@ -20,19 +20,21 @@ var map = (function() {
 	var basePin = setPinColor('FE7569');
 	var changedPin = setPinColor('8169fe');
 
-	// array for markers so they can be stored and modified:
+	// object for markers so they can be stored and modified;
+	// individual markers accessible by md5sum: 
 	var markerObj = {};
 
 	// return random amount scaled by zoom level:
 	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
 	function jitter(zoom) {
-		return zoom < 12 ? (Math.random() * plusOrMinus() / (zoom*10)) : 0;
+		return zoom < 12 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
 	};
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
 		var zoom = map.getZoom();
 		console.log(zoom);
-		for (var marker in markerObj) {
+		for (var obj in markerObj) {
+			marker = markerObj[obj];
 			marker.setPosition(new google.maps.LatLng(
 				marker.latitude + jitter(zoom),
 				marker.longitude + jitter(zoom)
@@ -42,9 +44,17 @@ var map = (function() {
 		
 	return {
 		// for debugging:
+		markerObj: markerObj,
 		jitter: function() { console.log(jitter(map.getZoom())); },
 		zoom: function() { console.log(map.getZoom()); },
 
+		// expects to be passed md5sum, which
+		// corresponds to id of list items:
+		changePin: function(md5sum) {
+			if (md5sum in markerObj) {
+				markerObj[md5sum].setIcon(changedPin);
+			}
+		},
 		addPins: function(photoList) {
 			var zoom = map.getZoom();
 			photoList.forEach(function(photo, index, array) {
@@ -61,14 +71,18 @@ var map = (function() {
 						title: photo.date,
 						map: map,
 						icon: basePin,
-						fileName: photo.file_name
+						fileName: photo.file_name,
+						md5sum: photo.md5sum,
+						changePin: function() {
+							this.setIcon(changedPin);
+						},
 					});
 
-					markerObj[marker.fileName] = marker;	
+					markerObj[marker.md5sum] = marker;	
 
 					marker.addListener('click', function() {
-						marker.setIcon(changedPin);	
-						// initiliaze magnific Popup:
+						marker.setIcon(changedPin);
+						// initialize magnific Popup:
 						var that = this;
 						$.magnificPopup.open({
 							items: {
@@ -82,7 +96,7 @@ var map = (function() {
 		},
 	};		
 })();
-		
+			
 $('#photoList').magnificPopup({
 	delegate: 'a', // child items selector, by clicking on it popup will open
 	type: 'image'
@@ -99,6 +113,14 @@ $(document).ready(function() {
 		map.addPins(json);
 	});
 
+	// make clicked list items center on marker, if one
+	// exists for that list item:
+	$('#photoList').on('click', 'li a', function() {
+		console.log($(this));
+		map.changePin($(this).attr('id'));
+	});
+
+	// magnific popup event handler:
 	$('#photoList').magnificPopup({
     	delegate: 'a', // child items selector, by clicking on it popup will open
     	type: 'image'
