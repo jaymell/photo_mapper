@@ -27,7 +27,7 @@ var map = (function() {
 	// return random amount scaled by zoom level:
 	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
 	function jitter(zoom) {
-		return zoom < 12 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
+		return zoom < 8 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
 	};
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
@@ -35,10 +35,11 @@ var map = (function() {
 		console.log(zoom);
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
-			marker.setPosition(new google.maps.LatLng(
-				marker.latitude + jitter(zoom),
-				marker.longitude + jitter(zoom)
-			));
+			marker.position = new google.maps.LatLng(
+                marker.latitude + jitter(zoom),
+                marker.longitude + jitter(zoom)
+            );
+			marker.setPosition(marker.position);
 		}
 	});
 		
@@ -54,6 +55,12 @@ var map = (function() {
 			if (md5sum in markerObj) {
 				markerObj[md5sum].setIcon(changedPin);
 			}
+		},
+		centerPin: function(md5sum) {
+			if (md5sum in markerObj) {
+				console.log(markerObj[md5sum].position);
+				map.setCenter(markerObj[md5sum].position);
+            }
 		},
 		addPins: function(photoList) {
 			var zoom = map.getZoom();
@@ -97,32 +104,44 @@ var map = (function() {
 	};		
 })();
 			
-$('#photoList').magnificPopup({
-	delegate: 'a', // child items selector, by clicking on it popup will open
-	type: 'image'
-});
-
 $(document).ready(function() {
 	$.getJSON('/json', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
 			$('#photoList').append(
-				'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a></li>' 
-			);
+				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
+			)
+			// set background color of item on click:
+			$('#'+item.md5sum).click(function() {
+			});
 		});
 		map.addPins(json);
 	});
 
 	// make clicked list items center on marker, if one
 	// exists for that list item:
-	$('#photoList').on('click', 'li a', function() {
-		console.log($(this));
+	$('#photoList').on('click', 'a', function() {
+		$(this).css('background-color', '#671780');
 		map.changePin($(this).attr('id'));
+		map.centerPin($(this).attr('id'));
 	});
 
 	// magnific popup event handler:
 	$('#photoList').magnificPopup({
     	delegate: 'a', // child items selector, by clicking on it popup will open
-    	type: 'image'
+    	type: 'image',
+		gallery: {
+		  enabled: true, // set to true to enable gallery
+
+		  preload: [0,2], // read about this option in next Lazy-loading section
+
+		  navigateByImgClick: true,
+
+		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', // markup of an arrow button
+
+		  tPrev: 'Previous (Left arrow key)', // title for left button
+		  tNext: 'Next (Right arrow key)', // title for right button
+		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
+		},
 	});
 });

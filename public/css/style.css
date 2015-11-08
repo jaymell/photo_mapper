@@ -21,10 +21,6 @@ html, body {
 	list-style-type: none;
 }
 
-#photoList > li > a {
-	outline: 0;
-}
-
 .photo {
 	padding-left: 20px;
 	padding-right: 8px;
@@ -33,12 +29,18 @@ html, body {
 	cursor: pointer;
 	border: solid 1px;
 	background-color: #98bf21;
-
-}
-
-#photoList a {
+	outline: 0;
 	color: inherit; 
-	text-decoration: inherit; 
+	text-decoration: none;
+	display: block;
+
 }
 
+.photo:hover {
+	background-color: #bf2148;
+}
 
+/*
+.photo > a {
+}
+*/
