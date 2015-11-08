@@ -10,7 +10,7 @@ import re
 import jpgps
 import sys
 import hashlib
-
+from PIL import Image
 
 class Jpeg:
 	""" quick n dirty way to get extra
@@ -19,7 +19,7 @@ class Jpeg:
 	def __init__(self, f):
 		self.fh = open(f, 'rb')
 		self.name = self.fh.name
-		self.file_name_orig, self.path = os.path.split(self.fh.name)
+		self.path, self.file_name_orig = os.path.split(self.fh.name)
 		self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
 		self.file_name_new = str(self.md5sum) + '.jpg'
 	def close(self):
@@ -28,6 +28,16 @@ class Jpeg:
 def get_db_duplicates(md5sum, collection):
 	results = [ i for i in collection.find({'md5sum': md5sum}) ]
 	return results
+
+def write_image(file_handle, destination, rotation):
+	""" write image, rotating if necessary and stripping out
+		exif data for illusion of privacy's sake """
+	
+	img = Image.open(file_handle)
+	if rotation:
+			print('\trotating...')
+			img = img.rotate(rotation)
+	img.save(destination)
 
 def process(jpeg, collection):
 	""" figure out whether it's a db duplicate; act
@@ -47,7 +57,8 @@ def process(jpeg, collection):
 	# fails, undo the other:	
 	try:
 		jpeg.fh.seek(0)
-		db_entry = jpgps.Jpgps(jpeg.fh).as_dict()
+		jpeg.jpgps = jpgps.Jpgps(jpeg.fh)
+		db_entry = jpeg.jpgps.as_dict()
 	except Exception as e:
 		print('Failed to instantiate Jpgps object for %s: %s' % (jpeg.file_name_orig, e))
 		return
@@ -55,7 +66,7 @@ def process(jpeg, collection):
 	# add the md5sum and file_name_new from jpeg to the gps data to be inserted:
 	db_entry['md5sum'] = jpeg.md5sum
 	db_entry['file_name'] = jpeg.file_name_new
-
+	
 	try:
 		collection.insert_one(db_entry)
 	except Exception as e:
@@ -64,10 +75,10 @@ def process(jpeg, collection):
 	else:
 		# write file:
 		try:
-			with open(os.path.join(PHOTO_FOLDER, jpeg.file_name_new), 'wb') as f:
 				jpeg.fh.seek(0)
-				f.write(jpeg.fh.read())
+				write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
 		except Exception as e:
+			print('Failed to write file. Attempting to remove from database:\n\t%s' % e)
 			# if write failed, try to remove DB entry just added:
 			try:
 				collection.remove(db_entry)
