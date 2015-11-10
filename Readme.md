@@ -10,9 +10,7 @@ just confusing
   * can do this with Python PIL
 * Remove photos that suck
 * Improve pin jittering
-* Clicked photo changes color of corresponding pin and 
-clicking on pin changes color of list item
-  * Halfway done
+* Animate scrolling to selected item in list
 * Try to add stuff to map that's not actually geo-tagged based on time
 * Album label in heading
 * User accounts

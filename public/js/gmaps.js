@@ -1,3 +1,12 @@
+var selectedColor = '#671780';
+
+// pass it the name of the container div and the
+// item div you want to move to top of list:
+var scrollToSelected = function(ctDiv, itDiv) {
+	// ctDiv.scrollTop = ctDiv.scrollTop - ctDiv.offsetTop + itDiv.offsetTop;
+	ctDiv.scrollTop = - ctDiv.offsetTop + itDiv.offsetTop;
+};
+
 var map = (function() {
 
     var locale = new google.maps.LatLng(30,0);
@@ -32,7 +41,7 @@ var map = (function() {
 
 	google.maps.event.addListener(map, 'zoom_changed', function() {
 		var zoom = map.getZoom();
-		console.log(zoom);
+		console.log('zoom: '+zoom);
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
 			marker.position = new google.maps.LatLng(
@@ -58,7 +67,6 @@ var map = (function() {
 		},
 		centerPin: function(md5sum) {
 			if (md5sum in markerObj) {
-				console.log(markerObj[md5sum].position);
 				map.setCenter(markerObj[md5sum].position);
             }
 		},
@@ -88,6 +96,11 @@ var map = (function() {
 					markerObj[marker.md5sum] = marker;	
 
 					marker.addListener('click', function() {
+						// change list item's background color:
+						$('#'+marker.md5sum).css('background-color', selectedColor);
+						// put clicked item at top of list:
+						scrollToSelected(document.getElementById('mapLeft'), document.getElementById(marker.md5sum));
+						// change pin color
 						marker.setIcon(changedPin);
 						// initialize magnific Popup:
 						var that = this;
@@ -118,10 +131,11 @@ $(document).ready(function() {
 		map.addPins(json);
 	});
 
+
 	// make clicked list items center on marker, if one
 	// exists for that list item:
 	$('#photoList').on('click', 'a', function() {
-		$(this).css('background-color', '#671780');
+		$(this).css('background-color', selectedColor);
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
 	});
@@ -137,7 +151,8 @@ $(document).ready(function() {
 
 		  navigateByImgClick: true,
 
-		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', // markup of an arrow button
+		  // markup of an arrow button
+		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
 
 		  tPrev: 'Previous (Left arrow key)', // title for left button
 		  tNext: 'Next (Right arrow key)', // title for right button
