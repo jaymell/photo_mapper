@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var COLLECTION = 'photo_mapper';
-var config = require('../config.js');
+var config = require('../cfg/config.js');
 
 /* GET home page. */
 router.get('/', function(req, res) {

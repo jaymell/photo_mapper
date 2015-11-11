@@ -3,4 +3,4 @@ jpgps.py
 jpgps.pyc
 node_modules
 public/img/*
-config.js
+cfg/config.js

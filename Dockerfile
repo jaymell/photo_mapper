@@ -13,11 +13,13 @@ RUN yum install -y git
 RUN yum install -y nodejs
 RUN yum install -y npm
 RUN yum install -y python-pillow-devel
-RUN git clone https://github.com/jaymell/photo_mapper /app
+RUN cd / && git clone https://github.com/jaymell/photo_mapper /app
 WORKDIR /app 
+RUN ls -la
 RUN pip install -r requirements.txt 
 RUN npm install
 ADD ./public/img ./public/img/
+ADD ./cfg ./cfg
 
 
 # Volumes for systemd
