@@ -89,7 +89,7 @@ def process(jpeg, collection):
 	
 if __name__ == '__main__':
 
-	MONGODB_HOST = 'localhost'
+	MONGODB_HOST = 'pm-mongo'
 	MONGODB_PORT = 27017
 	DB_NAME = 'photo_mapper'
 	COLLECTION_NAME='photo_mapper'
