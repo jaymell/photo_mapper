@@ -20,3 +20,4 @@ just confusing
 * Look decent on phone
 * Server-side image rotation
   * Done!
+* Better understand of difference between jquery offset and plain jane dom offset
