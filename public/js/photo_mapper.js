@@ -124,9 +124,6 @@ $(document).ready(function() {
 			$('#photoList').append(
 				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
 			)
-			// set background color of item on click:
-			$('#'+item.md5sum).click(function() {
-			});
 		});
 		map.addPins(json);
 	});
@@ -145,18 +142,21 @@ $(document).ready(function() {
     	delegate: 'a', // child items selector, by clicking on it popup will open
     	type: 'image',
 		gallery: {
-		  enabled: true, // set to true to enable gallery
-
-		  preload: [0,2], // read about this option in next Lazy-loading section
-
+		  enabled: true,
+		  preload: [0,2], 
 		  navigateByImgClick: true,
-
 		  // markup of an arrow button
 		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
-
 		  tPrev: 'Previous (Left arrow key)', // title for left button
 		  tNext: 'Next (Right arrow key)', // title for right button
 		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
+		},
+		callbacks: {
+			elementParse: function(item) {
+				//for(var key in item) console.log('key = '+key);
+				$(item.el).css('background-color', selectedColor);
+				//console.log('item.el = ',item.el);
+			},
 		},
 	});
 });
