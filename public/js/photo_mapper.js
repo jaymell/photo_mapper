@@ -3,8 +3,19 @@ var selectedColor = '#671780';
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 var scrollToSelected = function(ctDiv, itDiv) {
-	// ctDiv.scrollTop = ctDiv.scrollTop - ctDiv.offsetTop + itDiv.offsetTop;
-	ctDiv.scrollTop = - ctDiv.offsetTop + itDiv.offsetTop;
+	/*
+	console.log('$(ctDiv).offsetTop: ', $(ctDiv).offset().top);
+	console.log('$(itDiv).offsetTop', $(itDiv).offset().top);
+	console.log('ctDiv.offsetTop', ctDiv.offsetTop);
+	console.log('itDiv.offsetTop', itDiv.offsetTop);
+	console.log('$(itDiv).scrollTop()', $(itDiv).scrollTop());
+	*/
+	$(ctDiv).animate({ 
+		scrollTop: - ctDiv.offsetTop + itDiv.offsetTop,
+
+	});
+	console.log('ctDiv: ',$(ctDiv));
+	console.log('itDiv: ',$(itDiv));
 };
 
 var map = (function() {
@@ -99,7 +110,8 @@ var map = (function() {
 						// change list item's background color:
 						$('#'+marker.md5sum).css('background-color', selectedColor);
 						// put clicked item at top of list:
-						scrollToSelected(document.getElementById('mapLeft'), document.getElementById(marker.md5sum));
+						//scrollToSelected(document.getElementById('mapLeft'), document.getElementById(marker.md5sum));
+						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
 						// change pin color
 						marker.setIcon(changedPin);
 						// initialize magnific Popup:
@@ -137,13 +149,13 @@ $(document).ready(function() {
 		map.centerPin($(this).attr('id'));
 	});
 
-	// magnific popup event handler:
+	// initialize magnific popup:
 	$('#photoList').magnificPopup({
     	delegate: 'a', // child items selector, by clicking on it popup will open
     	type: 'image',
 		gallery: {
 		  enabled: true,
-		  preload: [0,2], 
+		  //preload: [0,2], 
 		  navigateByImgClick: true,
 		  // markup of an arrow button
 		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
@@ -153,9 +165,8 @@ $(document).ready(function() {
 		},
 		callbacks: {
 			elementParse: function(item) {
-				//for(var key in item) console.log('key = '+key);
+				scrollToSelected($(item.el).parent().parent().get([0]), $(item.el).get([0]));
 				$(item.el).css('background-color', selectedColor);
-				//console.log('item.el = ',item.el);
 			},
 		},
 	});
