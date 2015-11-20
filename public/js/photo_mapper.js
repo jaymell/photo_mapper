@@ -19,14 +19,17 @@ var scrollToSelected = function(ctDiv, itDiv) {
 };
 
 var map = (function() {
+	/* this object is getting large and unwieldy... */
 
     var locale = new google.maps.LatLng(30,0);
     var mapOptions = {
             center: locale,
             zoom: 2,
+			minZoom: 2,
             mapTypeId: google.maps.MapTypeId.SATELLITE // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
-    var map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
+
+    var _map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
 
     function setPinColor(pinColor) {
 		return new google.maps.MarkerImage(
@@ -37,6 +40,7 @@ var map = (function() {
 			new google.maps.Point(10, 34)
     		);
 	};
+
 	var basePin = setPinColor('FE7569');
 	var changedPin = setPinColor('8169fe');
 
@@ -50,8 +54,8 @@ var map = (function() {
 		return zoom < 8 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
 	};
 
-	google.maps.event.addListener(map, 'zoom_changed', function() {
-		var zoom = map.getZoom();
+	google.maps.event.addListener(_map, 'zoom_changed', function() {
+		var zoom = _map.getZoom();
 		console.log('zoom: '+zoom);
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
@@ -66,8 +70,8 @@ var map = (function() {
 	return {
 		// for debugging:
 		markerObj: markerObj,
-		jitter: function() { console.log(jitter(map.getZoom())); },
-		zoom: function() { console.log(map.getZoom()); },
+		jitter: function() { console.log(jitter(_map.getZoom())); },
+		zoom: function() { console.log(_map.getZoom()); },
 
 		// expects to be passed md5sum, which
 		// corresponds to id of list items:
@@ -78,11 +82,11 @@ var map = (function() {
 		},
 		centerPin: function(md5sum) {
 			if (md5sum in markerObj) {
-				map.setCenter(markerObj[md5sum].position);
+				_map.setCenter(markerObj[md5sum].position);
             }
 		},
 		addPins: function(photoList) {
-			var zoom = map.getZoom();
+			var zoom = _map.getZoom();
 			photoList.forEach(function(photo, index, array) {
 				// only if photo actually has coordinates:
 				if (photo.latitude && photo.longitude) {
@@ -95,7 +99,7 @@ var map = (function() {
 							 photo.longitude + jitter(zoom)
 						),
 						title: photo.date,
-						map: map,
+						map: _map,
 						icon: basePin,
 						fileName: photo.file_name,
 						md5sum: photo.md5sum,
@@ -139,7 +143,6 @@ $(document).ready(function() {
 		});
 		map.addPins(json);
 	});
-
 
 	// make clicked list items center on marker, if one
 	// exists for that list item:
