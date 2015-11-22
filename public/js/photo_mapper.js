@@ -1,15 +1,34 @@
 var selectedColor = '#671780';
 
+// taken from:
+// http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
+function checkBounds(map) {
+
+		var latNorth = map.getBounds().getNorthEast().lat();
+		var latSouth = map.getBounds().getSouthWest().lat();
+		var newLat;
+
+		if(latNorth<85 && latSouth>-85)     /* in both side -> it's ok */
+			return;
+		else {
+			if(latNorth>85 && latSouth<-85)   /* out both side -> it's ok */
+				return;
+			else {
+				if(latNorth>85)   
+					newLat =  map.getCenter().lat() - (latNorth-85);   /* too north, centering */
+				if(latSouth<-85) 
+					newLat =  map.getCenter().lat() - (latSouth+85);   /* too south, centering */
+			}   
+		}
+		if(newLat) {
+			var newCenter= new google.maps.LatLng( newLat ,map.getCenter().lng() );
+			map.setCenter(newCenter);
+			}   
+}
+
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 var scrollToSelected = function(ctDiv, itDiv) {
-	/*
-	console.log('$(ctDiv).offsetTop: ', $(ctDiv).offset().top);
-	console.log('$(itDiv).offsetTop', $(itDiv).offset().top);
-	console.log('ctDiv.offsetTop', ctDiv.offsetTop);
-	console.log('itDiv.offsetTop', itDiv.offsetTop);
-	console.log('$(itDiv).scrollTop()', $(itDiv).scrollTop());
-	*/
 	$(ctDiv).animate({ 
 		scrollTop: - ctDiv.offsetTop + itDiv.offsetTop,
 
@@ -19,7 +38,7 @@ var scrollToSelected = function(ctDiv, itDiv) {
 };
 
 var map = (function() {
-	/* this object is getting large and unwieldy... */
+	/* this closure is getting large and unwieldy... */
 
     var locale = new google.maps.LatLng(30,0);
     var mapOptions = {
@@ -67,6 +86,10 @@ var map = (function() {
 		}
 	});
 		
+	google.maps.event.addListener(_map, 'center_changed', function() {
+    	checkBounds(_map);
+	});
+
 	return {
 		// for debugging:
 		markerObj: markerObj,

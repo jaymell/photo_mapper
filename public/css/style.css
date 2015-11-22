@@ -1,4 +1,5 @@
 html, body {
+	margin: 0;
 	height: 100%;
 }
 
@@ -10,22 +11,17 @@ html, body {
 
 #mapLeft {
 	position: fixed;
-	/*left: 10px;*/
 	float: left;	
 	width: 20%;
 	height: 80%;
 	z-index: 10;
 	overflow: auto;
 	top: 10%;
-}
-
-#photoListHeading {
-    padding-left: 20px;
-
+	opacity: .65;
 }
 
 #photoList {
-	overflow: auto;	
+	overflow: auto;
 }
 
 .photo {
@@ -46,8 +42,3 @@ html, body {
 .photo:hover {
 	background-color: #bf2148;
 }
-
-/*
-.photo > a {
-}
-*/
