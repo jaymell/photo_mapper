@@ -1,4 +1,6 @@
-var selectedColor = '#671780';
+var selectedColor = '#671780',
+	basePinColor = 'FE7569',
+	changedPinColor = '8169fe';
 
 // taken from:
 // http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
@@ -60,8 +62,8 @@ var map = (function() {
     		);
 	};
 
-	var basePin = setPinColor('FE7569');
-	var changedPin = setPinColor('8169fe');
+	var basePin = setPinColor(basePinColor);
+	var changedPin = setPinColor(changedPinColor);
 
 	// object for markers so they can be stored and modified;
 	// individual markers accessible by md5sum: 
@@ -108,6 +110,8 @@ var map = (function() {
 				_map.setCenter(markerObj[md5sum].position);
             }
 		},
+		// take an array, parse it for photos with coordinates,
+		// add them to map, and add call to magnific photo:
 		addPins: function(photoList) {
 			var zoom = _map.getZoom();
 			photoList.forEach(function(photo, index, array) {
@@ -131,24 +135,20 @@ var map = (function() {
 						},
 					});
 
+					// add to assoc array:
 					markerObj[marker.md5sum] = marker;	
 
+					// do stuff when clicked:
 					marker.addListener('click', function() {
 						// change list item's background color:
 						$('#'+marker.md5sum).css('background-color', selectedColor);
 						// put clicked item at top of list:
-						//scrollToSelected(document.getElementById('mapLeft'), document.getElementById(marker.md5sum));
 						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
 						// change pin color
 						marker.setIcon(changedPin);
-						// initialize magnific Popup:
-						var that = this;
-						$.magnificPopup.open({
-							items: {
-								src: '/img/' + that.fileName,
-							},
-							type: 'image'
-						});
+						// initialize magnific Popup, open the appropriate
+						// photo, based on array index:
+						$('#photoList').magnificPopup('open', index);
 					});
 				}
 			});	
@@ -157,6 +157,32 @@ var map = (function() {
 })();
 			
 $(document).ready(function() {
+	// initialize magnific popup:
+	$('#photoList').magnificPopup({
+    	delegate: 'a', // child items selector, by clicking on it popup will open
+    	type: 'image',
+		gallery: {
+		  enabled: true,
+		  preload: [0,3], 
+		  navigateByImgClick: true,
+		  // markup of an arrow button
+		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
+		  tPrev: 'Previous (Left arrow key)', // title for left button
+		  tNext: 'Next (Right arrow key)', // title for right button
+		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
+		},
+		callbacks: {
+			elementParse: function(item) {
+				scrollToSelected($(item.el).parent().parent().get([0]), $(item.el).get([0]));
+				$(item.el).css('background-color', selectedColor);
+			},
+			open: function() {
+				$('.mfp-arrow').css('display', 'none');
+				$('.mfp-close').css('display', 'none');
+			}
+		},
+	});
+
 	$.getJSON('/json', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
@@ -175,25 +201,4 @@ $(document).ready(function() {
 		map.centerPin($(this).attr('id'));
 	});
 
-	// initialize magnific popup:
-	$('#photoList').magnificPopup({
-    	delegate: 'a', // child items selector, by clicking on it popup will open
-    	type: 'image',
-		gallery: {
-		  enabled: true,
-		  //preload: [0,2], 
-		  navigateByImgClick: true,
-		  // markup of an arrow button
-		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
-		  tPrev: 'Previous (Left arrow key)', // title for left button
-		  tNext: 'Next (Right arrow key)', // title for right button
-		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
-		},
-		callbacks: {
-			elementParse: function(item) {
-				scrollToSelected($(item.el).parent().parent().get([0]), $(item.el).get([0]));
-				$(item.el).css('background-color', selectedColor);
-			},
-		},
-	});
 });
