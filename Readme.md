@@ -2,13 +2,12 @@
 Put pictures in a database on a map. Images displayed using Magnific Popup JS library
 
 To do:
-* Make map marker clicks gallery style?
-  * If so, need to try to tie initialization to markerObj, not individual markers
+
+* Fix arrow keys both simultaneously both moving map and scolling through photos
 * Possibly set onClicks for arrows and use next()/prev() methods rather than elementParse callback
-* Center on selected pin when choosing picture on left,
-if applicable
-  * This tends to not be helpful in practice... 
-just confusing
+  * This may help with mutliple items being marked as viewed on initial gallery load
+* Center on selected pin when choosing picture on left, if applicable
+  * This tends to not be helpful in practice... just confusing
 * Remove photos that suck
 * Improve pin jittering
 * Animate scrolling to selected item in list
@@ -18,6 +17,8 @@ just confusing
 * User accounts
 * Set map labels on by default
 * Look decent on phone
-* Server-side image rotation
-  * Done!
 * Better understand of difference between jquery offset and plain jane dom offset
+* Server-side image rotation
+  * Done
+* Make map marker clicks gallery style?
+  * Done
