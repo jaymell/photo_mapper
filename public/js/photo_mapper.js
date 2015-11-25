@@ -172,10 +172,16 @@ $(document).ready(function() {
 		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
 		},
 		callbacks: {
-			elementParse: function(item) {
+			// scoll to individual items in photo list
+			// when they are parsed and change background color;
+			markupParse: function(template, values, item) {
 				scrollToSelected($(item.el).parent().parent().get([0]), $(item.el).get([0]));
 				$(item.el).css('background-color', selectedColor);
 			},
+			// hide the arrows and close button on photo display;
+			// this makes it more touch/mobile friendly, since you don't need
+			// the buttons, anyway, and are biased into thinking
+			// you need to click on them when they're visible:
 			open: function() {
 				$('.mfp-arrow').css('display', 'none');
 				$('.mfp-close').css('display', 'none');
@@ -183,6 +189,8 @@ $(document).ready(function() {
 		},
 	});
 
+	// parse json, use it to 1) create the links in the item list
+	// and 2) add the pins to the map:
 	$.getJSON('/json', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
