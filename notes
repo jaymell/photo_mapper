@@ -48,4 +48,48 @@ when pin clicked
 . set active color on list item
 . set previously selected item to gray
 
+-----------------
+import country geojson
+### first have to strip off "featureCollection" tag, then wrap entire file in array brackets:
+mongoimport --drop --db geo --collection geo --type json --file countries.geojson --jsonArray
+# find in Mongo client:
+db.geo.findOne({'properties.admin': 'Italy'})
+
+# scratch:
+var monk = require('monk');
+
+var photoDb = monk('localhost:27017/photo_mapper');
+var photoCol = photoDb.get('photo_mapper');
+var photos = [];
+
+var geoDb = monk('localhost:27017/geo');
+var geoCol = geoDb.get('geo');
+var countries = [];
+
+photoCol.find({}, function(e,docs){
+	docs.forEach(function(i) { 
+		console.log(i);
+		if (i.longitude && i.latitude) {
+			photos.push({
+			"type": "Point",
+	  		"coordinates": [
+	    		i.longitude,  
+	    		i.latitude 
+	 		]}); 
+		}
+	});
+});
+
+geoCol.find({}, function(e, docs) {
+	
+});
+
+
+var point = {
+  "type": "Point",
+  "coordinates": [
+    longitude,  
+    latitude 
+  ]
+};
 
