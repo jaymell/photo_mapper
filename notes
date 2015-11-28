@@ -51,39 +51,85 @@ when pin clicked
 -----------------
 import country geojson
 ### first have to strip off "featureCollection" tag, then wrap entire file in array brackets:
-mongoimport --drop --db geo --collection geo --type json --file countries.geojson --jsonArray
+mongoimport --drop --db photo_mapper --collection countries --type json --file countries.geojson --jsonArray
 # find in Mongo client:
-db.geo.findOne({'properties.admin': 'Italy'})
+var italy = db.countries.findOne({'properties.admin': 'Italy'})
+
 
 # scratch:
 var monk = require('monk');
 
-var photoDb = monk('localhost:27017/photo_mapper');
-var photoCol = photoDb.get('photo_mapper');
+var db = monk('localhost:27017/photo_mapper');
+var photoCol = db.get('photo_mapper');
+var countryCol = db.get('countries');
 var photos = [];
-
-var geoDb = monk('localhost:27017/geo');
-var geoCol = geoDb.get('geo');
 var countries = [];
 
+// temporary var to hold photo data converted
+// to geojson, ultimately I need to make the photo 
+// records themselves hold this data:
 photoCol.find({}, function(e,docs){
 	docs.forEach(function(i) { 
 		console.log(i);
 		if (i.longitude && i.latitude) {
-			photos.push({
-			"type": "Point",
-	  		"coordinates": [
-	    		i.longitude,  
-	    		i.latitude 
-	 		]}); 
+			photos.push(
+				geometry: {
+					"type": "Point",
+					"coordinates": [
+						i.longitude,  
+						i.latitude 
+					]}
+			); 
 		}
 	});
 });
 
-geoCol.find({}, function(e, docs) {
-	
+// same as above but put it into separate
+// collection instead of variable:
+var pointCol = db.get('points')
+var photos = [];
+photoCol.find({}, function(e,docs){
+	photos = docs;
+});
+photos.forEach(function(i) {
+	if (i.longitude && i.latitude) {
+		pointCol.insert(
+		{
+			geometry: { 
+				"type": "Point",
+				"coordinates": [
+					i.longitude,
+					i.latitude
+				]
+			}
+		},
+		function(err, docs) {
+			if (err) throw err;
+		});
+	}
 });
 
+
+// find italy and assign to var:
+var italy; 
+countryCol.findOne({'properties.admin': 'Italy'}).on('success', function(doc) { italy = doc; });
+
+
+// now see if it can find photos within Italy:
+pointCol.find(
+	{
+		geometry: { 
+			$geoWithin: { 
+				$geometry: italy.geometry
+			}
+		}
+	},
+	function(err, docs) {
+		docs.forEach(function(curr) {
+			console.log(curr);
+		});
+	}
+);
 
 var point = {
   "type": "Point",
