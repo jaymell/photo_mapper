@@ -139,3 +139,30 @@ var point = {
   ]
 };
 
+// iterate through countries, find photos that fall within
+// them:
+var countries;
+countryCol.find({}).on('success', function(doc) { countries = doc; });
+countries.forEach(function(country) {
+	photoCol.find(
+		{
+			geojson: {
+				$geoWithin: {
+					$geometry: country.geometry
+				}
+			}
+		},
+		function(err, docs) {
+			if (docs) {
+				docs.forEach(function(curr) {
+					console.log(curr);
+				});
+			} else {
+				console.log('no docs: ',country.admin);
+			}
+		}
+	);
+});
+------------------------
+steps for adding country data:
+. 

@@ -65,6 +65,10 @@ def process(jpeg, collection):
 	# add the md5sum and file_name_new from jpeg to the gps data to be inserted:
 	db_entry['md5sum'] = jpeg.md5sum
 	db_entry['file_name'] = jpeg.file_name_new
+	# adding long/lat again, but this time as geojson point:
+	db_entry['geojson'] = { "type": "Point", 
+							"coordinates": [jpeg.jpgps.coordinates()[1], 
+								jpeg.jpgps.coordinates()[0]]}
 	
 	try:
 		collection.insert_one(db_entry)
@@ -89,7 +93,7 @@ def process(jpeg, collection):
 	
 if __name__ == '__main__':
 
-	MONGODB_HOST = 'pm-mongo'
+	MONGODB_HOST = 'localhost'
 	MONGODB_PORT = 27017
 	DB_NAME = 'photo_mapper'
 	COLLECTION_NAME='photo_mapper'
