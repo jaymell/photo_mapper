@@ -10,6 +10,7 @@ import jpgps
 import sys
 import hashlib
 from PIL import Image
+import io
 
 class Jpeg:
 	""" quick n dirty way to get extra
@@ -21,6 +22,7 @@ class Jpeg:
 		self.path, self.file_name_orig = os.path.split(self.fh.name)
 		self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
 		self.file_name_new = str(self.md5sum) + '.jpg'
+		self.thumb_name = str(self.md5sum) + '-thumbnail.jpg'
 	def close(self):
 		self.fh.close()
 
@@ -28,10 +30,14 @@ def get_db_duplicates(md5sum, collection):
 	results = [ i for i in collection.find({'md5sum': md5sum}) ]
 	return results
 
-def write_image(file_handle, destination, rotation):
+def write_image(file_handle, destination, rotation, thumbnail=False):
 	""" write image, rotating if necessary and stripping out
 		exif data for illusion of privacy's sake """
-	
+
+	# if thumbnail was passed, convert it to 
+	# file-like stream object first:
+	if thumbnail:
+		file_handle = io.BytesIO(file_handle)
 	img = Image.open(file_handle)
 	if rotation:
 			print('\trotating...')
@@ -80,6 +86,9 @@ def process(jpeg, collection):
 		try:
 				jpeg.fh.seek(0)
 				write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
+				# write thumbnail:
+				write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
+
 		except Exception as e:
 			print('Failed to write file. Attempting to remove from database:\n\t%s' % e)
 			# if write failed, try to remove DB entry just added:

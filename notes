@@ -141,6 +141,7 @@ var point = {
 
 // iterate through countries, find photos that fall within
 // them:
+// Antarctica, Russia, and Fiji throw errors:
 var countries;
 countryCol.find({}).on('success', function(doc) { countries = doc; });
 countries.forEach(function(country) {
@@ -153,12 +154,11 @@ countries.forEach(function(country) {
 			}
 		},
 		function(err, docs) {
+			if (err) console.log(country.properties.admin,' error: ',err);
 			if (docs) {
 				docs.forEach(function(curr) {
 					console.log(curr);
 				});
-			} else {
-				console.log('no docs: ',country.admin);
 			}
 		}
 	);
