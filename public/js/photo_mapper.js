@@ -34,7 +34,7 @@ var scrollToSelected = function(ctDiv, itDiv) {
 	$(ctDiv).animate({ 
 		scrollTop: - ctDiv.offsetTop + itDiv.offsetTop,
 
-	});
+	}, 100);
 	console.log('ctDiv: ',$(ctDiv));
 	console.log('itDiv: ',$(itDiv));
 };
