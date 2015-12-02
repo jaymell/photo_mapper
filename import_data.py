@@ -12,6 +12,9 @@ import hashlib
 from PIL import Image
 import io
 
+class InsertError(Exception):
+	pass
+
 class Jpeg:
 	""" quick n dirty way to get extra
 		attributes along with file handle """
@@ -44,17 +47,31 @@ def write_image(file_handle, destination, rotation, thumbnail=False):
 			img = img.rotate(rotation)
 	img.save(destination)
 
+def update_db(db_entry, collection):
+	try:
+		collection.insert_one(db_entry)
+	except Exception as e:
+		raise InsertError
+
 def process(jpeg, collection):
 	""" figure out whether it's a db duplicate; act
 		accordingly """
+
+	write_file_only = False
 
 	db_dupes = get_db_duplicates(jpeg.md5sum, collection)
 	if db_dupes:
 		if len(db_dupes) > 1:
 			print('Multiple DB duplicates found. Exiting: ', jpeg.file_name_orig)
 			sys.exit(3)
-		elif os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.file_name_new)):
-			print('Duplicate found. Skipping: ', jpeg.file_name_orig)
+		else:
+			# if there's a single duplicate and the image already exists, skip it:
+			if os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.file_name_new)):
+				print('Duplicate found. Skipping: ', jpeg.file_name_orig)
+			# there's already a db entry but the image was deleted, just copy the image:
+			else:
+				print('DB entry found but file is missing... copying file')
+				write_file_only = True	
 			return
 
 	# try to update database AND
@@ -75,30 +92,31 @@ def process(jpeg, collection):
 	db_entry['geojson'] = { "type": "Point", 
 							"coordinates": [jpeg.jpgps.coordinates()[1], 
 								jpeg.jpgps.coordinates()[0]]}
-	
-	try:
-		collection.insert_one(db_entry)
-	except Exception as e:
-		print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
-		return
-	else:
-		# write file:
-		try:
-				jpeg.fh.seek(0)
-				write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
-				# write thumbnail:
-				write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
+	db_entry["thumbnail"] = jpeg.thumb_name
 
+	if not write_file_only:
+		try:
+			update_db(db_entry, collection)
+		except InsertError as e:
+			print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
+			return
+
+	# write file:
+	try:
+		jpeg.fh.seek(0)
+		write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
+		# write thumbnail:
+		write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
+	except Exception as e:
+		print('Failed to write file. Attempting to remove from database:\n\t%s' % e)
+		# if write failed, try to remove DB entry just added:
+		try:
+			collection.remove(db_entry)
 		except Exception as e:
-			print('Failed to write file. Attempting to remove from database:\n\t%s' % e)
-			# if write failed, try to remove DB entry just added:
-			try:
-				collection.remove(db_entry)
-			except Exception as e:
-				print('Failed to remove item from database -- db is no longer consistent w/ file system: %s' % e)
-				sys.exit(4)
-		finally:
-			jpeg.close()
+			print('Failed to remove item from database -- db is no longer consistent w/ file system: %s' % e)
+			sys.exit(4)
+	finally:
+		jpeg.close()
 	
 if __name__ == '__main__':
 
@@ -133,5 +151,3 @@ if __name__ == '__main__':
 					process(jpeg, collection)
 				finally:
 					jpeg.close()
-
-

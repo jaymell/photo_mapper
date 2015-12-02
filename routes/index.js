@@ -16,7 +16,7 @@ router.get('/pictures', function(req, res) {
     var collection = db.get(COLLECTION);
     collection.find({},{},function(e,docs){
         res.render('pictures', {
-            "pictures" : docs
+            'pictures' : docs
         });
     });
 });
@@ -28,6 +28,13 @@ router.get('/json', function(req, res) {
 		res.json(docs.sort(function(a,b) {
 			return new Date(a.date) - new Date(b.date)
 		}));	
+	});
+});
+
+router.get('/test', function(req, res) {
+	res.json({
+		'req.params': req.params,
+		'req.body': req.body,
 	});
 });
 
