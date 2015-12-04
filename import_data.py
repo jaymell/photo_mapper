@@ -45,7 +45,7 @@ def write_image(file_handle, destination, rotation, thumbnail=False):
 	if rotation:
 			print('\trotating...')
 			img = img.rotate(rotation)
-	img.save(destination)
+	img.save(destination, quality=50)
 
 def update_db(db_entry, collection):
 	try:
@@ -53,7 +53,7 @@ def update_db(db_entry, collection):
 	except Exception as e:
 		raise InsertError
 
-def process(jpeg, collection):
+def process(jpeg, collection, user):
 	""" figure out whether it's a db duplicate; act
 		accordingly """
 
@@ -92,6 +92,7 @@ def process(jpeg, collection):
 							"coordinates": [jpeg.jpgps.coordinates()[1], 
 								jpeg.jpgps.coordinates()[0]]}
 	db_entry["thumbnail"] = jpeg.thumb_name
+	db_entry["user"] = user
 
 	if not write_file_only:
 		try:
@@ -131,6 +132,7 @@ if __name__ == '__main__':
 		print('Usage: %s <directory name>' % sys.argv[0])
 		sys.exit(1)
 	location = sys.argv[1]
+	user = raw_input('Enter user name: ')
 	try:
 		dir_items = os.listdir(location)	
 	except Exception as e:
@@ -147,6 +149,6 @@ if __name__ == '__main__':
 			else:
 				print('FILE NAME: %s' % jpeg.file_name_orig)
 				try:
-					process(jpeg, collection)
+					process(jpeg, collection, user)
 				finally:
 					jpeg.close()

@@ -11,6 +11,12 @@ router.get('/', function(req, res) {
 	});
 });
 
+router.get('/edit', function(req, res) {
+	res.render('edit', {
+		title: 'Edit Photos'
+	});
+});
+
 router.get('/pictures', function(req, res) {
     var db = req.db;
     var collection = db.get(COLLECTION);
