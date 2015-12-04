@@ -4,3 +4,4 @@ jpgps.pyc
 node_modules
 public/img/*
 cfg/config.js
+*.swp
