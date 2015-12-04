@@ -166,3 +166,5 @@ countries.forEach(function(country) {
 ------------------------
 steps for adding country data:
 . test 
+
+quality=30 -- total size 218M

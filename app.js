@@ -45,12 +45,6 @@ app.use('/magnific', express.static(path.join(__dirname, './node_modules/magnifi
 var oneDay = 86400000;
 app.use(express.static(__dirname + '/public', {maxAge: oneDay}));
 
-// Create our Express router
-//var router = express.Router();
-
-// Register all our routes
-//app.use(router);
-
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
     var err = new Error('Not Found');

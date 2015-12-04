@@ -72,7 +72,6 @@ def process(jpeg, collection):
 			else:
 				print('DB entry found but file is missing... copying file')
 				write_file_only = True	
-			return
 
 	# try to update database AND
 	# put files in right place; if one
