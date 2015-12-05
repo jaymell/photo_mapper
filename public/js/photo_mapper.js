@@ -146,8 +146,8 @@ var map = (function() {
 						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
 						// change pin color
 						marker.setIcon(changedPin);
-						// initialize magnific Popup, open the appropriate
-						// photo, based on array index:
+						// open the appropriate photo, 
+						// based on array index:
 						$('#photoList').magnificPopup('open', index);
 					});
 				}
@@ -157,6 +157,8 @@ var map = (function() {
 })();
 			
 $(document).ready(function() {
+	// override magnificPopup.resizeImage:
+	$.magnificPopup.instance.resizeImage = betterResizeImage;
 	// initialize magnific popup:
 	$('#photoList').magnificPopup({
     	delegate: 'a', // child items selector, by clicking on it popup will open

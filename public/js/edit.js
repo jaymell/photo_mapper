@@ -1,4 +1,6 @@
 $(document).ready(function() {
+    // override magnificPopup.resizeImage:
+    $.magnificPopup.instance.resizeImage = betterResizeImage;
 
     $('#photoList').magnificPopup({
         delegate: 'img', // child items selector, by clicking on it popup will open
