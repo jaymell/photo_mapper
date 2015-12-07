@@ -7,14 +7,26 @@ function dragStartHandler(e) {
 
 function dragOverHandler(e) {
 	e.preventDefault();
-	e.dataTransfer.dropEffect = 'move';
+	//e.dataTransfer.dropEffect = 'move';
 	console.log('something is hovering over me');
 }
 
 function dropHandler(e) {
 	e.preventDefault();
-	var data = e.dataTransfer.getData('text');
-	console.log('received: ', data);	
+	var id = e.dataTransfer.getData('text');
+	console.log('received: ', id);	
+	$.ajax({
+		url: '/json',
+		type: 'DELETE',
+		data: 'id='+id,
+		success: function(data) {
+			console.log('success: ', data);
+			$('#'+id).remove();
+		},
+		error: function(err) {
+			console.log('delete failedi: ', err);
+		},
+	});	
 }
 
 function dragEndHandler(e) {

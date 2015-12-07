@@ -37,6 +37,17 @@ router.get('/json', function(req, res) {
 	});
 });
 
+router.delete('/json', function(req, res) {
+	var toDelete = req.body.id;
+	var db = req.db;
+	console.log('deleting: ', toDelete);
+	var collection = db.get(COLLECTION);
+	collection.remove({'md5sum': 'nonexistent'}, function(err) {
+		if (err) res.status(500).send({error: err});
+		else res.status(200).send({response: "I think I deleted it"});
+	});
+});
+
 router.get('/test', function(req, res) {
 	res.json({
 		'req.params': req.params,
