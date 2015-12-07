@@ -47,7 +47,8 @@ var map = (function() {
             center: locale,
             zoom: 2,
 			minZoom: 2,
-            mapTypeId: google.maps.MapTypeId.SATELLITE // TERRAIN, SATELLITE, HYBRID, ROADMAP
+			// HYBRID like SATELLITE, but shows labels:
+            mapTypeId: google.maps.MapTypeId.HYBRID, // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
 
     var _map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
@@ -167,10 +168,6 @@ $(document).ready(function() {
 		  enabled: true,
 		  preload: [0,3], 
 		  navigateByImgClick: true,
-		  // markup of an arrow button
-		  arrowMarkup: '<button title="%title%" type="button" class="mfp-arrow mfp-arrow-%dir%"></button>', 
-		  tPrev: 'Previous (Left arrow key)', // title for left button
-		  tNext: 'Next (Right arrow key)', // title for right button
 		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
 		},
 		callbacks: {

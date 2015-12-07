@@ -16,7 +16,7 @@ html, body {
 	height: 80%;
 	z-index: 10;
 	overflow: auto;
-	top: 10%;
+	top: 10%; 
 	opacity: .65;
 }
 
