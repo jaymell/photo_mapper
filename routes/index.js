@@ -27,7 +27,7 @@ router.get('/pictures', function(req, res) {
     });
 });
 
-router.get('/json', function(req, res) {
+router.get('/photos', function(req, res) {
 	var db = req.db;
 	var collection = db.get(COLLECTION);
 	collection.find({}, {}, function(e,docs) {
@@ -37,7 +37,7 @@ router.get('/json', function(req, res) {
 	});
 });
 
-router.delete('/json', function(req, res) {
+router.delete('/photos', function(req, res) {
 	var toDelete = req.body.id;
 	var db = req.db;
 	console.log('deleting: ', toDelete);

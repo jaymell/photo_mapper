@@ -190,7 +190,7 @@ $(document).ready(function() {
 
 	// parse json, use it to 1) create the links in the item list
 	// and 2) add the pins to the map:
-	$.getJSON('/json', function(json) {
+	$.getJSON('/photos', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
 			$('#photoList').append(

@@ -2,7 +2,6 @@ function dragStartHandler(e) {
 	e.dataTransfer.setData("text/plain", e.target.id);
 	e.dataTransfer.dropEffect = 'move';
 	console.log('dragging: ', e.target.id);
-
 }
 
 function dragOverHandler(e) {
@@ -16,7 +15,7 @@ function dropHandler(e) {
 	var id = e.dataTransfer.getData('text');
 	console.log('received: ', id);	
 	$.ajax({
-		url: '/json',
+		url: '/photos',
 		type: 'DELETE',
 		data: 'id='+id,
 		success: function(data) {
@@ -42,20 +41,17 @@ $(document).ready(function() {
         type: 'image',
 		closeOnContentClick: true,
 	});
-
-/*
+/* 
+	var magnificLinks = magnific.find('img');
 	magnific.off('click');
-	magnific.on('click', function(e) {
+	magnificLinks.on('click', function(e) {
 		e.preventDefault();
 	});
-	magnific.on('dblclick', function(blah, blah2) {
-		console.log(blah);
-		console.log(blah2);
-		magnific.magnificPopup('open')
+	magnificLinks.on('dblclick', function() {
+		magnific.magnificPopup('open', magnificLinks.index(this))
 	});
 */
-
-	$.getJSON('/json', function(json) {
+	$.getJSON('/photos', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
 			var img=$('<img/>')
