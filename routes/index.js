@@ -18,15 +18,6 @@ router.get('/edit', function(req, res) {
 	});
 });
 
-router.get('/pictures', function(req, res) {
-    var collection = db.get().collection(COLLECTION);
-    collection.find({},{}).toArray(function(e,docs){
-        res.render('pictures', {
-            'pictures' : docs
-        });
-    });
-});
-
 router.get('/photos', function(req, res) {
 	var collection = db.get().collection(COLLECTION);
 	collection.find({}, {}).toArray(function(e,docs) {
@@ -38,18 +29,21 @@ router.get('/photos', function(req, res) {
 
 router.delete('/photos', function(req, res) {
 	var toDelete = req.body.id;
-	console.log('deleting: ', toDelete);
+	console.log('attempting to delete: ', toDelete);
+	// regex to verify an md5sum was actually passed:
+	if(!/^[a-fA-F0-9]{32}$/.test(toDelete)) {
+		console.log("unable to delete -- doesn't match regex");
+		res.status(400).send();
+	}
 	var collection = db.get().collection(COLLECTION);
-	collection.remove({'md5sum': 'nonexistent'}, function(err) {
+	collection.deleteOne({'md5sum': toDelete}, function(err, r) {
 		if (err) res.status(500).send({error: err});
-		else res.status(200).send({response: "I think I deleted it"});
-	});
-});
-
-router.get('/test', function(req, res) {
-	res.json({
-		'req.params': req.params,
-		'req.body': req.body,
+		if (r.deletedCount != 1) {
+			res.status(404).send();
+		} else {
+			// database delete was successful
+			res.status(200).send(); 
+		}
 	});
 });
 

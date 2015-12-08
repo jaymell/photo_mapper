@@ -23,7 +23,7 @@ function dropHandler(e) {
 			$('#'+id).remove();
 		},
 		error: function(err) {
-			console.log('delete failedi: ', err);
+			console.log('delete failed: ', err);
 		},
 	});	
 }
