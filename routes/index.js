@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var COLLECTION = 'photo_mapper';
 var config = require('../cfg/config.js');
+var db = require('../db');
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -18,9 +19,8 @@ router.get('/edit', function(req, res) {
 });
 
 router.get('/pictures', function(req, res) {
-    var db = req.db;
-    var collection = db.get(COLLECTION);
-    collection.find({},{},function(e,docs){
+    var collection = db.get().collection(COLLECTION);
+    collection.find({},{}).toArray(function(e,docs){
         res.render('pictures', {
             'pictures' : docs
         });
@@ -28,9 +28,8 @@ router.get('/pictures', function(req, res) {
 });
 
 router.get('/photos', function(req, res) {
-	var db = req.db;
-	var collection = db.get(COLLECTION);
-	collection.find({}, {}, function(e,docs) {
+	var collection = db.get().collection(COLLECTION);
+	collection.find({}, {}).toArray(function(e,docs) {
 		res.json(docs.sort(function(a,b) {
 			return new Date(a.date) - new Date(b.date)
 		}));	
@@ -39,9 +38,8 @@ router.get('/photos', function(req, res) {
 
 router.delete('/photos', function(req, res) {
 	var toDelete = req.body.id;
-	var db = req.db;
 	console.log('deleting: ', toDelete);
-	var collection = db.get(COLLECTION);
+	var collection = db.get().collection(COLLECTION);
 	collection.remove({'md5sum': 'nonexistent'}, function(err) {
 		if (err) res.status(500).send({error: err});
 		else res.status(200).send({response: "I think I deleted it"});
