@@ -14,6 +14,7 @@ var routes = require('./routes/index');
 
 // Create our Express application
 var app = express();
+var exports = module.exports;
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -26,11 +27,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use('/', routes);
-app.use('/magnific', express.static(path.join(__dirname, './node_modules/magnific-popup/dist')));
 
 // Add static middleware
 var oneDay = 86400000;
-app.use(express.static(__dirname + '/public', {maxAge: oneDay}));
+var staticFilePath = __dirname + '/public';
+app.use(express.static(staticFilePath, {maxAge: oneDay}));
+app.use('/magnific', express.static(__dirname + '/node_modules/magnific-popup/dist'));
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {
@@ -63,13 +65,14 @@ app.use(function(err, req, res, next) {
     });
 });
 
-module.exports = app;
+exports.staticFilePath = staticFilePath;
+exports.app = app;
 
 // Start the server if initial
 // DB connection is successful:
 var PORT = 5001;
 var url = 'mongodb://localhost:27017/photo_mapper';
-var db = require('./db');
+var db = require('./cfg/db');
 db.connect(url, function(err) {
 	if(err) {
 		console.log('Unable to connect to Mongo.');

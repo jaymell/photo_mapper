@@ -22,6 +22,7 @@ html, body {
 
 #photoList {
 	overflow: auto;
+	list-style-type: none;
 }
 
 .photo {
@@ -40,4 +41,9 @@ html, body {
 
 .photo:hover {
 	background-color: #bf2148;
+}
+
+.pinImage {
+	position: relative;
+	left: 30%;
 }

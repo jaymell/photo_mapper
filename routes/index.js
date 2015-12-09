@@ -2,7 +2,9 @@ var express = require('express');
 var router = express.Router();
 var COLLECTION = 'photo_mapper';
 var config = require('../cfg/config.js');
-var db = require('../db');
+var db = require('../cfg/db');
+var fs = require('fs');
+var app = require('../app');
 
 /* GET home page. */
 router.get('/', function(req, res) {
@@ -43,6 +45,14 @@ router.delete('/photos', function(req, res) {
 		} else {
 			// database delete was successful
 			res.status(200).send(); 
+			fs.unlink(app.staticFilePath+'/img/'+toDelete+'.jpg', function(err) {
+				if(err) console.log('Failed to delete',toDelete,'\n\t',err);
+				else console.log('Successfully deleted', toDelete);
+			});
+            fs.unlink(app.staticFilePath+'/img/'+toDelete+'-thumbnail.jpg', function(err) {
+                if(err) console.log('Failed to delete',toDelete,'thumbnail,\n\t',err);
+                else console.log('Successfully deleted', toDelete, 'thumbnail');
+            });
 		}
 	});
 });

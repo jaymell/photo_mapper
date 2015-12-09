@@ -2,6 +2,11 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
+// you want to append one of the above colors to this url:
+var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
+// eg, like this:
+var basePin = pinLink + basePinColor;
+
 // taken from:
 // http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
 function checkBounds(map) {
@@ -55,8 +60,7 @@ var map = (function() {
 
     function setPinColor(pinColor) {
 		return new google.maps.MarkerImage(
-			"http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
-			+ pinColor,
+			pinLink + pinColor,
 			new google.maps.Size(21, 34),
 			new google.maps.Point(0,0),
 			new google.maps.Point(10, 34)
@@ -194,6 +198,7 @@ $(document).ready(function() {
 		console.log('got json');
 		json.forEach(function(item) {
 			$('#photoList').append(
+				//'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a><img class="pinImage" src="' + basePin + '"</img></li>' 
 				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
 			)
 		});
