@@ -197,11 +197,19 @@ $(document).ready(function() {
 	$.getJSON('/photos', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
-			$('#photoList').append(
-				//'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a><img class="pinImage" src="' + basePin + '"</img></li>' 
-				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
-			)
+			var link = $('<a>', {
+				id: item.md5sum, 
+				class: "photoLink",
+				href: "/img/" + item.file_name,
+			})
+				.text(item.date);
+			$('#photoList').append(link);
+			link.wrap('<li class="photo"></li>');
+			if(item.latitude && item.longitude) 
+				$('#'+item.md5sum).after('<img class="pinImage" src="' + basePin + '"</img></li>');
+
 		});
+
 		map.addPins(json);
 	});
 
