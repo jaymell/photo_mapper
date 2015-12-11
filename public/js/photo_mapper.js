@@ -198,16 +198,24 @@ $(document).ready(function() {
 		console.log('got json');
 		json.forEach(function(item) {
 			var link = $('<a>', {
-				id: item.md5sum, 
 				class: "photoLink",
+				id: item.md5sum, 
 				href: "/img/" + item.file_name,
 			})
 				.text(item.date);
-			$('#photoList').append(link);
-			link.wrap('<li class="photo"></li>');
-			if(item.latitude && item.longitude) 
-				$('#'+item.md5sum).after('<img class="pinImage" src="' + basePin + '"</img></li>');
-
+			
+			if(item.latitude && item.longitude) {
+				var image = $('<img>', {
+					class: "pinImage",
+					src: basePin,
+				});
+				$('#photoList').append(image);
+				image.wrap('<li class="photo"></li>');
+				image.after(link);
+			} else {
+				$('#photoList').append(link);
+				link.wrap('<li class="photo"></li>');
+			}
 		});
 
 		map.addPins(json);

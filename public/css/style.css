@@ -37,6 +37,8 @@ html, body {
 	background-color: #98bf21;
 	outline: 0;
 	color: inherit; 
+	white-space: nowrap;
+	overflow: hidden;
 }
 
 .photoLink {
@@ -53,7 +55,5 @@ html, body {
 	display: inline;
 	position: relative;
 	*/
-	float: right;
-	left: 20%;
-	zoom: 75%;
+	float: left;
 }
