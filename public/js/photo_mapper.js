@@ -52,6 +52,7 @@ var map = (function() {
             center: locale,
             zoom: 2,
 			minZoom: 2,
+			keyboardShortcuts: false,
 			// HYBRID like SATELLITE, but shows labels:
             mapTypeId: google.maps.MapTypeId.HYBRID, // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
@@ -99,6 +100,7 @@ var map = (function() {
 
 	return {
 		// for debugging:
+		_map: _map,
 		markerObj: markerObj,
 		jitter: function() { console.log(jitter(_map.getZoom())); },
 		zoom: function() { console.log(_map.getZoom()); },
