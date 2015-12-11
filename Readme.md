@@ -5,7 +5,6 @@ To do:
 * Delete img and thumbnail from FS after DB deletion
 * Allow uploading images through UI -- need the 'C' in CRUD
 * Item not quite scrolling to top of list on gallery click
-* Fix arrow keys both simultaneously both moving map and scolling through photos
 * Improve pin jittering
 * Try to add stuff to map that's not actually geo-tagged based on time
 * Album label in heading
