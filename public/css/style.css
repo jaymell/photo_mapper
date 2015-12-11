@@ -49,10 +49,11 @@ html, body {
 }
 
 .pinImage {
-	display: inline;
 	/*
+	display: inline;
 	position: relative;
-	left: 20%;
 	*/
+	float: right;
+	left: 20%;
 	zoom: 75%;
 }
