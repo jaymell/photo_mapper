@@ -2,7 +2,7 @@
 Put pictures in a database on a map. Images displayed using Magnific Popup JS library
 
 To do:
-* Delete img and thumbnail from FS after DB deletion
+* Only show map labels at >= certain zoom level
 * Allow uploading images through UI -- need the 'C' in CRUD
 * Item not quite scrolling to top of list on gallery click
 * Improve pin jittering
