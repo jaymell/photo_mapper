@@ -6,7 +6,8 @@ html, body {
 #mapCanvas { 
 	float: right;
 	height: 80%;
-	width: 75%;
+	width: 73%;
+	margin-right: 1%;
 }
 
 #mapLeftOuter {
@@ -14,14 +15,13 @@ html, body {
 	width: 25%;
 	overflow: hidden;
 	height: 80%;
-	margin-left: 0;
+	margin-left: 1%;
 	/*
 	top: 10%; 
 	*/
 }
 
 #mapLeft {
-	margin-right: 
 	height: 100%;
 	width: 100%;
 	overflow: auto;
