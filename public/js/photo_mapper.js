@@ -78,7 +78,7 @@ var map = (function() {
 	// return random amount scaled by zoom level:
 	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
 	function jitter(zoom) {
-		return zoom < 8 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
+		return zoom < 8 ? (Math.random() * plusOrMinus() / (zoom*zoom)) : 0;
 	};
 
 	google.maps.event.addListener(_map, 'zoom_changed', function() {
