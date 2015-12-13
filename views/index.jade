@@ -4,9 +4,12 @@ html
     link(rel='stylesheet', href='/magnific/magnific-popup.css')
     link(rel='stylesheet', href='/css/style.css')
   body
-    #mapLeft
-      ul#photoList
+    .border
+    #mapLeftOuter
+      #mapLeft
+        ul#photoList
     #mapCanvas
+    .border
     script(src='https://maps.googleapis.com/maps/api/js?key=#{gmapsKey}')
     script(src='https://code.jquery.com/jquery-1.11.3.js')
     script(src='/magnific/jquery.magnific-popup.js')
