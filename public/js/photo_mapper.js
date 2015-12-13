@@ -78,7 +78,9 @@ var map = (function() {
 	// return random amount scaled by zoom level:
 	var plusOrMinus = function() { return Math.random() < 0.5 ? -1 : 1 };
 	function jitter(zoom) {
-		return zoom < 8 ? (Math.random() * plusOrMinus() / (zoom)) : 0;
+		var numerator = Math.random() * plusOrMinus();
+		var denominator = Math.pow(zoom, 3);
+		return zoom < 18 ? numerator/denominator : 0;
 	};
 
 	google.maps.event.addListener(_map, 'zoom_changed', function() {
@@ -87,8 +89,13 @@ var map = (function() {
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
 			marker.position = new google.maps.LatLng(
-                marker.latitude + jitter(zoom),
+				marker.latitude,
+				marker.longitude
+				/* ... starting to think the jitter
+				* just needs to get away.... 
+            	marker.latitude + jitter(zoom),
                 marker.longitude + jitter(zoom)
+				*/
             );
 			marker.setPosition(marker.position);
 		}
