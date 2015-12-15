@@ -2,7 +2,7 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
-// really stupid global variable:
+// hooray for global variable:
 var photoArray = [];
 
 var openPhotoSwipe = function(index) {
@@ -12,6 +12,14 @@ var openPhotoSwipe = function(index) {
         };
         var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
         gallery.init();
+		// set Pin and item in list to change color when 
+		// slide is changed:
+		gallery.listen('beforeChange', function() { 
+			itemId = gallery.currItem.id;
+			map.changePin(itemId);
+			scrollToSelected($('#mapLeft').get([0]), $('#'+itemId).get([0]));
+			$('#'+itemId).css('background-color', selectedColor);
+	});
 };
 
 // you want to append one of the above colors to this url:
@@ -119,9 +127,6 @@ var map = (function() {
 	});
 
 	return {
-		// for debugging:
-		_map: _map,
-		markerObj: markerObj,
 		jitter: function() { console.log(jitter(_map.getZoom())); },
 		zoom: function() { console.log(_map.getZoom()); },
 
