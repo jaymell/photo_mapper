@@ -2,13 +2,23 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
+// really stupid global variable:
+var photoArray = [];
+
+var openPhotoSwipe = function(index) {
+        var pswpElement = $('.pswp')[0];
+        var options = {
+                index: index,
+        };
+        var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+        gallery.init();
+};
+
 // you want to append one of the above colors to this url:
 var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
 // e.g., like this:
 var basePin = pinLink + basePinColor;
 
-// really stupid global variable:
-var photoArray = [];
 
 // taken from:
 // http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
@@ -159,19 +169,16 @@ var map = (function() {
 					marker.addListener('click', function() {
 						// change list item's background color:
 						$('#'+marker.md5sum).css('background-color', selectedColor);
+
 						// put clicked item at top of list:
-			
+						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
+
 						// change pin color
 						marker.setIcon(changedPin);
+
 						// open the appropriate photo, 
 						// based on array index:
-						var options = {
-								index: index,
-						};
-						var pswpElement = $('.pswp')[0];
-						var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
-						gallery.init();
-
+						openPhotoSwipe(index);
 					});
 				}
 			});	
@@ -188,10 +195,8 @@ $(document).ready(function() {
 	$.getJSON('/photos', function(json) {
 		console.log('got json');
 
-        var pswpElement = $('.pswp')[0];
 		json.forEach(function(item, index, array) {
 			$('#photoList').append(
-				//'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a><img class="pinImage" src="' + basePin + '"</img></li>' 
 				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
 			)
 			// build photoArray for photoSwipe:
@@ -199,17 +204,14 @@ $(document).ready(function() {
 				src: '/img/' + item.file_name,
 				w: item.width,
 				h: item.height,
+				id: item.md5sum,
 			});
 		});
 
 		$('.photo').on('click', function(event) {
 			var photo = $(this);
 			event.preventDefault();
-			var options = {
-					index: photo.index(),
-			};
-			var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
-			gallery.init();
+			openPhotoSwipe(photo.index());
 		});	
 
 		map.addPins(json);
@@ -222,13 +224,4 @@ $(document).ready(function() {
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
 	});
-
-	var openPhotoSwipe = function(index) {
-            var options = {
-                    index: photo.index(),
-            };
-            var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
-            gallery.init();
-
-	};
 });
