@@ -2,35 +2,56 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
+// hooray for global variable:
+var photoArray = [];
+
+var openPhotoSwipe = function(index) {
+        var pswpElement = $('.pswp')[0];
+        var options = {
+                index: index,
+        };
+        var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+        gallery.init();
+		// set Pin and item in list to change color when 
+		// slide is changed:
+		gallery.listen('beforeChange', function() { 
+			itemId = gallery.currItem.id;
+			map.changePin(itemId);
+			scrollToSelected($('#mapLeft').get([0]), $('#'+itemId).get([0]));
+			$('#'+itemId).css('background-color', selectedColor);
+	});
+};
+
 // you want to append one of the above colors to this url:
 var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
-// eg, like this:
+// e.g., like this:
 var basePin = pinLink + basePinColor;
+
 
 // taken from:
 // http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
 function checkBounds(map) {
 
-		var latNorth = map.getBounds().getNorthEast().lat();
-		var latSouth = map.getBounds().getSouthWest().lat();
-		var newLat;
+	var latNorth = map.getBounds().getNorthEast().lat();
+	var latSouth = map.getBounds().getSouthWest().lat();
+	var newLat;
 
-		if(latNorth<85 && latSouth>-85)     /* in both side -> it's ok */
+	if(latNorth<85 && latSouth>-85)     /* in both side -> it's ok */
+		return;
+	else {
+		if(latNorth>85 && latSouth<-85)   /* out both side -> it's ok */
 			return;
 		else {
-			if(latNorth>85 && latSouth<-85)   /* out both side -> it's ok */
-				return;
-			else {
-				if(latNorth>85)   
-					newLat =  map.getCenter().lat() - (latNorth-85);   /* too north, centering */
-				if(latSouth<-85) 
-					newLat =  map.getCenter().lat() - (latSouth+85);   /* too south, centering */
-			}   
-		}
-		if(newLat) {
-			var newCenter= new google.maps.LatLng( newLat ,map.getCenter().lng() );
-			map.setCenter(newCenter);
-			}   
+			if(latNorth>85)   
+				newLat =  map.getCenter().lat() - (latNorth-85);   /* too north, centering */
+			if(latSouth<-85) 
+				newLat =  map.getCenter().lat() - (latSouth+85);   /* too south, centering */
+		}   
+	}
+	if(newLat) {
+		var newCenter= new google.maps.LatLng( newLat ,map.getCenter().lng() );
+		map.setCenter(newCenter);
+		}   
 }
 
 // pass it the name of the container div and the
@@ -106,9 +127,6 @@ var map = (function() {
 	});
 
 	return {
-		// for debugging:
-		_map: _map,
-		markerObj: markerObj,
 		jitter: function() { console.log(jitter(_map.getZoom())); },
 		zoom: function() { console.log(_map.getZoom()); },
 
@@ -156,13 +174,16 @@ var map = (function() {
 					marker.addListener('click', function() {
 						// change list item's background color:
 						$('#'+marker.md5sum).css('background-color', selectedColor);
+
 						// put clicked item at top of list:
 						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
+
 						// change pin color
 						marker.setIcon(changedPin);
+
 						// open the appropriate photo, 
 						// based on array index:
-						$('#photoList').magnificPopup('open', index);
+						openPhotoSwipe(index);
 					});
 				}
 			});	
@@ -171,46 +192,33 @@ var map = (function() {
 })();
 			
 $(document).ready(function() {
-	// override magnificPopup.resizeImage:
-	$.magnificPopup.instance.resizeImage = betterResizeImage;
-	// initialize magnific popup:
-	$('#photoList').magnificPopup({
-    	delegate: 'a', // child items selector, by clicking on it popup will open
-    	type: 'image',
-		gallery: {
-		  enabled: true,
-		  preload: [0,3], 
-		  navigateByImgClick: true,
-		  tCounter: '<span class="mfp-counter">%curr% of %total%</span>' // markup of counter
-		},
-		callbacks: {
-			// scoll to individual items in photo list
-			// when they are parsed and change background color;
-			markupParse: function(template, values, item) {
-				scrollToSelected($(item.el).parent().parent().get([0]), $(item.el).get([0]));
-				$(item.el).css('background-color', selectedColor);
-			},
-			// hide the arrows and close button on photo display;
-			// this makes it more touch/mobile friendly, since you don't need
-			// the buttons, anyway, and are biased into thinking
-			// you need to click on them when they're visible:
-			open: function() {
-				$('.mfp-arrow').css('display', 'none');
-				$('.mfp-close').css('display', 'none');
-			}
-		},
-	});
 
-	// parse json, use it to 1) create the links in the item list
-	// and 2) add the pins to the map:
+	// append requisite html for photoSwipe:
+	$(document.body).append('<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">    <div class="pswp__bg"></div>    <div class="pswp__scroll-wrap">        <div class="pswp__container">            <div class="pswp__item"></div>            <div class="pswp__item"></div>            <div class="pswp__item"></div>        </div>        <div class="pswp__ui pswp__ui--hidden">            <div class="pswp__top-bar">                <div class="pswp__counter"></div>                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>                <button class="pswp__button pswp__button--share" title="Share"></button>                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>                <div class="pswp__preloader">                    <div class="pswp__preloader__icn">                      <div class="pswp__preloader__cut">                        <div class="pswp__preloader__donut"></div>                      </div>                    </div>                </div>            </div>            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">                <div class="pswp__share-tooltip"></div>             </div>            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">            </button>            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">            </button>            <div class="pswp__caption">                <div class="pswp__caption__center"></div>            </div>        </div>    </div></div>');
+
+
 	$.getJSON('/photos', function(json) {
 		console.log('got json');
-		json.forEach(function(item) {
+
+		json.forEach(function(item, index, array) {
 			$('#photoList').append(
-				//'<li class="photo"><a id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a><img class="pinImage" src="' + basePin + '"</img></li>' 
 				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
 			)
+			// build photoArray for photoSwipe:
+			photoArray.push({
+				src: '/img/' + item.file_name,
+				w: item.width,
+				h: item.height,
+				id: item.md5sum,
+			});
 		});
+
+		$('.photo').on('click', function(event) {
+			var photo = $(this);
+			event.preventDefault();
+			openPhotoSwipe(photo.index());
+		});	
+
 		map.addPins(json);
 	});
 
@@ -221,5 +229,4 @@ $(document).ready(function() {
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
 	});
-
 });

@@ -33,6 +33,7 @@ var oneDay = 86400000;
 var staticFilePath = __dirname + '/public';
 app.use(express.static(staticFilePath, {maxAge: oneDay}));
 app.use('/magnific', express.static(__dirname + '/node_modules/magnific-popup/dist'));
+app.use('/photoswipe', express.static(__dirname + '/node_modules/photoswipe/dist'));
 
 /// catch 404 and forwarding to error handler
 app.use(function(req, res, next) {

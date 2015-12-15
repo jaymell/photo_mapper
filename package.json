@@ -29,6 +29,7 @@
     "mongodb": "^2.0.46",
     "monk": "^1.0.1",
     "morgan": "^1.6.1",
-    "mustache": "^2.2.0"
+    "mustache": "^2.2.0",
+    "photoswipe": "^4.1.0"
   }
 }

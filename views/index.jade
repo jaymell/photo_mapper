@@ -1,16 +1,17 @@
 html
   head
     title #{title} 
-    link(rel='stylesheet', href='/magnific/magnific-popup.css')
     link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/photoswipe/photoswipe.css')
+    link(rel='stylesheet', href='/photoswipe/default-skin/default-skin.css')
   body
     .border
     #mapLeft
       ul#photoList
     #mapCanvas
     .border
+    script(src='/photoswipe/photoswipe.js')
+    script(src='/photoswipe/photoswipe-ui-default.js')
     script(src='https://maps.googleapis.com/maps/api/js?key=#{gmapsKey}')
     script(src='https://code.jquery.com/jquery-1.11.3.js')
-    script(src='/magnific/jquery.magnific-popup.js')
-    script(src='/js/magnific-changes.js')
     script(src='/js/photo_mapper.js')
