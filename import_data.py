@@ -29,8 +29,8 @@ class Jpeg:
 	def close(self):
 		self.fh.close()
 
-def get_db_duplicates(md5sum, collection):
-	results = [ i for i in collection.find({'md5sum': md5sum}) ]
+def get_db_duplicates(md5sum, collection, user):
+	results = [ i for i in collection.find({'md5sum': md5sum, 'user': user}) ]
 	return results
 
 def write_image(file_handle, destination, rotation, thumbnail=False):
@@ -42,10 +42,20 @@ def write_image(file_handle, destination, rotation, thumbnail=False):
 	if thumbnail:
 		file_handle = io.BytesIO(file_handle)
 	img = Image.open(file_handle)
+	width, height = img.size
 	if rotation:
 			print('\trotating...')
 			img = img.rotate(rotation)
-	img.save(destination, quality=50)
+
+	# if width is over 1200px,
+	# scale it down:
+	if width > 1200:
+		scale = 1200/float(width)
+	else:
+		scale = 1
+	img.thumbnail((width*scale, height*scale), Image.ANTIALIAS)
+	img.save(destination)
+	return img.size
 
 def update_db(db_entry, collection):
 	try:
@@ -59,7 +69,7 @@ def process(jpeg, collection, user):
 
 	write_file_only = False
 
-	db_dupes = get_db_duplicates(jpeg.md5sum, collection)
+	db_dupes = get_db_duplicates(jpeg.md5sum, collection, user)
 	if db_dupes:
 		if len(db_dupes) > 1:
 			print('Multiple DB duplicates found. Exiting: ', jpeg.file_name_orig)
@@ -93,32 +103,33 @@ def process(jpeg, collection, user):
 								jpeg.jpgps.coordinates()[0]]}
 	db_entry["thumbnail"] = jpeg.thumb_name
 	db_entry["user"] = user
+	# write file:
+	try:
+		jpeg.fh.seek(0)
+		width, height = write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
+		# write thumbnail:
+		write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
+	except Exception as e:
+		print('Failed to write image to file system')
+		jpeg.close()
+		return
+	
+	# if image is rotated, need to be flipped, so have write_image func return the dimensions of saved image
+	# -- hackish, but for now, fuck it:
+	db_entry['width'] = width
+	db_entry['height'] = height
 
 	if not write_file_only:
 		try:
 			update_db(db_entry, collection)
 		except InsertError as e:
 			print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
-			return
 
-	# write file:
-	try:
-		jpeg.fh.seek(0)
-		write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
-		# write thumbnail:
-		write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
-	except Exception as e:
-		print('Failed to write file. Attempting to remove from database:\n\t%s' % e)
-		# if write failed, try to remove DB entry just added:
-		try:
-			collection.remove(db_entry)
-		except Exception as e:
-			print('Failed to remove item from database -- db is no longer consistent w/ file system: %s' % e)
-			sys.exit(4)
-	finally:
-		jpeg.close()
+	jpeg.close()
 	
 if __name__ == '__main__':
+
+	import imghdr
 
 	MONGODB_HOST = 'localhost'
 	MONGODB_PORT = 27017
@@ -139,9 +150,7 @@ if __name__ == '__main__':
 		print('Failed to open directory: %s' % e)	
 		sys.exit(2)
 	for item in dir_items:
-		# is there better way to discern jpeg-edness?
-		# furthermore, TIFFs are also theoretically possible
-		if item[-3:].lower() == 'jpg' or item[-4:].lower() == 'jpeg':
+		if imghdr.what(os.path.join(location,item)) == 'jpeg':
 			try:
 				jpeg = Jpeg(os.path.join(location, item))
 			except Exception as e:
