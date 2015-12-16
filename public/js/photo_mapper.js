@@ -196,22 +196,19 @@ var map = (function() {
 
 		json.forEach(function(item, index, array) {
 			// add links to list:
-
+			// create img:
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
 				.attr('src', '/img/' + item.thumbnail)
 				.attr('height', '100px')
 				.attr('width', '100px')
 				.wrap($('#'+ item.md5sum));
-
-
 			var $a = $("<a></a>")
 				.attr('class', 'thumbLink')
 				.attr('id', item.md5sum)
 				.attr('href', '/img/' + item.file_name)
 				.append($img)
 				.appendTo($('#photoList'));
-
 			// build photoArray for photoSwipe:
 			photoArray.push({
 				src: '/img/' + item.file_name,
@@ -221,20 +218,18 @@ var map = (function() {
 			});
 		});
 
-		// open photoSwipe on link click:
-		$('.thumbLink').on('click', function(event) {
-			var photo = $(this);
-			event.preventDefault();
-			openPhotoSwipe(photo.index());
-		});	
-
+		// pass entire array to map, let it
+		// parse them and add the geo-tagged ones:
 		map.addPins(json);
 	});
 
-	// make clicked list items center on marker, if one
-	// exists for that list item:
-	$('#photoList').on('click', 'a', function() {
+	// add click handlers for items in list -- open
+	// photoSwipe, change color of viewed pins and
+	// on map and center to them:
+	$('#photoList').on('click', 'a', function(event) {
+		event.preventDefault();
 		$(this).css('background-color', selectedColor);
+		openPhotoSwipe($(this).index());
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
 	});
