@@ -6,6 +6,7 @@ Put pictures in a database on a map. Images displayed using Magnific Popup JS li
 * Further reduce file size of thumbnails
 * Increase size of open/close buttons on mobile
 * Remove jittering completely (or improve it sificantly)
+* Try thumbnail list horizontal on bottom
 * Album label in heading
 * Landing page
 
