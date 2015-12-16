@@ -17,8 +17,8 @@ var openPhotoSwipe = function(index) {
 		gallery.listen('beforeChange', function() { 
 			itemId = gallery.currItem.id;
 			map.changePin(itemId);
-			scrollToSelected($('#mapLeft').get([0]), $('#'+itemId).get([0]));
-			$('#'+itemId).css('background-color', selectedColor);
+			scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
+			//$('#'+itemId).css('background-color', selectedColor);
 	});
 };
 
@@ -59,10 +59,7 @@ function checkBounds(map) {
 var scrollToSelected = function(ctDiv, itDiv) {
 	$(ctDiv).animate({ 
 		scrollTop: - ctDiv.offsetTop + itDiv.offsetTop,
-
 	}, 100);
-	console.log('ctDiv: ',$(ctDiv));
-	console.log('itDiv: ',$(itDiv));
 };
 
 var map = (function() {
@@ -190,8 +187,6 @@ var map = (function() {
 	};		
 })();
 			
-$(document).ready(function() {
-
 	// append requisite html for photoSwipe:
 	$(document.body).append('<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">    <div class="pswp__bg"></div>    <div class="pswp__scroll-wrap">        <div class="pswp__container">            <div class="pswp__item"></div>            <div class="pswp__item"></div>            <div class="pswp__item"></div>        </div>        <div class="pswp__ui pswp__ui--hidden">            <div class="pswp__top-bar">                <div class="pswp__counter"></div>                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>                <button class="pswp__button pswp__button--share" title="Share"></button>                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>                <div class="pswp__preloader">                    <div class="pswp__preloader__icn">                      <div class="pswp__preloader__cut">                        <div class="pswp__preloader__donut"></div>                      </div>                    </div>                </div>            </div>            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">                <div class="pswp__share-tooltip"></div>             </div>            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">            </button>            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">            </button>            <div class="pswp__caption">                <div class="pswp__caption__center"></div>            </div>        </div>    </div></div>');
 
@@ -200,9 +195,23 @@ $(document).ready(function() {
 		console.log('got json');
 
 		json.forEach(function(item, index, array) {
-			$('#photoList').append(
-				'<a class="photo" id="' + item.md5sum + '" href="/img/' + item.file_name + '">' + item.date + '</a>' 
-			)
+			// add links to list:
+
+			var $img = $("<img></img>")
+				.attr('class', 'thumbnail')
+				.attr('src', '/img/' + item.thumbnail)
+				.attr('height', '100px')
+				.attr('width', '100px')
+				.wrap($('#'+ item.md5sum));
+
+
+			var $a = $("<a></a>")
+				.attr('class', 'thumbLink')
+				.attr('id', item.md5sum)
+				.attr('href', '/img/' + item.file_name)
+				.append($img)
+				.appendTo($('#photoList'));
+
 			// build photoArray for photoSwipe:
 			photoArray.push({
 				src: '/img/' + item.file_name,
@@ -212,7 +221,8 @@ $(document).ready(function() {
 			});
 		});
 
-		$('.photo').on('click', function(event) {
+		// open photoSwipe on link click:
+		$('.thumbLink').on('click', function(event) {
 			var photo = $(this);
 			event.preventDefault();
 			openPhotoSwipe(photo.index());
@@ -228,4 +238,3 @@ $(document).ready(function() {
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
 	});
-});

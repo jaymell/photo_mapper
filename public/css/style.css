@@ -1,52 +1,42 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
 html, body {
 	margin: 0;
 	height: 100%;
 }
 
 #mapCanvas { 
-	float: right;
 	height: 90%;
-	width: 73%;
-	margin-right: 1%;
 }
 
 #mapLeft {
-	position: fixed;
+/*	position: fixed; */
 	float: left;	
-	width: 25%;
 	height: 90%;
-	overflow: auto;
 	margin-left: 1%;
+	overflow: auto; 
+	width: 120px;
+}
+
+#mapRight {
+	height: 90%;
+	float: right;
+	width: 10px;
 }
 
 #photoList {
-	overflow: auto;
+	overflow: auto; 
 	list-style-type: none;
 }
 
-.photo {
-	padding-right: 8px;
-	padding-top: 8px;
-	padding-left: 20px;
-	padding-bottom: 8px;
-	cursor: pointer;
-	border: solid 1px;
-	background-color: #98bf21;
-	outline: 0;
-	color: inherit; 
-	text-decoration: none;
-	display: block;
-	white-space: nowrap;
-	overflow: hidden;
+.thumbnail {
+	margin: 5px;
 }
 
-.photo:hover {
-	background-color: #bf2148;
-}
-
-.pinImage {
-	position: relative;
-	left: 30%;
+.thumbLink {
 }
 
 .border {
