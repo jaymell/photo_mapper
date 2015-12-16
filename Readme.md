@@ -1,12 +1,17 @@
 ## Photo Mapper
 Put pictures in a database on a map. Images displayed using Magnific Popup JS library
 
-To do:
-* Only show map labels at >= certain zoom level
-* Allow uploading images through UI -- need the 'C' in CRUD
-* Item not quite scrolling to top of list on gallery click
-* Improve pin jittering
-* Try to add stuff to map that's not actually geo-tagged based on time
+####To do:
+* Default to map instead of satellie
+* Further reduce file size of thumbnails
+* Increase size of open/close buttons on mobile
+* Remove jittering completely (or improve it sificantly)
 * Album label in heading
-* User accounts
+* Landing page
 
+#### Further off
+* Upload images via HTTP
+* User accounts in DB
+* Photos divided by collection
+* DB needs to keep track of static image filing and serve that out with dynamic routes
+* Try to add stuff to map that's not actually geo-tagged based on time ??
