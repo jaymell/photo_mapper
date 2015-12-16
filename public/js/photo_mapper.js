@@ -110,13 +110,12 @@ var map = (function() {
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
 			marker.position = new google.maps.LatLng(
-				marker.latitude,
-				marker.longitude
-				/* ... starting to think the jitter
-				* just needs to get away.... 
+				//marker.latitude,
+				//marker.longitude,
+				// ... starting to think the jitter
+				// just needs to get away.... 
             	marker.latitude + jitter(zoom),
                 marker.longitude + jitter(zoom)
-				*/
             );
 			marker.setPosition(marker.position);
 		}

@@ -5,9 +5,9 @@ db record format:
 .. uniqueness
 . label name 
 . coordinates
-. altitude
 . date/time
 . width/height
+. user name
 
 import steps:
 1) prompt for label name for
@@ -31,22 +31,39 @@ into db
 
 --------------
 keeping map and list in sync:
-. not ever item in list has pin
+. not every item in list has pin
 . every pin has an item in list
 
 when list item clicked:
 . set pin center of map
 .. animate?
 . change zoom level ?
-.. animate?
+.. not currently
 . change pin color
-. set active color on list item
-. set previously selected item to gray
+. change list item color
 
 when pin clicked
 . change pin color
-. set active color on list item
-. set previously selected item to gray
+. change list item color
+
+--------------------
+client-side workflow:
+. initialize map
+. get photo json from server
+. for each json entry:
+	add item (a tag) to list on left
+	add item to photoArray (for photoSwipe -- this
+	 could actually just be the json itself, if not for
+	 photoSwipe requiring 'h', 'w', and 'src' tags 
+	 specifically )
+. add photoSwipe click handlers to items in list
+. add pins to map
+. add additional listeners to items in list, but these
+are done by delegating through a tags' parent div, not
+on individual items:
+	center on map Pin
+	change color of viewed Pins
+
 
 -----------------
 import country geojson
