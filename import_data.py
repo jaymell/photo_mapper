@@ -33,29 +33,70 @@ def get_db_duplicates(md5sum, collection, user):
 	results = [ i for i in collection.find({'md5sum': md5sum, 'user': user}) ]
 	return results
 
-def write_image(file_handle, destination, rotation, thumbnail=False):
+def write_image(file_handle, folder, name, rotation):
 	""" write image, rotating if necessary and stripping out
 		exif data for illusion of privacy's sake """
 
-	# if thumbnail was passed, convert it to 
-	# file-like stream object first:
-	if thumbnail:
-		file_handle = io.BytesIO(file_handle)
-	img = Image.open(file_handle)
+	try:
+		img = Image.open(file_handle)
+	except Exception as e:
+		print('Failed to open image: %s' % e)
+
 	width, height = img.size
+	sizes = { 
+		'full': { 
+			'width': width,
+			'height': height,
+			'name': name
+		}
+	}
+	# scale largest dimension to 1200px if one
+	# of them is larger -- skip 'scaled' altogether
+	# neither larger than 1200:
+	big_dimension = width if width > height else height
+	if big_dimension > 1200:
+		sizes['scaled'] = {
+			'width': int(width * 1200/float(big_dimension)),
+			'height': int(height * 1200/float(big_dimension)),
+			'name': name + '-scaled' 
+		}
+	# hackish, but trying to save space til a better idea
+	# comes:
+	else: os.symlink(os.path.join(folder,name), os.path.join(folder, name+'-scaled'))
+
+	# max dimension of 512:
+	sizes['thumbnail'] = { 
+			'width': int(width * 512/float(big_dimension)),
+			'height': int(height * 512/float(big_dimension)),
+			'name': name + '-thumbnail'
+	}
+	# hackish, but trying to save space til a better idea
+	# comes:
+	sizes['small'] =  {
+			'width': 100,
+			'height': 100,
+			'name': name + '-small'
+		}
+
 	if rotation:
 			print('\trotating...')
 			img = img.rotate(rotation)
 
-	# if width is over 1200px,
-	# scale it down:
-	if width > 1200:
-		scale = 1200/float(width)
-	else:
-		scale = 1
-	img.thumbnail((width*scale, height*scale), Image.ANTIALIAS)
-	img.save(destination)
-	return img.size
+	extension = '.jpg'	
+	for key, size in sizes.items():
+		# resize and save:
+		destination = os.path.join(folder,size['name']+extension)
+		print('Saving %s... ' % destination)
+		try:
+			print('destination: %s' % destination)
+			resized = img.resize((size['width'], size['height']), Image.ANTIALIAS)
+			resized.save(destination, quality=50)
+		except Exception as e:
+			print('Failed to save %s: %s' % (destination, e))
+		
+	# because the call needs to know whether to update dimensions in json:
+	# more hackish nonsense:
+	return width, height
 
 def update_db(db_entry, collection):
 	try:
@@ -106,15 +147,15 @@ def process(jpeg, collection, user):
 	# write file:
 	try:
 		jpeg.fh.seek(0)
-		width, height = write_image(jpeg.fh, os.path.join(PHOTO_FOLDER,jpeg.file_name_new), jpeg.jpgps.rotation()) 
-		# write thumbnail:
-		write_image(jpeg.jpgps.tags['JPEGThumbnail'], os.path.join(PHOTO_FOLDER,jpeg.thumb_name), jpeg.jpgps.rotation(), thumbnail=True) 
+		# write the file in various sizes:
+		width, height = write_image(jpeg.fh, PHOTO_FOLDER, jpeg.md5sum, jpeg.jpgps.rotation()) 
 	except Exception as e:
-		print('Failed to write image to file system')
+		print('Failed to write image to file system: %s' % e)
 		jpeg.close()
 		return
 	
-	# if image is rotated, need to be flipped, so have write_image func return the dimensions of saved image
+	# if image is rotated, 'height' and 'width' need to be flipped, 
+	#so have write_image func return the dimensions of saved image
 	# -- hackish, but for now, fuck it:
 	db_entry['width'] = width
 	db_entry['height'] = height

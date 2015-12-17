@@ -6,20 +6,20 @@ var selectedColor = '#671780',
 var photoArray = [];
 
 var openPhotoSwipe = function(index) {
-        var pswpElement = $('.pswp')[0];
-        var options = {
-                index: index,
+   var pswpElement = $('.pswp')[0];
+   var options = {
+        index: index,
         };
-        var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
-        gallery.init();
-		// set Pin and item in list to change color when 
-		// slide is changed:
-		gallery.listen('beforeChange', function() { 
-			itemId = gallery.currItem.id;
-			map.changePin(itemId);
-			scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
-			//$('#'+itemId).css('background-color', selectedColor);
+   var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+	// set Pin and item in list to change color when 
+	// slide is changed:
+	gallery.listen('beforeChange', function() { 
+		itemId = gallery.currItem.id;
+		map.changePin(itemId);
+		scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
+		//$('#'+itemId).css('background-color', selectedColor);
 	});
+	gallery.init();
 };
 
 // you want to append one of the above colors to this url:
@@ -68,11 +68,11 @@ var map = (function() {
     var locale = new google.maps.LatLng(30,0);
     var mapOptions = {
             center: locale,
-            zoom: 2,
+            zoom: 4,
 			minZoom: 2,
 			keyboardShortcuts: false,
 			// HYBRID like SATELLITE, but shows labels:
-            mapTypeId: google.maps.MapTypeId.HYBRID, // TERRAIN, SATELLITE, HYBRID, ROADMAP
+            mapTypeId: google.maps.MapTypeId.ROADMAP, // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
 
     var _map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
@@ -101,18 +101,19 @@ var map = (function() {
 		return zoom < 18 ? numerator/denominator : 0;
 	};
 
+	/*
 	google.maps.event.addListener(_map, 'zoom_changed', function() {
 		var zoom = _map.getZoom();
 		console.log('zoom: '+zoom);
 		for (var obj in markerObj) {
 			marker = markerObj[obj];
 			marker.position = new google.maps.LatLng(
-				//marker.latitude,
-				//marker.longitude,
 				// ... starting to think the jitter
 				// just needs to get away.... 
-            	marker.latitude + jitter(zoom),
-                marker.longitude + jitter(zoom)
+            	//marker.latitude + jitter(zoom),
+                //marker.longitude + jitter(zoom)
+				marker.latitude,
+				marker.longitude
             );
 			marker.setPosition(marker.position);
 		}
@@ -121,6 +122,7 @@ var map = (function() {
 	google.maps.event.addListener(_map, 'center_changed', function() {
     	checkBounds(_map);
 	});
+	*/
 
 	return {
 		jitter: function() { console.log(jitter(_map.getZoom())); },
@@ -150,8 +152,10 @@ var map = (function() {
 						latitude: photo.latitude,
 						longitude: photo.longitude,
 						position: new google.maps.LatLng(
-							 photo.latitude + jitter(zoom),
-							 photo.longitude + jitter(zoom)
+							 //photo.latitude + jitter(zoom),
+							 //photo.longitude + jitter(zoom)
+							photo.latitude,
+							photo.longitude
 						),
 						title: photo.date,
 						map: _map,
@@ -197,16 +201,17 @@ var map = (function() {
 		json.forEach(function(item, index, array) {
 			// add links to list:
 			// create img:
+			var linkRoute = '/img/';
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
-				.attr('src', '/img/' + item.thumbnail)
+				.attr('src', linkRoute + item.thumbnail)
 				.attr('height', '100px')
 				.attr('width', '100px')
 				.wrap($('#'+ item.md5sum));
 			var $a = $("<a></a>")
 				.attr('class', 'thumbLink')
 				.attr('id', item.md5sum)
-				.attr('href', '/img/' + item.file_name)
+				.attr('href', linkRoute + item.file_name)
 				.append($img)
 				.appendTo($('#photoList'));
 			// build photoArray for photoSwipe:
