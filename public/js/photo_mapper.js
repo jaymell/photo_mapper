@@ -234,7 +234,6 @@ var map = (function() {
 	// on map and center to them:
 	$('#photoList').on('click', 'a', function(event) {
 		event.preventDefault();
-		$(this).css('background-color', selectedColor);
 		openPhotoSwipe($(this).index());
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
