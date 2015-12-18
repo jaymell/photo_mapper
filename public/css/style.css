@@ -44,3 +44,13 @@ html, body {
 	height: 5%;
 }
 
+.pswp__bg {
+	opacity: .5 !important; 
+}
+
+/* .pswp__top-bar */
+
+.pswp__img--placeholder--blank,  {
+	opacity: 0 !important;
+}
+

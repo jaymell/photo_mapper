@@ -19,6 +19,7 @@ var openPhotoSwipe = function(index) {
 		scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
 		//$('#'+itemId).css('background-color', selectedColor);
 	});
+
 	gallery.init();
 };
 
