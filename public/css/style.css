@@ -50,7 +50,7 @@ html, body {
 
 /* .pswp__top-bar */
 
-.pswp__img--placeholder--blank,  {
+.pswp__img--placeholder--blank  {
 	opacity: 0 !important;
 }
 

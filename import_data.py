@@ -37,10 +37,16 @@ def write_image(file_handle, folder, name, rotation):
 	""" write image, rotating if necessary and stripping out
 		exif data for illusion of privacy's sake """
 
+	QUALITY = 50
+
 	try:
 		img = Image.open(file_handle)
 	except Exception as e:
 		print('Failed to open image: %s' % e)
+
+	if rotation:
+			print('\trotating...')
+			img = img.rotate(rotation)
 
 	width, height = img.size
 	sizes = { 
@@ -78,9 +84,6 @@ def write_image(file_handle, folder, name, rotation):
 			'name': name + '-small'
 		}
 
-	if rotation:
-			print('\trotating...')
-			img = img.rotate(rotation)
 
 	extension = '.jpg'	
 	for key, size in sizes.items():
@@ -88,9 +91,10 @@ def write_image(file_handle, folder, name, rotation):
 		destination = os.path.join(folder,size['name']+extension)
 		print('Saving %s... ' % destination)
 		try:
-			print('destination: %s' % destination)
+			print('Original dimensions: %s\t%s' % ((width, height)))
+			print('Current: %s\t%s' % ((size['width'], size['height'])))
 			resized = img.resize((size['width'], size['height']), Image.ANTIALIAS)
-			resized.save(destination, quality=50)
+			resized.save(destination, quality=QUALITY)
 		except Exception as e:
 			print('Failed to save %s: %s' % (destination, e))
 		
