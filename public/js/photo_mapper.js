@@ -205,19 +205,19 @@ var map = (function() {
 			var linkRoute = '/img/';
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
-				.attr('src', linkRoute + item.thumbnail)
+				.attr('src', linkRoute + item.md5sum + '-small.jpg')
 				.attr('height', '100px')
 				.attr('width', '100px')
 				.wrap($('#'+ item.md5sum));
 			var $a = $("<a></a>")
 				.attr('class', 'thumbLink')
 				.attr('id', item.md5sum)
-				.attr('href', linkRoute + item.file_name)
+				//.attr('href', linkRoute + item.md5sum )
 				.append($img)
 				.appendTo($('#photoList'));
 			// build photoArray for photoSwipe:
 			photoArray.push({
-				src: '/img/' + item.file_name,
+				src: '/img/' + item.md5sum + '-scaled.jpg',
 				w: item.width,
 				h: item.height,
 				id: item.md5sum,
