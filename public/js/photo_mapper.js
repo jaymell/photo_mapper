@@ -2,24 +2,77 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
+var linkRoute = '/img/';
+
 // hooray for global variable:
 var photoArray = [];
 
 var openPhotoSwipe = function(index) {
-   var pswpElement = $('.pswp')[0];
-   var options = {
+	/* the 'responsive' code copied directly from photoswipe.com */
+	var pswpElement = $('.pswp')[0];
+	var options = {
         index: index,
-        };
-   var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
-	// set Pin and item in list to change color when 
-	// slide is changed:
+    };
+	var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
 	gallery.listen('beforeChange', function() { 
+		// set Pin and item in list to change color when 
+		// slide is changed:
 		itemId = gallery.currItem.id;
 		map.changePin(itemId);
 		scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
-		//$('#'+itemId).css('background-color', selectedColor);
 	});
 
+	// create variable that will store real size of viewport
+	var realViewportWidth,
+		useLargeImages = false,
+		firstResize = true,
+		imageSrcWillChange;
+
+	// beforeResize event fires each time size of gallery viewport updates
+	gallery.listen('beforeResize', function() {
+
+		// calculate real pixels when size changes
+		realViewportWidth = gallery.viewportSize.x * window.devicePixelRatio;
+
+		// Find out if current images need to be changed
+		if(useLargeImages && realViewportWidth < 1000) {
+		useLargeImages = false;
+		imageSrcWillChange = true;
+		} else if(!useLargeImages && realViewportWidth >= 1000) {
+		useLargeImages = true;
+		imageSrcWillChange = true;
+		}
+
+		// Invalidate items only when source is changed and when it's not the first update
+		if(imageSrcWillChange && !firstResize) {
+		// invalidateCurrItems sets a flag on slides that are in DOM,
+		// which will force update of content (image) on window.resize.
+		gallery.invalidateCurrItems();
+		}
+
+		if(firstResize) {
+		firstResize = false;
+		}
+
+		imageSrcWillChange = false;
+
+	});
+
+	// gettingData event fires each time PhotoSwipe retrieves image source & size
+	gallery.listen('gettingData', function(index, item) {
+
+		// Set image source & size based on real viewport width,
+		// but only if the scaled images actuallly exist:
+		if( useLargeImages || item.sizes.scaled !== null ) {
+		item.src = linkRoute + item.sizes.full.name;
+		item.w = item.sizes.full.width;
+		item.h = item.sizes.full.height;
+		} else {
+		item.src = linkRoute + item.sizes.scaled.name;
+		item.w = item.sizes.scaled.width;
+		item.h = item.sizes.scaled.height;
+		}
+	});
 	gallery.init();
 };
 
@@ -147,21 +200,20 @@ var map = (function() {
 			var zoom = _map.getZoom();
 			photoList.forEach(function(photo, index, array) {
 				// only if photo actually has coordinates:
-				if (photo.latitude && photo.longitude) {
+				if (photo.geojson.coordinates[0] && photo.geojson.coordinates[1]) {
 					var marker = new google.maps.Marker({
 						// set actual lat/long for future reference:
-						latitude: photo.latitude,
-						longitude: photo.longitude,
+						latitude: photo.geojson.coordinates[1],
+						longitude: photo.geojson.coordinates[0],
 						position: new google.maps.LatLng(
 							 //photo.latitude + jitter(zoom),
 							 //photo.longitude + jitter(zoom)
-							photo.latitude,
-							photo.longitude
+							photo.geojson.coordinates[1],
+							photo.geojson.coordinates[0]
 						),
 						title: photo.date,
 						map: _map,
 						icon: basePin,
-						fileName: photo.file_name,
 						md5sum: photo.md5sum,
 						changePin: function() {
 							this.setIcon(changedPin);
@@ -202,7 +254,6 @@ var map = (function() {
 		json.forEach(function(item, index, array) {
 			// add links to list:
 			// create img:
-			var linkRoute = '/img/';
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
 				.attr('src', linkRoute + item.md5sum + '-small.jpg')
@@ -217,10 +268,8 @@ var map = (function() {
 				.appendTo($('#photoList'));
 			// build photoArray for photoSwipe:
 			photoArray.push({
-				src: '/img/' + item.md5sum + '-scaled.jpg',
-				w: item.width,
-				h: item.height,
 				id: item.md5sum,
+				sizes: item.sizes,
 			});
 		});
 

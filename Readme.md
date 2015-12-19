@@ -2,9 +2,7 @@
 Put pictures in a database on a map. Images displayed using Magnific Popup JS library
 
 ####To do:
-* Default to map instead of satellie
-* Further reduce file size of thumbnails
-* Increase size of open/close buttons on mobile
+* Save pin images instead of linking to them
 * Remove jittering completely (or improve it sificantly)
 * Try thumbnail list horizontal on bottom
 * Album label in heading

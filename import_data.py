@@ -37,10 +37,11 @@ def write_image(file_handle, folder, name, rotation):
 	""" write image, rotating if necessary and stripping out
 		exif data for illusion of privacy's sake """
 
-	QUALITY = 50
-	SCALED = 1000
+	QUALITY = 60
+	SCALED = 1200
 	THUMBNAIL = 512
 	SMALL = 100
+	EXT = '.jpg'	
 
 	try:
 		img = Image.open(file_handle)
@@ -56,7 +57,7 @@ def write_image(file_handle, folder, name, rotation):
 		'full': { 
 			'width': width,
 			'height': height,
-			'name': name
+			'name': name + EXT
 		}
 	}
 	# scale largest dimension to SCALED px if one
@@ -67,31 +68,25 @@ def write_image(file_handle, folder, name, rotation):
 		sizes['scaled'] = {
 			'width': int(width * SCALED/float(big_dimension)),
 			'height': int(height * SCALED/float(big_dimension)),
-			'name': name + '-scaled' 
+			'name': name + '-scaled' + EXT
 		}
-	# hackish, but trying to save space til a better idea
-	# comes:
-	else: os.symlink(os.path.join(folder,name), os.path.join(folder, name+'-scaled'))
 
 	# thumbnail scaling:
 	sizes['thumbnail'] = { 
-			'width': int(width * SCALED/float(big_dimension)),
-			'height': int(height * SCALED/float(big_dimension)),
-			'name': name + '-thumbnail'
+			'width': int(width * THUMBNAIL/float(big_dimension)),
+			'height': int(height * THUMBNAIL/float(big_dimension)),
+			'name': name + '-thumbnail' + EXT
 	}
-	# hackish, but trying to save space til a better idea
-	# comes:
 	sizes['small'] =  {
 			'width': SMALL,
 			'height': SMALL,
-			'name': name + '-small'
+			'name': name + '-small' + EXT
 		}
 
 
-	extension = '.jpg'	
 	for key, size in sizes.items():
 		# resize and save:
-		destination = os.path.join(folder,size['name']+extension)
+		destination = os.path.join(folder,size['name'])
 		print('Saving %s... ' % destination)
 		try:
 			print('Original dimensions: %s\t%s' % ((width, height)))
@@ -101,19 +96,19 @@ def write_image(file_handle, folder, name, rotation):
 		except Exception as e:
 			print('Failed to save %s: %s' % (destination, e))
 		
-	# because the call needs to know whether to update dimensions in json:
-	# more hackish nonsense:
-	return width, height
+	# so the caller can build the json for various sizes:
+	return sizes
 
 def update_db(db_entry, collection):
+	""" write to the database """
 	try:
 		collection.insert_one(db_entry)
 	except Exception as e:
 		raise InsertError
 
 def process(jpeg, collection, user):
-	""" figure out whether it's a db duplicate; act
-		accordingly """
+	""" handle checking for duplicates and writes to
+		FS and database """
 
 	write_file_only = False
 
@@ -131,42 +126,40 @@ def process(jpeg, collection, user):
 				print('DB entry found but file is missing... copying file')
 				write_file_only = True	
 
-	# try to update database AND
-	# put files in right place; if one
-	# fails, undo the other:	
+	# instantiate jpgps:
 	try:
 		jpeg.fh.seek(0)
 		jpeg.jpgps = jpgps.Jpgps(jpeg.fh)
-		db_entry = jpeg.jpgps.as_dict()
 	except Exception as e:
 		print('Failed to instantiate Jpgps object for %s: %s' % (jpeg.file_name_orig, e))
 		return
 
-	# add the md5sum and file_name_new from jpeg to the gps data to be inserted:
-	db_entry['md5sum'] = jpeg.md5sum
-	db_entry['file_name'] = jpeg.file_name_new
-	# adding long/lat again, but this time as geojson point:
-	db_entry['geojson'] = { "type": "Point", 
-							"coordinates": [jpeg.jpgps.coordinates()[1], 
-								jpeg.jpgps.coordinates()[0]]}
-	db_entry["thumbnail"] = jpeg.thumb_name
-	db_entry["user"] = user
 	# write file:
 	try:
 		jpeg.fh.seek(0)
-		# write the file in various sizes:
-		width, height = write_image(jpeg.fh, PHOTO_FOLDER, jpeg.md5sum, jpeg.jpgps.rotation()) 
+		# write the file in various sizes -- get back sizes and record them in db entry:
+		sizes = write_image(jpeg.fh, PHOTO_FOLDER, jpeg.md5sum, jpeg.jpgps.rotation()) 
 	except Exception as e:
 		print('Failed to write image to file system: %s' % e)
 		jpeg.close()
 		return
 	
-	# if image is rotated, 'height' and 'width' need to be flipped, 
-	#so have write_image func return the dimensions of saved image
-	# -- hackish, but for now, fuck it:
-	db_entry['width'] = width
-	db_entry['height'] = height
+	# build json for db:
+	db_entry = {}
+	db_entry["user"] = user
+	db_entry['md5sum'] = jpeg.md5sum
+	db_entry['date'] = jpeg.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if jpeg.jpgps.date() else None
+	db_entry['geojson'] = { "type": "Point", 
+							"coordinates": [jpeg.jpgps.coordinates()[1], 
+								jpeg.jpgps.coordinates()[0]]}
 
+	# write json for each of the different sizes availabe
+	# for each image:
+	db_entry['sizes'] = {}
+	for key, size in sizes.items():
+		db_entry['sizes'][key] = {'height': size['height'], 'width': size['width'], 'name': size['name']}
+
+	# db update:
 	if not write_file_only:
 		try:
 			update_db(db_entry, collection)
@@ -204,7 +197,7 @@ if __name__ == '__main__':
 			except Exception as e:
 				print('Failed to create jpeg object from %s: %s' % (item, e))
 			else:
-				print('FILE NAME: %s' % jpeg.file_name_orig)
+				print('Original File Name: %s' % jpeg.file_name_orig)
 				try:
 					process(jpeg, collection, user)
 				finally:
