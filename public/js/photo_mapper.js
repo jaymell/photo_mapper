@@ -202,7 +202,7 @@ var map = (function() {
 				var longitude = photo.geojson.coordinates[0] ? photo.geojson.coordinates[0] : null;
 				var latitude = photo.geojson.coordinates[1] ? photo.geojson.coordinates[1] : null;
 				// only if photo actually has coordinates:
-				if (photo.geojson.coordinates[0] && photo.geojson.coordinates[1]) {
+				if (latitude && longitude) {
 					var marker = new google.maps.Marker({
 						// set actual lat/long for future reference:
 						latitude: latitude,
