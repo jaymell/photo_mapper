@@ -199,17 +199,19 @@ var map = (function() {
 		addPins: function(photoList) {
 			var zoom = _map.getZoom();
 			photoList.forEach(function(photo, index, array) {
+				var longitude = photo.geojson.coordinates[0] ? photo.geojson.coordinates[0] : null;
+				var latitude = photo.geojson.coordinates[1] ? photo.geojson.coordinates[1] : null;
 				// only if photo actually has coordinates:
 				if (photo.geojson.coordinates[0] && photo.geojson.coordinates[1]) {
 					var marker = new google.maps.Marker({
 						// set actual lat/long for future reference:
-						latitude: photo.geojson.coordinates[1],
-						longitude: photo.geojson.coordinates[0],
+						latitude: latitude,
+						longitude: longitude,
 						position: new google.maps.LatLng(
 							 //photo.latitude + jitter(zoom),
 							 //photo.longitude + jitter(zoom)
-							photo.geojson.coordinates[1],
-							photo.geojson.coordinates[0]
+							latitude,
+							longitude
 						),
 						title: photo.date,
 						map: _map,
