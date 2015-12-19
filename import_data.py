@@ -38,6 +38,9 @@ def write_image(file_handle, folder, name, rotation):
 		exif data for illusion of privacy's sake """
 
 	QUALITY = 50
+	SCALED = 1000
+	THUMBNAIL = 512
+	SMALL = 100
 
 	try:
 		img = Image.open(file_handle)
@@ -56,31 +59,31 @@ def write_image(file_handle, folder, name, rotation):
 			'name': name
 		}
 	}
-	# scale largest dimension to 1200px if one
+	# scale largest dimension to SCALED px if one
 	# of them is larger -- skip 'scaled' altogether
-	# neither larger than 1200:
+	# neither larger than SCALED:
 	big_dimension = width if width > height else height
-	if big_dimension > 1200:
+	if big_dimension > SCALED:
 		sizes['scaled'] = {
-			'width': int(width * 1200/float(big_dimension)),
-			'height': int(height * 1200/float(big_dimension)),
+			'width': int(width * SCALED/float(big_dimension)),
+			'height': int(height * SCALED/float(big_dimension)),
 			'name': name + '-scaled' 
 		}
 	# hackish, but trying to save space til a better idea
 	# comes:
 	else: os.symlink(os.path.join(folder,name), os.path.join(folder, name+'-scaled'))
 
-	# max dimension of 512:
+	# thumbnail scaling:
 	sizes['thumbnail'] = { 
-			'width': int(width * 512/float(big_dimension)),
-			'height': int(height * 512/float(big_dimension)),
+			'width': int(width * SCALED/float(big_dimension)),
+			'height': int(height * SCALED/float(big_dimension)),
 			'name': name + '-thumbnail'
 	}
 	# hackish, but trying to save space til a better idea
 	# comes:
 	sizes['small'] =  {
-			'width': 100,
-			'height': 100,
+			'width': SMALL,
+			'height': SMALL,
 			'name': name + '-small'
 		}
 
