@@ -112,11 +112,15 @@ function checkBounds(map) {
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
 	var scrollSpeed = 250;
-	// portrait:
+	// portrait --
+	// the portrait code is shaky but it's 
+	// working for all devices tested so far:
 	if (window.orientation == 0) {
-        $ctDiv.animate({
-           scrollTop: $iDiv.offset().left + $ctDiv.scrollTop() - $ctDiv.offset().left,
+		console.log('offset: ',$itDiv.offset().left + $itDiv.parent().parent().scrollLeft() - $itDiv.parent().parent().offset().left);
+        $itDiv.parent().parent().animate({
+           scrollLeft: $itDiv.offset().left + $itDiv.parent().parent().scrollLeft() - $itDiv.parent().parent().offset().left,
         }, scrollSpeed);
+	// landscape or window.orientation undefined:
 	} else {
        $ctDiv.animate({ 
 		  scrollTop: $itDiv.offset().top + $ctDiv.scrollTop() - $ctDiv.offset().top,
