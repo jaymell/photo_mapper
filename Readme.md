@@ -1,5 +1,6 @@
 ## Photo Mapper
-Put pictures in a database on a map. Images displayed using Magnific Popup JS library
+Put pictures in a database on a map. 
+Images displayed using PhotoSwipe -- www.photoswipe.com
 
 ####To do:
 * Save pin images instead of linking to them

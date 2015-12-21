@@ -11,14 +11,24 @@ html, body {
 #mapCanvas { 
 	height: 90%;
 }
+@media all and (orientation:landscape) {
+	#mapLeft {
+		float: left;	
+		height: 90%;
+		margin-left: 1%;
+		overflow: auto; 
+		width: 120px; 
+	}
+}
 
-#mapLeft {
-/*	position: fixed; */
-	float: left;	
-	height: 90%;
-	margin-left: 1%;
-	overflow: auto; 
-	width: 120px;
+@media all and (orientation:portrait) {
+    #mapLeft {
+        overflow-x: scroll;
+        overflow-y: hidden;
+        height: 150px;
+		width: auto; 
+		white-space: nowrap;
+    }
 }
 
 #mapRight {

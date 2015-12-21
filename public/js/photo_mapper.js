@@ -19,7 +19,7 @@ var openPhotoSwipe = function(index) {
 		// slide is changed:
 		itemId = gallery.currItem.id;
 		map.changePin(itemId);
-		scrollToSelected($('#mapLeft').get(0), $('#'+itemId).get(0));
+		scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
 	});
 
 	// create variable that will store real size of viewport
@@ -110,10 +110,18 @@ function checkBounds(map) {
 
 // pass it the name of the container div and the
 // item div you want to move to top of list:
-var scrollToSelected = function(ctDiv, itDiv) {
-	$(ctDiv).animate({ 
-		scrollTop: - ctDiv.offsetTop + itDiv.offsetTop,
-	}, 100);
+var scrollToSelected = function($ctDiv, $itDiv) {
+	var scrollSpeed = 250;
+	// portrait:
+	if (window.orientation == 0) {
+        $ctDiv.animate({
+           scrollTop: $iDiv.offset().left + $ctDiv.scrollTop() - $ctDiv.offset().left,
+        }, scrollSpeed);
+	} else {
+       $ctDiv.animate({ 
+		  scrollTop: $itDiv.offset().top + $ctDiv.scrollTop() - $ctDiv.offset().top,
+       }, scrollSpeed);
+	}
 };
 
 var map = (function() {
@@ -228,10 +236,10 @@ var map = (function() {
 					// do stuff when clicked:
 					marker.addListener('click', function() {
 						// change list item's background color:
-						$('#'+marker.md5sum).css('background-color', selectedColor);
+						//$('#'+marker.md5sum).css('background-color', selectedColor);
 
 						// put clicked item at top of list:
-						scrollToSelected($('#mapLeft').get([0]), $('#'+marker.md5sum).get([0]));
+						scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
 
 						// change pin color
 						marker.setIcon(changedPin);
@@ -258,6 +266,7 @@ var map = (function() {
 			// create img:
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
+				.attr('id', item.md5sum + '-img')
 				.attr('src', linkRoute + item.md5sum + '-small.jpg')
 				.attr('height', '100px')
 				.attr('width', '100px')
