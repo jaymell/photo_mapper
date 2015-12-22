@@ -8,8 +8,8 @@ var linkRoute = '/img/';
 var photoArray = [];
 // for recording current position of 
 // item list scroll offset;
-var scrollTop = 0;
-var scrollLeft = 0;
+var scrollTop = 1000;
+var scrollLeft = 1000;
 
 var openPhotoSwipe = function(index) {
 	/* the 'responsive' code copied directly from photoswipe.com */
@@ -23,6 +23,9 @@ var openPhotoSwipe = function(index) {
 		// slide is changed:
 		itemId = gallery.currItem.id;
 		map.changePin(itemId);
+	});
+	// scroll once load is complete:
+	gallery.listen('afterChange', function() {
 		scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
 	});
 
@@ -133,22 +136,24 @@ var scrollToSelected = function($ctDiv, $itDiv) {
 						- $ctDiv.offset().top,
        }, scrollSpeed);
 	}
-	scrollTop = $ctDiv.scrollTop(); 
-	scrollLeft = $ctDiv.scrollLeft(); 
+	setTimeout(function() {scrollTop = $ctDiv.scrollTop()}, scrollSpeed*2); 
+	setTimeout(function() {scrollLeft = $ctDiv.scrollLeft()}, scrollSpeed*2); 
+	console.log(scrollTop, scrollLeft);
 };
 
-var scrollToLocation = function($ctDiv, scrollTop, scrollLeft) {
+var scrollToLocation = function($ctDiv) {
     // portrait --
     // the portrait code is shaky but it's 
     // working for all devices tested so far:
+	var scrollSpeed = 250;
     if (window.orientation == 0) {
         $ctDiv.animate({
-           scrollLeft: 1000,
+           scrollLeft: scrollTop,
         }, scrollSpeed);
     // landscape or window.orientation undefined:
     } else {
        $ctDiv.animate({
-          scrollTop: 1000,
+          scrollTop: scrollLeft,
        }, scrollSpeed);
     }
 };
@@ -331,6 +336,6 @@ var map = (function() {
 	// scroll to global ScrollTop or ScrollLeft when rotated:
 	$(window).on("orientationchange", function(e) {
 		setTimeout(function() { 
-			scrollToLocation($('#mapLeft'), scrollTop, scrollLeft);
-			}, 5000);
+			scrollToLocation($('#mapLeft'));
+			}, 0);
 	});
