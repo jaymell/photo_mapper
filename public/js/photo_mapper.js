@@ -4,8 +4,12 @@ var selectedColor = '#671780',
 
 var linkRoute = '/img/';
 
-// hooray for global variable:
+// hooray for global variables:
 var photoArray = [];
+// for recording current position of 
+// item list scroll offset;
+var scrollTop = 0;
+var scrollLeft = 0;
 
 var openPhotoSwipe = function(index) {
 	/* the 'responsive' code copied directly from photoswipe.com */
@@ -116,16 +120,37 @@ var scrollToSelected = function($ctDiv, $itDiv) {
 	// the portrait code is shaky but it's 
 	// working for all devices tested so far:
 	if (window.orientation == 0) {
-		console.log('offset: ',$itDiv.offset().left + $itDiv.parent().parent().scrollLeft() - $itDiv.parent().parent().offset().left);
-        $itDiv.parent().parent().animate({
-           scrollLeft: $itDiv.offset().left + $itDiv.parent().parent().scrollLeft() - $itDiv.parent().parent().offset().left,
+        $ctDiv.animate({
+           scrollLeft: $itDiv.offset().left 
+						+ $ctDiv.scrollLeft() 
+						- $ctDiv.offset().left,
         }, scrollSpeed);
 	// landscape or window.orientation undefined:
 	} else {
        $ctDiv.animate({ 
-		  scrollTop: $itDiv.offset().top + $ctDiv.scrollTop() - $ctDiv.offset().top,
+		  scrollTop: $itDiv.offset().top 
+						+ $ctDiv.scrollTop() 
+						- $ctDiv.offset().top,
        }, scrollSpeed);
 	}
+	scrollTop = $ctDiv.scrollTop(); 
+	scrollLeft = $ctDiv.scrollLeft(); 
+};
+
+var scrollToLocation = function($ctDiv, scrollTop, scrollLeft) {
+    // portrait --
+    // the portrait code is shaky but it's 
+    // working for all devices tested so far:
+    if (window.orientation == 0) {
+        $ctDiv.animate({
+           scrollLeft: 1000,
+        }, scrollSpeed);
+    // landscape or window.orientation undefined:
+    } else {
+       $ctDiv.animate({
+          scrollTop: 1000,
+       }, scrollSpeed);
+    }
 };
 
 var map = (function() {
@@ -280,7 +305,7 @@ var map = (function() {
 				.attr('id', item.md5sum)
 				//.attr('href', linkRoute + item.md5sum )
 				.append($img)
-				.appendTo($('#photoList'));
+				.appendTo($('#mapLeft'));
 			// build photoArray for photoSwipe:
 			photoArray.push({
 				id: item.md5sum,
@@ -296,9 +321,16 @@ var map = (function() {
 	// add click handlers for items in list -- open
 	// photoSwipe, change color of viewed pins and
 	// on map and center to them:
-	$('#photoList').on('click', 'a', function(event) {
+	$('#mapLeft').on('click', 'a', function(event) {
 		event.preventDefault();
 		openPhotoSwipe($(this).index());
 		map.changePin($(this).attr('id'));
 		map.centerPin($(this).attr('id'));
+	});
+
+	// scroll to global ScrollTop or ScrollLeft when rotated:
+	$(window).on("orientationchange", function(e) {
+		setTimeout(function() { 
+			scrollToLocation($('#mapLeft'), scrollTop, scrollLeft);
+			}, 5000);
 	});
