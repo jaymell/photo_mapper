@@ -136,26 +136,6 @@ var scrollToSelected = function($ctDiv, $itDiv) {
 						- $ctDiv.offset().top,
        }, scrollSpeed);
 	}
-	setTimeout(function() {scrollTop = $ctDiv.scrollTop()}, scrollSpeed*2); 
-	setTimeout(function() {scrollLeft = $ctDiv.scrollLeft()}, scrollSpeed*2); 
-	console.log(scrollTop, scrollLeft);
-};
-
-var scrollToLocation = function($ctDiv) {
-    // portrait --
-    // the portrait code is shaky but it's 
-    // working for all devices tested so far:
-	var scrollSpeed = 250;
-    if (window.orientation == 0) {
-        $ctDiv.animate({
-           scrollLeft: scrollTop,
-        }, scrollSpeed);
-    // landscape or window.orientation undefined:
-    } else {
-       $ctDiv.animate({
-          scrollTop: scrollLeft,
-       }, scrollSpeed);
-    }
 };
 
 var map = (function() {
@@ -291,51 +271,44 @@ var map = (function() {
 	// append requisite html for photoSwipe:
 	$(document.body).append('<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">    <div class="pswp__bg"></div>    <div class="pswp__scroll-wrap">        <div class="pswp__container">            <div class="pswp__item"></div>            <div class="pswp__item"></div>            <div class="pswp__item"></div>        </div>        <div class="pswp__ui pswp__ui--hidden">            <div class="pswp__top-bar">                <div class="pswp__counter"></div>                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>                <button class="pswp__button pswp__button--share" title="Share"></button>                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>                <div class="pswp__preloader">                    <div class="pswp__preloader__icn">                      <div class="pswp__preloader__cut">                        <div class="pswp__preloader__donut"></div>                      </div>                    </div>                </div>            </div>            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">                <div class="pswp__share-tooltip"></div>             </div>            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">            </button>            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">            </button>            <div class="pswp__caption">                <div class="pswp__caption__center"></div>            </div>        </div>    </div></div>');
 
+$.getJSON('/photos', function(json) {
+	console.log('got json');
 
-	$.getJSON('/photos', function(json) {
-		console.log('got json');
-
-		json.forEach(function(item, index, array) {
-			// add links to list:
-			// create img:
-			var $img = $("<img></img>")
-				.attr('class', 'thumbnail')
-				.attr('id', item.md5sum + '-img')
-				.attr('src', linkRoute + item.md5sum + '-small.jpg')
-				.attr('height', '100px')
-				.attr('width', '100px')
-				.wrap($('#'+ item.md5sum));
-			var $a = $("<a></a>")
-				.attr('class', 'thumbLink')
-				.attr('id', item.md5sum)
-				//.attr('href', linkRoute + item.md5sum )
-				.append($img)
-				.appendTo($('#mapLeft'));
-			// build photoArray for photoSwipe:
-			photoArray.push({
-				id: item.md5sum,
-				sizes: item.sizes,
-			});
+	json.forEach(function(item, index, array) {
+		// add links to list:
+		// create img:
+		var $img = $("<img></img>")
+			.attr('class', 'thumbnail')
+			.attr('id', item.md5sum + '-img')
+			.attr('src', linkRoute + item.md5sum + '-small.jpg')
+			.attr('height', '100px')
+			.attr('width', '100px')
+			.wrap($('#'+ item.md5sum));
+		var $a = $("<a></a>")
+			.attr('class', 'thumbLink')
+			.attr('id', item.md5sum)
+			//.attr('href', linkRoute + item.md5sum )
+			.append($img)
+			.appendTo($('#mapLeft'));
+		// build photoArray for photoSwipe:
+		photoArray.push({
+			id: item.md5sum,
+			sizes: item.sizes,
 		});
-
-		// pass entire array to map, let it
-		// parse them and add the geo-tagged ones:
-		map.addPins(json);
 	});
 
-	// add click handlers for items in list -- open
-	// photoSwipe, change color of viewed pins and
-	// on map and center to them:
-	$('#mapLeft').on('click', 'a', function(event) {
-		event.preventDefault();
-		openPhotoSwipe($(this).index());
-		map.changePin($(this).attr('id'));
-		map.centerPin($(this).attr('id'));
-	});
+	// pass entire array to map, let it
+	// parse them and add the geo-tagged ones:
+	map.addPins(json);
+});
 
-	// scroll to global ScrollTop or ScrollLeft when rotated:
-	$(window).on("orientationchange", function(e) {
-		setTimeout(function() { 
-			scrollToLocation($('#mapLeft'));
-			}, 0);
-	});
+// add click handlers for items in list -- open
+// photoSwipe, change color of viewed pins and
+// on map and center to them:
+$('#mapLeft').on('click', 'a', function(e) {
+	event.preventDefault();
+	openPhotoSwipe($(this).index());
+	map.changePin($(this).attr('id'));
+	map.centerPin($(this).attr('id'));
+});
+
