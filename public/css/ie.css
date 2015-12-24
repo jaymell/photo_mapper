@@ -1,0 +1,7 @@
+#mapLeft {
+	float: left;	
+	height: 90%;
+	margin-left: 1%;
+	overflow: auto; 
+	width: 140px; 
+}

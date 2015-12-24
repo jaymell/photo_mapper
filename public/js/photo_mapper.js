@@ -1,3 +1,11 @@
+// because IE8 sucks:
+if (!('forEach' in Array.prototype)) {
+	Array.prototype.forEach= function(action, that /*opt*/) {
+		for (var i= 0, n= this.length; i<n; i++)
+			if (i in this) action.call(that, this[i], i, this);
+		};
+}
+ 
 var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
@@ -6,16 +14,12 @@ var linkRoute = '/img/';
 
 // hooray for global variables:
 var photoArray = [];
-// for recording current position of 
-// item list scroll offset;
-var scrollTop = 1000;
-var scrollLeft = 1000;
 
 var openPhotoSwipe = function(index) {
 	/* the 'responsive' code copied directly from photoswipe.com */
 	var pswpElement = $('.pswp')[0];
 	var options = {
-        index: index,
+        index: index
     };
 	var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
 	gallery.listen('beforeChange', function() { 
@@ -90,7 +94,9 @@ var basePin = pinLink + basePinColor;
 
 
 // taken from:
-// http://stackoverflow.com/questions/23580831/how-to-block-google-maps-api-v3-panning-in-the-gray-zone-over-north-pole-or-unde
+// http://stackoverflow.com/questions/23580831/
+// how-to-block-google-maps-api-v3-panning-in-
+// the-gray-zone-over-north-pole-or-unde
 function checkBounds(map) {
 
 	var latNorth = map.getBounds().getNorthEast().lat();
@@ -126,14 +132,14 @@ var scrollToSelected = function($ctDiv, $itDiv) {
         $ctDiv.animate({
            scrollLeft: $itDiv.offset().left 
 						+ $ctDiv.scrollLeft() 
-						- $ctDiv.offset().left,
+						- $ctDiv.offset().left
         }, scrollSpeed);
 	// landscape or window.orientation undefined:
 	} else {
        $ctDiv.animate({ 
 		  scrollTop: $itDiv.offset().top 
 						+ $ctDiv.scrollTop() 
-						- $ctDiv.offset().top,
+						- $ctDiv.offset().top
        }, scrollSpeed);
 	}
 };
@@ -148,7 +154,7 @@ var map = (function() {
 			minZoom: 2,
 			keyboardShortcuts: false,
 			// HYBRID like SATELLITE, but shows labels:
-            mapTypeId: google.maps.MapTypeId.ROADMAP, // TERRAIN, SATELLITE, HYBRID, ROADMAP
+            mapTypeId: google.maps.MapTypeId.ROADMAP // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
 
     var _map = new google.maps.Map(document.getElementById('mapCanvas'), mapOptions);
@@ -176,29 +182,6 @@ var map = (function() {
 		var denominator = Math.pow(zoom, 3);
 		return zoom < 18 ? numerator/denominator : 0;
 	};
-
-	/*
-	google.maps.event.addListener(_map, 'zoom_changed', function() {
-		var zoom = _map.getZoom();
-		console.log('zoom: '+zoom);
-		for (var obj in markerObj) {
-			marker = markerObj[obj];
-			marker.position = new google.maps.LatLng(
-				// ... starting to think the jitter
-				// just needs to get away.... 
-            	//marker.latitude + jitter(zoom),
-                //marker.longitude + jitter(zoom)
-				marker.latitude,
-				marker.longitude
-            );
-			marker.setPosition(marker.position);
-		}
-	});
-		
-	google.maps.event.addListener(_map, 'center_changed', function() {
-    	checkBounds(_map);
-	});
-	*/
 
 	return {
 		jitter: function() { console.log(jitter(_map.getZoom())); },
@@ -241,7 +224,7 @@ var map = (function() {
 						md5sum: photo.md5sum,
 						changePin: function() {
 							this.setIcon(changedPin);
-						},
+						}
 					});
 
 					// add to assoc array:
@@ -264,16 +247,11 @@ var map = (function() {
 					});
 				}
 			});	
-		},
+		}
 	};		
 })();
-			
-	// append requisite html for photoSwipe:
-	$(document.body).append('<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">    <div class="pswp__bg"></div>    <div class="pswp__scroll-wrap">        <div class="pswp__container">            <div class="pswp__item"></div>            <div class="pswp__item"></div>            <div class="pswp__item"></div>        </div>        <div class="pswp__ui pswp__ui--hidden">            <div class="pswp__top-bar">                <div class="pswp__counter"></div>                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>                <button class="pswp__button pswp__button--share" title="Share"></button>                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>                <div class="pswp__preloader">                    <div class="pswp__preloader__icn">                      <div class="pswp__preloader__cut">                        <div class="pswp__preloader__donut"></div>                      </div>                    </div>                </div>            </div>            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">                <div class="pswp__share-tooltip"></div>             </div>            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">            </button>            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">            </button>            <div class="pswp__caption">                <div class="pswp__caption__center"></div>            </div>        </div>    </div></div>');
 
 $.getJSON('/photos', function(json) {
-	console.log('got json');
-
 	json.forEach(function(item, index, array) {
 		// add links to list:
 		// create img:
@@ -306,9 +284,48 @@ $.getJSON('/photos', function(json) {
 // photoSwipe, change color of viewed pins and
 // on map and center to them:
 $('#mapLeft').on('click', 'a', function(e) {
-	event.preventDefault();
+	e.preventDefault();
 	openPhotoSwipe($(this).index());
 	map.changePin($(this).attr('id'));
 	map.centerPin($(this).attr('id'));
 });
+
+// append requisite html for photoSwipe:
+var html = ' \
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"> \
+<div class="pswp__bg"></div>    \
+<div class="pswp__scroll-wrap">  \
+	<div class="pswp__container"> \
+		<div class="pswp__item"></div> \
+		<div class="pswp__item"></div> \
+		<div class="pswp__item"></div> \
+	</div> \
+	<div class="pswp__ui pswp__ui--hidden"> \
+		<div class="pswp__top-bar"> \
+			<div class="pswp__counter"></div> \
+			<button class="pswp__button pswp__button--close" title="Close (Esc)"></button> \
+			<button class="pswp__button pswp__button--share" title="Share"></button> \
+			<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> \
+			<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button> \
+			<div class="pswp__preloader"> \
+				<div class="pswp__preloader__icn"> \
+					<div class="pswp__preloader__cut"> \
+						<div class="pswp__preloader__donut"></div> \
+					</div> \
+				</div> \
+			</div> \
+		</div> \
+		<div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"> \
+			<div class="pswp__share-tooltip"></div> \
+		</div> \
+		<button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button> \
+		<button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button> \
+		<div class="pswp__caption"> \
+			<div class="pswp__caption__center"></div> \
+		</div> \
+	</div> \
+</div> \
+</div>';
+
+$(document.body).append(html);
 

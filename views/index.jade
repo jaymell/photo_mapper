@@ -1,7 +1,11 @@
+mixin ie(condition, content)
+  | <!--[!{condition}]>!{content}<![endif]-->
+
 html
   head
     title #{title} 
-    link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet', href='/css/photo_mapper.css')
+    +ie('if IE 8', '<link href="/css/ie.css" rel="stylesheet"></link>')
     link(rel='stylesheet', href='/photoswipe/photoswipe.css')
     link(rel='stylesheet', href='/photoswipe/default-skin/default-skin.css')
     meta(name="viewport", content="width = device-width, initial-scale = 1.0") 
