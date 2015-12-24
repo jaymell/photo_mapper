@@ -25,8 +25,11 @@ var openPhotoSwipe = function(index) {
 	gallery.listen('beforeChange', function() { 
 		// set Pin and item in list to change color when 
 		// slide is changed:
-		itemId = gallery.currItem.id;
-		map.changePin(itemId);
+		map.changePin(gallery.currItem.id);
+		if ( gallery.currItem.geo ) 
+			$('.pswp__button--mapIt').css('display', 'none');
+		else 
+			$('.pswp__button--mapIt').css('display', 'block');
 	});
 	// scroll once load is complete:
 	gallery.listen('afterChange', function() {
@@ -213,8 +216,6 @@ var map = (function() {
 						latitude: latitude,
 						longitude: longitude,
 						position: new google.maps.LatLng(
-							 //photo.latitude + jitter(zoom),
-							 //photo.longitude + jitter(zoom)
 							latitude,
 							longitude
 						),
@@ -268,10 +269,15 @@ $.getJSON('/photos', function(json) {
 			//.attr('href', linkRoute + item.md5sum )
 			.append($img)
 			.appendTo($('#mapLeft'));
+
+		var longitude = item.geojson.coordinates[0] ? item.geojson.coordinates[0] : null;
+		var latitude = item.geojson.coordinates[1] ? item.geojson.coordinates[1] : null;
+
 		// build photoArray for photoSwipe:
 		photoArray.push({
 			id: item.md5sum,
 			sizes: item.sizes,
+			geo: latitude && longitude 
 		});
 	});
 
