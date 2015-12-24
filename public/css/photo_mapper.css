@@ -11,6 +11,7 @@ html, body {
 #mapCanvas { 
 	height: 90%;
 }
+
 @media all and (orientation:landscape) {
 	#mapLeft {
 		float: left;	
@@ -57,10 +58,8 @@ html, body {
 }
 
 .pswp__bg {
-	opacity: .5 !important; 
+	opacity: .7 !important; 
 }
-
-/* .pswp__top-bar */
 
 .pswp__img--placeholder--blank  {
 	opacity: 0 !important;
