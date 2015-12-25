@@ -64,8 +64,3 @@ html, body {
 .pswp__img--placeholder--blank  {
 	opacity: 0 !important;
 }
-
-.pswp__button--mapIt {
-	background-image: url('/img/monkey.jpg') !important;
-}
-
