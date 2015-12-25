@@ -26,7 +26,6 @@ var openPhotoSwipe = function(index) {
 	// make show map button invisible or not depending on
 	// whether photo is geo-tagged:
 	var prepareMapButton = function() {
-		console.log('curr item: ', gallery.currItem);
 		if ( gallery.currItem.geo )
 			$('.pswp__button--mapIt').css('display', 'block');
 		else 
@@ -95,8 +94,18 @@ var openPhotoSwipe = function(index) {
 			item.h = item.sizes.scaled.height;
 		}
 	});
+	
+	// close gallery, center on pin
+	// and zoom map on button click:
+	$('.pswp__button--mapIt').on('click', function() {
+		gallery.close()
+		map.centerPin(gallery.currItem.id);
+		map.zoom(18);
+	});
+
 	// and initialize:
 	gallery.init();
+
 };
 
 // you want to append one of the above colors to this url:
@@ -197,8 +206,8 @@ var map = (function() {
 
 	return {
 		jitter: function() { console.log(jitter(_map.getZoom())); },
-		zoom: function() { console.log(_map.getZoom()); },
-
+		getZoom: function() { console.log(_map.getZoom()); },
+		zoom: function(zoom) { _map.setZoom(zoom); },
 		// expects to be passed md5sum, which
 		// corresponds to id of list items:
 		changePin: function(md5sum) {
@@ -342,6 +351,7 @@ var html = ' \
 	</div> \
 </div> \
 </div>';
+
 
 $(document.body).append(html);
 
