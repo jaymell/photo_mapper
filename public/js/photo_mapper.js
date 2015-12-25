@@ -16,23 +16,31 @@ var linkRoute = '/img/';
 var photoArray = [];
 
 var openPhotoSwipe = function(index) {
-	/* the 'responsive' code copied directly from photoswipe.com */
+
 	var pswpElement = $('.pswp')[0];
 	var options = {
         index: index
     };
 	var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+
+	// make show map button invisible or not depending on
+	// whether photo is geo-tagged:
+	var prepareMapButton = function() {
+		console.log('curr item: ', gallery.currItem);
+		if ( gallery.currItem.geo )
+			$('.pswp__button--mapIt').css('display', 'block');
+		else 
+			$('.pswp__button--mapIt').css('display', 'none');
+	};
 	gallery.listen('beforeChange', function() { 
 		// set Pin and item in list to change color when 
 		// slide is changed:
 		map.changePin(gallery.currItem.id);
-		if ( gallery.currItem.geo ) 
-			$('.pswp__button--mapIt').css('display', 'none');
-		else 
-			$('.pswp__button--mapIt').css('display', 'block');
+		prepareMapButton();
 	});
 	// scroll once load is complete:
 	gallery.listen('afterChange', function() {
+		var itemId = gallery.currItem.id;
 		scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
 	});
 
@@ -42,6 +50,7 @@ var openPhotoSwipe = function(index) {
 		firstResize = true,
 		imageSrcWillChange;
 
+	/* this 'responsive' code is copied directly from photoswipe.com */
 	// beforeResize event fires each time size of gallery viewport updates
 	gallery.listen('beforeResize', function() {
 
@@ -50,23 +59,22 @@ var openPhotoSwipe = function(index) {
 
 		// Find out if current images need to be changed
 		if(useLargeImages && realViewportWidth < 1000) {
-		useLargeImages = false;
-		imageSrcWillChange = true;
+			useLargeImages = false;
+			imageSrcWillChange = true;
 		} else if(!useLargeImages && realViewportWidth >= 1000) {
-		useLargeImages = true;
-		imageSrcWillChange = true;
+			useLargeImages = true;
+			imageSrcWillChange = true;
 		}
 
 		// Invalidate items only when source is changed and when it's not the first update
 		if(imageSrcWillChange && !firstResize) {
-		// invalidateCurrItems sets a flag on slides that are in DOM,
-		// which will force update of content (image) on window.resize.
-		gallery.invalidateCurrItems();
+			// invalidateCurrItems sets a flag on slides that are in DOM,
+			// which will force update of content (image) on window.resize.
+			gallery.invalidateCurrItems();
 		}
 
-		if(firstResize) {
-		firstResize = false;
-		}
+		if(firstResize) 
+			firstResize = false;
 
 		imageSrcWillChange = false;
 
@@ -78,15 +86,16 @@ var openPhotoSwipe = function(index) {
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
 		if( useLargeImages || item.sizes.scaled !== null ) {
-		item.src = linkRoute + item.sizes.full.name;
-		item.w = item.sizes.full.width;
-		item.h = item.sizes.full.height;
+			item.src = linkRoute + item.sizes.full.name;
+			item.w = item.sizes.full.width;
+			item.h = item.sizes.full.height;
 		} else {
-		item.src = linkRoute + item.sizes.scaled.name;
-		item.w = item.sizes.scaled.width;
-		item.h = item.sizes.scaled.height;
+			item.src = linkRoute + item.sizes.scaled.name;
+			item.w = item.sizes.scaled.width;
+			item.h = item.sizes.scaled.height;
 		}
 	});
+	// and initialize:
 	gallery.init();
 };
 
@@ -266,7 +275,6 @@ $.getJSON('/photos', function(json) {
 		var $a = $("<a></a>")
 			.attr('class', 'thumbLink')
 			.attr('id', item.md5sum)
-			//.attr('href', linkRoute + item.md5sum )
 			.append($img)
 			.appendTo($('#mapLeft'));
 
@@ -277,7 +285,8 @@ $.getJSON('/photos', function(json) {
 		photoArray.push({
 			id: item.md5sum,
 			sizes: item.sizes,
-			geo: latitude && longitude 
+			// is geo-tagged? true or false:
+			geo: (latitude && longitude) ? true : false 
 		});
 	});
 
