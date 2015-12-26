@@ -4,7 +4,6 @@ Images displayed using PhotoSwipe -- www.photoswipe.com
 
 ####To do:
 * Save pin images instead of linking to them
-* Remove jittering completely (or improve it sificantly)
 * Try thumbnail list horizontal on bottom instead of top
 * Album label in heading
 * Landing page
