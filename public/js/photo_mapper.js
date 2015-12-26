@@ -97,10 +97,16 @@ var openPhotoSwipe = function(index) {
 	
 	// close gallery, center on pin
 	// and zoom map on button click:
-	$('.pswp__button--mapIt').on('click', function() {
-		gallery.close()
+	$('.pswp__button--mapIt').on('click touchstart', function(e) {
+		e.stopPropagation()
 		map.centerPin(gallery.currItem.id);
 		map.zoom(18);
+		// timeout is only way I can find to prevent touch
+		// from causing picture below map icon to immediately
+		// load a new gallery:
+		setTimeout(function() {
+			gallery.close(); 
+		}, 250);
 	});
 
 	// and initialize:
