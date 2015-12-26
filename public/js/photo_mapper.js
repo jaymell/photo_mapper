@@ -100,7 +100,9 @@ var openPhotoSwipe = function(index) {
 	$('.pswp__button--mapIt').on('click touchstart', function(e) {
 		e.stopPropagation()
 		map.centerPin(gallery.currItem.id);
-		map.zoom(18);
+		currentZoom = map.getZoom();
+		if (currentZoom < 18 ) 
+			map.zoom(18);
 		// timeout is only way I can find to prevent touch
 		// from causing picture below map icon to immediately
 		// load a new gallery:
@@ -154,7 +156,9 @@ var scrollToSelected = function($ctDiv, $itDiv) {
 	var scrollSpeed = 250;
 	// portrait --
 	// the portrait code is shaky but it's 
-	// working for all devices tested so far:
+	// working for mobile devices tested so far --
+	// doesn't work on desktop, but less likely to
+	// be an issue
 	if (window.orientation == 0) {
         $ctDiv.animate({
            scrollLeft: $itDiv.offset().left 
@@ -212,7 +216,10 @@ var map = (function() {
 
 	return {
 		jitter: function() { console.log(jitter(_map.getZoom())); },
-		getZoom: function() { console.log(_map.getZoom()); },
+		getZoom: function() { 
+			currentZoom = _map.getZoom(); 
+			return currentZoom;
+		},
 		zoom: function(zoom) { _map.setZoom(zoom); },
 		// expects to be passed md5sum, which
 		// corresponds to id of list items:
