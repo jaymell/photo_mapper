@@ -16,20 +16,30 @@ var linkRoute = '/img/';
 var photoArray = [];
 
 var openPhotoSwipe = function(index) {
-	/* the 'responsive' code copied directly from photoswipe.com */
+
 	var pswpElement = $('.pswp')[0];
 	var options = {
         index: index
     };
 	var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+
+	// make show map button invisible or not depending on
+	// whether photo is geo-tagged:
+	var prepareMapButton = function() {
+		if ( gallery.currItem.geo )
+			$('.pswp__button--mapIt').css('display', 'block');
+		else 
+			$('.pswp__button--mapIt').css('display', 'none');
+	};
 	gallery.listen('beforeChange', function() { 
 		// set Pin and item in list to change color when 
 		// slide is changed:
-		itemId = gallery.currItem.id;
-		map.changePin(itemId);
+		map.changePin(gallery.currItem.id);
+		prepareMapButton();
 	});
 	// scroll once load is complete:
 	gallery.listen('afterChange', function() {
+		var itemId = gallery.currItem.id;
 		scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
 	});
 
@@ -39,6 +49,7 @@ var openPhotoSwipe = function(index) {
 		firstResize = true,
 		imageSrcWillChange;
 
+	/* this 'responsive' code is copied directly from photoswipe.com */
 	// beforeResize event fires each time size of gallery viewport updates
 	gallery.listen('beforeResize', function() {
 
@@ -47,23 +58,22 @@ var openPhotoSwipe = function(index) {
 
 		// Find out if current images need to be changed
 		if(useLargeImages && realViewportWidth < 1000) {
-		useLargeImages = false;
-		imageSrcWillChange = true;
+			useLargeImages = false;
+			imageSrcWillChange = true;
 		} else if(!useLargeImages && realViewportWidth >= 1000) {
-		useLargeImages = true;
-		imageSrcWillChange = true;
+			useLargeImages = true;
+			imageSrcWillChange = true;
 		}
 
 		// Invalidate items only when source is changed and when it's not the first update
 		if(imageSrcWillChange && !firstResize) {
-		// invalidateCurrItems sets a flag on slides that are in DOM,
-		// which will force update of content (image) on window.resize.
-		gallery.invalidateCurrItems();
+			// invalidateCurrItems sets a flag on slides that are in DOM,
+			// which will force update of content (image) on window.resize.
+			gallery.invalidateCurrItems();
 		}
 
-		if(firstResize) {
-		firstResize = false;
-		}
+		if(firstResize) 
+			firstResize = false;
 
 		imageSrcWillChange = false;
 
@@ -75,16 +85,27 @@ var openPhotoSwipe = function(index) {
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
 		if( useLargeImages || item.sizes.scaled !== null ) {
-		item.src = linkRoute + item.sizes.full.name;
-		item.w = item.sizes.full.width;
-		item.h = item.sizes.full.height;
+			item.src = linkRoute + item.sizes.full.name;
+			item.w = item.sizes.full.width;
+			item.h = item.sizes.full.height;
 		} else {
-		item.src = linkRoute + item.sizes.scaled.name;
-		item.w = item.sizes.scaled.width;
-		item.h = item.sizes.scaled.height;
+			item.src = linkRoute + item.sizes.scaled.name;
+			item.w = item.sizes.scaled.width;
+			item.h = item.sizes.scaled.height;
 		}
 	});
+	
+	// close gallery, center on pin
+	// and zoom map on button click:
+	$('.pswp__button--mapIt').on('click', function() {
+		gallery.close()
+		map.centerPin(gallery.currItem.id);
+		map.zoom(18);
+	});
+
+	// and initialize:
 	gallery.init();
+
 };
 
 // you want to append one of the above colors to this url:
@@ -185,8 +206,8 @@ var map = (function() {
 
 	return {
 		jitter: function() { console.log(jitter(_map.getZoom())); },
-		zoom: function() { console.log(_map.getZoom()); },
-
+		getZoom: function() { console.log(_map.getZoom()); },
+		zoom: function(zoom) { _map.setZoom(zoom); },
 		// expects to be passed md5sum, which
 		// corresponds to id of list items:
 		changePin: function(md5sum) {
@@ -213,8 +234,6 @@ var map = (function() {
 						latitude: latitude,
 						longitude: longitude,
 						position: new google.maps.LatLng(
-							 //photo.latitude + jitter(zoom),
-							 //photo.longitude + jitter(zoom)
 							latitude,
 							longitude
 						),
@@ -265,13 +284,18 @@ $.getJSON('/photos', function(json) {
 		var $a = $("<a></a>")
 			.attr('class', 'thumbLink')
 			.attr('id', item.md5sum)
-			//.attr('href', linkRoute + item.md5sum )
 			.append($img)
 			.appendTo($('#mapLeft'));
+
+		var longitude = item.geojson.coordinates[0] ? item.geojson.coordinates[0] : null;
+		var latitude = item.geojson.coordinates[1] ? item.geojson.coordinates[1] : null;
+
 		// build photoArray for photoSwipe:
 		photoArray.push({
 			id: item.md5sum,
 			sizes: item.sizes,
+			// is geo-tagged? true or false:
+			geo: (latitude && longitude) ? true : false 
 		});
 	});
 
@@ -307,6 +331,7 @@ var html = ' \
 			<button class="pswp__button pswp__button--share" title="Share"></button> \
 			<button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> \
 			<button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button> \
+			<img class="pswp__button pswp__button--mapIt" title="Show on map" src="/static/img/map.png"></button> \
 			<div class="pswp__preloader"> \
 				<div class="pswp__preloader__icn"> \
 					<div class="pswp__preloader__cut"> \
@@ -326,6 +351,7 @@ var html = ' \
 	</div> \
 </div> \
 </div>';
+
 
 $(document.body).append(html);
 
