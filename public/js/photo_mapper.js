@@ -327,6 +327,32 @@ $('#mapLeft').on('click', 'a', function(e) {
 	map.centerPin($(this).attr('id'));
 });
 
+// record location of scroll for orientation
+// change handling:
+/*
+$('#mapLeft').on('scroll', function() {
+	if (canChange) {
+		offset.scrollTop = $('#mapLeft').scrollTop();
+		offset.scrollLeft = $('#mapLeft').scrollLeft();
+	}
+});
+*/
+
+// detect orientation change and make sure list
+// stays in proper location:
+$(window).on('orientationchange', function() {
+	var offset = {
+	    scrollTop: $('#mapLeft').scrollTop(),
+    	scrollLeft: $('#mapLeft').scrollLeft()
+	};
+	//offset.scrollTop =  $('#mapLeft').scrollTop();
+	//offset.scrollLeft =  $('#mapLeft').scrollLeft();
+	setTimeout(function() {
+		$('#mapLeft').scrollTop(offset.scrollLeft);
+		$('#mapLeft').scrollLeft(offset.scrollTop);
+	}, 500);
+});
+
 // append requisite html for photoSwipe:
 var html = ' \
 <div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"> \
