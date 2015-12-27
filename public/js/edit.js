@@ -56,9 +56,9 @@ $(document).ready(function() {
 		json.forEach(function(item) {
 			var img=$('<img/>')
 				.attr('id', item.md5sum)
-				.attr('src', '/img/' + item.thumbnail)
+				.attr('src', '/img/' + item.sizes.thumbnail.name)
 				.attr('class', 'thumbnail')
-				.attr('data-mfp-src', '/img/' + item.file_name)
+				.attr('data-mfp-src', '/img/' + item.sizes.full.name)
 				.attr('draggable', 'true')
 				.attr('ondragstart', 'dragStartHandler(event)')
 				.attr('ondragend', 'dragEndHandler(event)')
