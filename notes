@@ -186,3 +186,60 @@ steps for adding country data:
 
 quality=30 -- total size 218M
 full quality -- total size 441M
+
+
+--------------------------
+plotting /clustering notes:
+
+from pymongo import MongoClient
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.cluster.vq import kmeans, kmeans2, whiten
+
+MONGODB_HOST = '192.168.1.69'
+MONGODB_PORT = 27017
+DB_NAME = 'photo_mapper'
+COLLECTION_NAME='photo_mapper'
+connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
+collection = connection[DB_NAME][COLLECTION_NAME]
+
+raw_results = [ i for i in collection.find() ]
+results = [ i['geojson']['coordinates'] for i in collection.find() if i['geojson']['coordinates'][0] and i['geojson']['coordinates'][1] ]
+
+# save scatter plot of coordinates plotted on graph:
+df = pd.DataFrame(results)
+df.columns = ['longitude','latitude']
+df.plot.scatter('longitude', 'latitude')
+#plt.savefig('/tmp/out.png')
+
+#http://geoffboeing.com/2014/08/clustering-to-reduce-spatial-data-set-size/
+coordinates = df.as_matrix(columns=['longitude', 'latitude'])
+N = len(coordinates)
+k = 20
+i = 50
+w = whiten(coordinates)
+cluster_centroids, closest_centroids = kmeans2(w, k, iter=i, minit='points')
+
+"""
+plt.figure(figsize=(10, 6), dpi=100)
+plt.scatter(cluster_centroids[:,0], cluster_centroids[:,1], c='r', alpha=.7, s=150)
+plt.scatter(w[:,0], w[:,1], c='k', alpha=.3, s=10)
+plt.show()
+"""
+
+rs = pd.DataFrame(df)
+rs['closest_centroid'] = closest_centroids
+rs.drop_duplicates(subset=['closest_centroid'], take_last=False, inplace=True)
+rs.head()
+
+
+plt.figure(figsize=(10, 6), dpi=100)
+rs_scatter = plt.scatter(rs['longitude'], rs['latitude'], c='r', alpha=.7, s=150)
+df_scatter = plt.scatter(df['longitude'], df['latitude'], c='k', alpha=.3, s=5)
+plt.title('Full data set vs k-means reduced set')
+plt.legend((df_scatter, rs_scatter), ('Full set', 'Reduced set'), loc='upper left')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.show()
+
