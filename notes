@@ -196,6 +196,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.cluster.vq import kmeans, kmeans2, whiten
+from sklearn.cluster import DBSCAN
 
 MONGODB_HOST = '192.168.1.69'
 MONGODB_PORT = 27017
@@ -205,7 +206,12 @@ connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
 collection = connection[DB_NAME][COLLECTION_NAME]
 
 raw_results = [ i for i in collection.find() ]
-results = [ i['geojson']['coordinates'] for i in collection.find() if i['geojson']['coordinates'][0] and i['geojson']['coordinates'][1] ]
+results = 	[ i['geojson']['coordinates'] 
+				for i in collection.find() 
+				# compound if sucks, maybe better way to get truth of all elements in array:
+				if i['geojson']['coordinates'][0] 
+				and i['geojson']['coordinates'][1] 
+			]
 
 # save scatter plot of coordinates plotted on graph:
 df = pd.DataFrame(results)
@@ -221,12 +227,10 @@ i = 50
 w = whiten(coordinates)
 cluster_centroids, closest_centroids = kmeans2(w, k, iter=i, minit='points')
 
-"""
 plt.figure(figsize=(10, 6), dpi=100)
 plt.scatter(cluster_centroids[:,0], cluster_centroids[:,1], c='r', alpha=.7, s=150)
 plt.scatter(w[:,0], w[:,1], c='k', alpha=.3, s=10)
 plt.show()
-"""
 
 rs = pd.DataFrame(df)
 rs['closest_centroid'] = closest_centroids
@@ -242,4 +246,24 @@ plt.legend((df_scatter, rs_scatter), ('Full set', 'Reduced set'), loc='upper lef
 plt.xlabel('Longitude')
 plt.ylabel('Latitude')
 plt.show()
+
+
+#df = pd.DataFrame(results)
+#df.columns = ['longitude','latitude']
+#coordinates = df.as_matrix(columns=['longitude', 'latitude'])
+def dbscan_stuff(coordinates):
+	""" take coordinate dataframe, print number of 
+		clusters -- http://geoffboeing.com/2014/08/
+					clustering-to-reduce-spatial-data-set-size/ """
+	db = DBSCAN(eps=.01, min_samples=1).fit(coordinates)
+	labels = db.labels_
+	num_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+	clusters = pd.Series([coordinates[labels == i] for i in xrange(num_clusters)])
+	print('Number of clusters: %d' % num_clusters)
+
+dbscan_stuff(coordinates)
+
+
+
+
 
