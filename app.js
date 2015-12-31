@@ -1,9 +1,3 @@
-// here's a pic with that's rotated incorrectly:
-// 90 degrees counter-clockwise:
-// 43b28e693579d1b495ace80bf4324780
-// 5cebc610a99bb9da315b69d017bd94ad
-// correct: 50339893aab76d0da206670663a4cb49
-
 // Load required packages
 var express = require('express');
 var path = require('path');
