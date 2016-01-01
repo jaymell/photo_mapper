@@ -15,12 +15,19 @@ import io
 class InsertError(Exception):
 	pass
 
-class Jpeg:
-	""" quick n dirty way to get extra
-		attributes along with file handle """
+class SaveError(Exception):
+	pass
 
+class S3Error(Exception:
+	pass
+
+class Jpeg:
+	""" this class does most of the heavy 
+		lifting for imports -- needs a lot
+		of cleanup, error handling, etc. """
 
 	def __init__(self, f):
+		# file handle:
 		self.fh = open(f, 'rb')
 		self.name = self.fh.name
 		self.path, self.file_name_orig = os.path.split(self.fh.name)
@@ -101,7 +108,7 @@ class Jpeg:
 					resized = self.resize((size['width'], size['height']), Image.ANTIALIAS)
 					resized.save(destination, self.TYPE, quality=self.QUALITY)
 			except Exception as e:
-				print('Failed to save %s: %s' % (destination, e))
+				raise SaveError('Failed to save %s: %s' % (destination, e))
 
 	def save_s3(self, bucket, rotation=True, connection):
 		if rotation:
@@ -112,8 +119,19 @@ class Jpeg:
 				self.fh.seek(0)
 				connection.upload(self.name, self.fh)
 			except Exception as e:
-				print('Error uploading: %s' % e)
+				raise S3Error('Error uploading: %s' % e)
 				
+	def db_entry(self, user):
+		""" build json for db """
+
+		db_entry = {}
+		db_entry["user"] = user
+		db_entry['md5sum'] = self.md5sum
+		db_entry['date'] = self.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if self.jpgps.date() else None
+		db_entry['geojson'] = { "type": "Point", 
+								"coordinates": [self.jpgps.coordinates()[1], 
+									self.jpgps.coordinates()[0]]}
+
 	def close(self):
 		self.fh.close()
 
@@ -156,14 +174,6 @@ def process(jpeg, collection, user):
 		jpeg.close()
 		return
 	
-	# build json for db:
-	db_entry = {}
-	db_entry["user"] = user
-	db_entry['md5sum'] = jpeg.md5sum
-	db_entry['date'] = jpeg.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if jpeg.jpgps.date() else None
-	db_entry['geojson'] = { "type": "Point", 
-							"coordinates": [jpeg.jpgps.coordinates()[1], 
-								jpeg.jpgps.coordinates()[0]]}
 
 	# write json for each of the different sizes availabe
 	# for each image:
