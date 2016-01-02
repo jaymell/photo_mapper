@@ -3,10 +3,9 @@ from pymongo import MongoClient
 from bson import json_util
 import json
 import ConfigParser 
+import datetime
 
 app = flask.Flask(__name__)
-photoswipe_route = flask.Blueprint('site', __name__, static_url_path='/static/site', static_folder='node_modules/photoswipe/dist')
-app.register_blueprint(photoswipe_route)
 
 p = ConfigParser.ConfigParser()
 p.read("config")
@@ -34,12 +33,14 @@ def index():
 def get_json():
 	collection = flask.g.db[DB_NAME][COLLECTION_NAME]
 	sites = [ i for i in collection.find({}, {'_id': False}) ]
+	sites.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
 	sites = json.dumps(sites, default=json_util.default)
 	return sites
 
 
 if __name__ == "__main__":
-	app.run(host='0.0.0.0',port=5010,debug=True)
+	PORT = 5001
+	app.run(host='0.0.0.0',port=5001,debug=True)
 
 """
 old jscript for deletions:
