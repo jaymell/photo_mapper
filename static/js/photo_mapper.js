@@ -1,3 +1,21 @@
+
+// http://stackoverflow.com/questions/5639346/shortest-function-for-reading-a-cookie-in-javascript
+// for reading cookies
+(function(){
+    var cookies;
+    function readCookie(name,c,C,i){
+        if(cookies){ return cookies[name]; }
+        c = document.cookie.split('; ');
+        cookies = {};
+        for(i=c.length-1; i>=0; i--){
+           C = c[i].split('=');
+           cookies[C[0]] = C[1];
+        }
+        return cookies[name];
+    }
+    window.readCookie = readCookie; // or expose it however you want
+})();
+
 // because IE8 sucks:
 if (!('forEach' in Array.prototype)) {
 	Array.prototype.forEach= function(action, that /*opt*/) {
@@ -283,7 +301,10 @@ var map = (function() {
 	};		
 })();
 
-$.getJSON('/photos', function(json) {
+var user = window.readCookie("user");
+var album = window.readCookie("album");
+var photo_route = encodeURIComponent("/api/users/" + user + "/albums/" + album + "/photos");
+$.getJSON(photo_route, function(json) {
 	json.forEach(function(item, index, array) {
 		// add links to list:
 		// create img:

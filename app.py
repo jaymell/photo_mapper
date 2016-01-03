@@ -1,4 +1,5 @@
 import flask
+import flask.ext.restful
 from pymongo import MongoClient
 from bson import json_util
 import json
@@ -17,7 +18,8 @@ KEY=p.get('GMAPS', 'KEY')
 
 @app.before_request
 def before_request():
-	flask.g.db = MongoClient(MONGODB_HOST, MONGODB_PORT)
+	db = MongoClient(MONGODB_HOST, MONGODB_PORT)
+	flask.g.collection = db[DB_NAME][COLLECTION_NAME]
 
 @app.teardown_request
 def teardown_request(exception):
@@ -25,18 +27,58 @@ def teardown_request(exception):
     if db is not None:
         db.close()	
 
+""" html routes """
 @app.route("/")
 def index():
-	return flask.render_template("index.html", KEY=KEY)
+	return flask.render_template("index.j2")
 
-@app.route("/photos")
-def get_json():
-	collection = flask.g.db[DB_NAME][COLLECTION_NAME]
-	sites = [ i for i in collection.find({}, {'_id': False}) ]
-	sites.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
-	sites = json.dumps(sites, default=json_util.default)
-	return sites
+@app.route("/users/<user>")
+def user_landing(user):
+	""" user page just redirect to albums page """
+	return flask.redirect("/users/%s/albums" % user)
 
+@app.route("/users/<user>/albums")
+def get_albums(user):
+	resp = flask.make_response(flask.render_template("albums.j2"))
+	resp.set_cookie('user', user)
+	return resp
+
+@app.route("/users/<user>/albums/<album>")
+def get_album(user, album):
+	""" photos page """
+	# if request to edit was made, do it:
+	if 'edit' in flask.request.args:
+		if flask.request.args['edit'] == True:
+			resp = flask.make_response(flask.render_template("photo_edit.j2"))
+			resp.set_cookie('user', user)
+			resp.set_cookie('album', album)
+			return resp
+	# default to photo_mapper view of album:		
+	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=KEY))
+	resp.set_cookie('user', user)
+	resp.set_cookie('album', album)
+	return resp
+
+
+""" json routes """
+@app.route("/api/users/<user>/albums")
+def album_json(user):
+	""" return a list of albums given a user name """
+
+	collection = flask.g.collection	
+	albums = [ i for i in collection.distinct('album', {'user': user}) ]
+	albums = json.dumps(albums, default=json_util.default)
+	return albums
+
+@app.route("/api/users/<user>/albums/<album>/photos")
+def photo_json(user,album):
+	""" sort and return photo list json """
+
+	collection = flask.g.collection
+	photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
+	photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
+	photos = json.dumps(photos, default=json_util.default)
+	return photos
 
 if __name__ == "__main__":
 	PORT = 5001

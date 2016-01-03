@@ -41,6 +41,8 @@ $(document).ready(function() {
         type: 'image',
 		closeOnContentClick: true,
 	});
+	
+	$('#trashCanDesc').on('dragover', dragOverHandler(e));
 /* 
 	var magnificLinks = magnific.find('img');
 	magnific.off('click');
@@ -51,7 +53,7 @@ $(document).ready(function() {
 		magnific.magnificPopup('open', magnificLinks.index(this))
 	});
 */
-	$.getJSON('/photos', function(json) {
+	$.getJSON('/photos?user=james&album="2015 Vacation"', function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
 			var img=$('<img/>')
