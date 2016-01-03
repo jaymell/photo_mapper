@@ -71,7 +71,7 @@ def album_json(user):
 
 @app.route("/api/users/<user>/albums/<album>/photos")
 def photo_json(user,album):
-	""" sort and return photo list json """
+	""" sort and return photo list json given user and album """
 
 	collection = flask.g.collection
 	photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
