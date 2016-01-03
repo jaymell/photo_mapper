@@ -47,12 +47,11 @@ def get_albums(user):
 def get_album(user, album):
 	""" photos page """
 	# if request to edit was made, do it:
-	if 'edit' in flask.request.args:
-		if flask.request.args['edit'] == True:
-			resp = flask.make_response(flask.render_template("photo_edit.j2"))
-			resp.set_cookie('user', user)
-			resp.set_cookie('album', album)
-			return resp
+	if flask.request.args.get('edit') == 'true':
+		resp = flask.make_response(flask.render_template("photo_edit.j2"))
+		resp.set_cookie('user', user)
+		resp.set_cookie('album', album)
+		return resp
 	# default to photo_mapper view of album:		
 	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=KEY))
 	resp.set_cookie('user', user)

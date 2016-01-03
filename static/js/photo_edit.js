@@ -1,3 +1,5 @@
+var linkRoute = '/static/img/';
+
 function dragStartHandler(e) {
 	e.dataTransfer.setData("text/plain", e.target.id);
 	e.dataTransfer.dropEffect = 'move';
@@ -42,7 +44,7 @@ $(document).ready(function() {
 		closeOnContentClick: true,
 	});
 	
-	$('#trashCanDesc').on('dragover', dragOverHandler(e));
+	$('#trashCanDesc').on('dragover', function(e) { dragOverHandler(e); });
 /* 
 	var magnificLinks = magnific.find('img');
 	magnific.off('click');
@@ -53,14 +55,19 @@ $(document).ready(function() {
 		magnific.magnificPopup('open', magnificLinks.index(this))
 	});
 */
-	$.getJSON('/photos?user=james&album="2015 Vacation"', function(json) {
+
+	var user = window.readCookie("user");
+	var album = window.readCookie("album");
+	var photo_route = "/api/users/" + user + "/albums/" + album + "/photos";
+
+	$.getJSON(photo_route, function(json) {
 		console.log('got json');
 		json.forEach(function(item) {
 			var img=$('<img/>')
 				.attr('id', item.md5sum)
-				.attr('src', '/img/' + item.thumbnail)
+				.attr('src', linkRoute + item.sizes.thumbnail.name)
 				.attr('class', 'thumbnail')
-				.attr('data-mfp-src', '/img/' + item.file_name)
+				.attr('data-mfp-src', linkRoute + item.sizes.full.name)
 				.attr('draggable', 'true')
 				.attr('ondragstart', 'dragStartHandler(event)')
 				.attr('ondragend', 'dragEndHandler(event)')

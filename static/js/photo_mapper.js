@@ -303,7 +303,7 @@ var map = (function() {
 
 var user = window.readCookie("user");
 var album = window.readCookie("album");
-var photo_route = encodeURIComponent("/api/users/" + user + "/albums/" + album + "/photos");
+var photo_route = "/api/users/" + user + "/albums/" + album + "/photos";
 $.getJSON(photo_route, function(json) {
 	json.forEach(function(item, index, array) {
 		// add links to list:
