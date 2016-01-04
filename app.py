@@ -1,10 +1,12 @@
 import flask
 import flask.ext.restful
+import werkzeug
 from pymongo import MongoClient
 from bson import json_util
 import json
 import ConfigParser 
 import datetime
+import os
 
 app = flask.Flask(__name__)
 
@@ -48,7 +50,10 @@ def get_album(user, album):
 	""" photos page """
 	# if request to edit was made, do it:
 	if flask.request.args.get('edit') == 'true':
-		resp = flask.make_response(flask.render_template("photo_edit.j2"))
+		# there's got to be better way to get this:
+		#uploadDest = "/users/%s/albums/%s/photos" % (user,album)
+		uploadDest = flask.url_for('photo_api',user=user,album=album)
+		resp = flask.make_response(flask.render_template("photo_edit.j2", uploadDest=uploadDest))
 		resp.set_cookie('user', user)
 		resp.set_cookie('album', album)
 		return resp
@@ -61,7 +66,7 @@ def get_album(user, album):
 
 """ json routes """
 @app.route("/api/users/<user>/albums")
-def album_json(user):
+def album_api(user):
 	""" return a list of albums given a user name """
 
 	collection = flask.g.collection	
@@ -69,15 +74,18 @@ def album_json(user):
 	albums = json.dumps(albums, default=json_util.default)
 	return albums
 
-@app.route("/api/users/<user>/albums/<album>/photos")
-def photo_json(user,album):
+@app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
+def photo_api(user,album):
 	""" sort and return photo list json given user and album """
 
-	collection = flask.g.collection
-	photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
-	photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
-	photos = json.dumps(photos, default=json_util.default)
-	return photos
+	if flask.request.method == 'POST':
+		return 'FUCK OFF'	
+	elif flask.request.method == 'GET':
+		collection = flask.g.collection
+		photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
+		photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
+		photos = json.dumps(photos, default=json_util.default)
+		return photos
 
 if __name__ == "__main__":
 	PORT = 5001

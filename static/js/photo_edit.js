@@ -80,4 +80,9 @@ $(document).ready(function() {
 				});
 		});
 	});
+
+	// submit form when files selected:
+	$('#inFile').on('change', function() {
+		$('#uploadForm').submit();
+	});
 });

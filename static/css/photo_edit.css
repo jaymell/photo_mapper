@@ -5,13 +5,8 @@
 	right: 0;
 	z-index: 2000;
 	width: 100%;
-	opacity: .6;
-/*
-	width: 15%;
-	min-width: 100px;
-*/
+	opacity: .8;
 }
-
 .thumbnail {
 	padding: 3px;
 }
@@ -27,4 +22,8 @@
 
 #trashCanDesc {
 	display: inline;
+}
+
+#uploadContainer {
+	float: right;
 }

@@ -2,13 +2,19 @@
   <head>
     <title>{{title}} </title>
     <link rel="stylesheet" href="/static/lib/magnific/magnific-popup.css"/>
-    <link rel="stylesheet" href="/css/edit.css"/>
+    <link rel="stylesheet" href="/static/css/photo_edit.css"/>
+    <meta name="viewport" content="width = device-width, initial-scale = 1.0"/>
   </head>
   <body>
     <div id="header">
       <div id="trashCanSpan">
         <p id="trashCanDesc">Drag Here to Delete</p><img id="trashCan" src="/icon/user_trash.png"/>
       </div>
+	  <div id="uploadContainer">
+		<form id="uploadForm" enctype="multipart/form-data" action="{{uploadDest}}" method="POST">
+		  <input id="inFile" name="files[]" type="file" multiple="true"></input>
+		</form>
+	  </div>
     </div>
     <ul id="photoList"></ul>
     <script src="/static/js/misc.js"></script>
