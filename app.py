@@ -13,7 +13,7 @@ MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
 MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
 DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-KEY=p.get('GMAPS', 'KEY')
+KEY = p.get('GMAPS', 'KEY')
 
 @app.before_request
 def before_request():
@@ -39,8 +39,9 @@ def get_json():
 
 
 if __name__ == "__main__":
-	PORT = 5001
-	app.run(host='0.0.0.0',port=5001,debug=True)
+	PORT = p.get('WEB', 'PORT')
+	LISTEN_ADDRESS = p.get('WEB', 'LISTEN_ADDRESS')
+	app.run(host=LISTEN_ADDRESS,port=PORT,debug=True)
 
 """
 old jscript for deletions:
