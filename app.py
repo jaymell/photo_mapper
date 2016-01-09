@@ -39,7 +39,7 @@ def get_json():
 
 
 if __name__ == "__main__":
-	PORT = p.get('WEB', 'PORT')
+	PORT = p.getint('WEB', 'PORT')
 	LISTEN_ADDRESS = p.get('WEB', 'LISTEN_ADDRESS')
 	app.run(host=LISTEN_ADDRESS,port=PORT,debug=True)
 
