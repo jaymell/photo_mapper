@@ -1,3 +1,4 @@
+from __future__ import print_function 
 import flask
 import flask.ext.restful
 import werkzeug
@@ -7,8 +8,13 @@ import json
 import ConfigParser 
 import datetime
 import os
+import sys
 
 app = flask.Flask(__name__)
+UPLOAD_FOLDER = '/tmp/upload'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
 
 p = ConfigParser.ConfigParser()
 p.read("config")
@@ -51,9 +57,7 @@ def get_album(user, album):
 	# if request to edit was made, do it:
 	if flask.request.args.get('edit') == 'true':
 		# there's got to be better way to get this:
-		#uploadDest = "/users/%s/albums/%s/photos" % (user,album)
-		uploadDest = flask.url_for('photo_api',user=user,album=album)
-		resp = flask.make_response(flask.render_template("photo_edit.j2", uploadDest=uploadDest))
+		resp = flask.make_response(flask.render_template("photo_edit.j2"))
 		resp.set_cookie('user', user)
 		resp.set_cookie('album', album)
 		return resp
@@ -78,8 +82,22 @@ def album_api(user):
 def photo_api(user,album):
 	""" sort and return photo list json given user and album """
 
+	def handle_file(f):
+		filename = f.filename
+		f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
 	if flask.request.method == 'POST':
-		return 'FUCK OFF'	
+		""" this shows file number but obviously only gets first one
+		files = flask.request.files.getlist('0')
+		for f in files: 
+			print(f, file=sys.stderr)
+		"""
+		files = flask.request.files
+		for f in files:
+			print(files[f], file=sys.stderr)
+			handle_file(files[f])
+		return 'success'
+
 	elif flask.request.method == 'GET':
 		collection = flask.g.collection
 		photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
@@ -88,8 +106,9 @@ def photo_api(user,album):
 		return photos
 
 if __name__ == "__main__":
-	PORT = 5001
-	app.run(host='0.0.0.0',port=5001,debug=True)
+    PORT = p.getint('WEB', 'PORT')
+    LISTEN_ADDRESS = p.get('WEB', 'LISTEN_ADDRESS')
+    app.run(host=LISTEN_ADDRESS,port=PORT,debug=True)
 
 """
 old jscript for deletions:

@@ -11,9 +11,7 @@
         <p id="trashCanDesc">Drag Here to Delete</p><img id="trashCan" src="/icon/user_trash.png"/>
       </div>
 	  <div id="uploadContainer">
-		<form id="uploadForm" enctype="multipart/form-data" action="{{uploadDest}}" method="POST">
-		  <input id="inFile" name="files[]" type="file" multiple="true"></input>
-		</form>
+		<input id="inFile" type="file" name="files[]" multiple="true">
 	  </div>
     </div>
     <ul id="photoList"></ul>

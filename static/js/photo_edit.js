@@ -1,4 +1,6 @@
 var linkRoute = '/static/img/';
+var files;
+var data;
 
 function dragStartHandler(e) {
 	e.dataTransfer.setData("text/plain", e.target.id);
@@ -82,7 +84,28 @@ $(document).ready(function() {
 	});
 
 	// submit form when files selected:
-	$('#inFile').on('change', function() {
-		$('#uploadForm').submit();
+	// http://abandon.ie/notebook/simple-file-uploads-using-jquery-ajax
+	$('#inFile').on('change', function(e) {
+		files = e.target.files;	
+		console.log('files: ', files);
+		data = new FormData();
+		$.each(files, function(key, value) {
+			data.append(key,value);
+		});
+		console.log('data: ', data);
+
+		var user = window.readCookie("user");
+		var album = window.readCookie("album");
+
+		$.ajax({
+			url: '/api/users/' + user + '/albums/' + album + '/photos',
+			type: 'POST',
+			data: data,
+            cache: false,
+			processData: false,
+			contentType: false,
+			success: function(resp) { console.log('success', resp); },
+			failure: function(resp) { console.log('failure', resp); }
+		});
 	});
 });
