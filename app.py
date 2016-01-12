@@ -14,8 +14,6 @@ app = flask.Flask(__name__)
 UPLOAD_FOLDER = '/tmp/upload'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
-
 p = ConfigParser.ConfigParser()
 p.read("config")
 MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
@@ -38,15 +36,17 @@ def teardown_request(exception):
 """ html routes """
 @app.route("/")
 def index():
+	""" landing page """
 	return flask.render_template("index.j2")
 
 @app.route("/users/<user>")
 def user_landing(user):
-	""" user page just redirect to albums page """
+	""" user page... just redirect to albums page for now """
 	return flask.redirect("/users/%s/albums" % user)
 
 @app.route("/users/<user>/albums")
 def get_albums(user):
+	""" render albums template -- save user in cookie """
 	resp = flask.make_response(flask.render_template("albums.j2"))
 	resp.set_cookie('user', user)
 	return resp
@@ -72,19 +72,18 @@ def get_album(user, album):
 @app.route("/api/users/<user>/albums")
 def album_api(user):
 	""" return a list of albums given a user name """
-
 	collection = flask.g.collection	
 	albums = [ i for i in collection.distinct('album', {'user': user}) ]
 	albums = json.dumps(albums, default=json_util.default)
 	return albums
 
+def handle_file(f):
+	""" do appropriate stuff with uploaded files """
+	f.save(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
+
 @app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
 def photo_api(user,album):
 	""" sort and return photo list json given user and album """
-
-	def handle_file(f):
-		filename = f.filename
-		f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
 	if flask.request.method == 'POST':
 		""" this shows file number but obviously only gets first one
