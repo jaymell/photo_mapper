@@ -21,6 +21,9 @@ class SaveError(Exception):
 class S3Error(Exception:
 	pass
 
+class DBError(Exception):
+	pass
+
 class Jpeg:
 	""" this class does most of the heavy 
 		lifting for imports -- needs a lot
@@ -55,6 +58,11 @@ class Jpeg:
 		self.is_rotated = True
 
 	def get_sizes(self):
+		""" this method makes absolutely no sense ....
+			*******************
+			**********FIX THIS	
+			*******************
+		"""
 		self.sizes = {
 			'full': {
 				'width': self.width,
@@ -94,7 +102,8 @@ class Jpeg:
 		resized = self.image.resize((width, height)), Image.ANTIALIAS)
 		return resized	
 
-	def save_file(self, folder, rotation=True):
+	def save_file(self, folder, rotation=True, s3=True):
+		""" save to disk """
 		if rotation:
 			self.rotate()
 
@@ -111,6 +120,7 @@ class Jpeg:
 				raise SaveError('Failed to save %s: %s' % (destination, e))
 
 	def save_s3(self, bucket, rotation=True, connection):
+		""" save file to s3 bucket """
 		if rotation:
 			self.rotate()
 				
@@ -129,8 +139,10 @@ class Jpeg:
 		db_entry['md5sum'] = self.md5sum
 		db_entry['date'] = self.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if self.jpgps.date() else None
 		db_entry['geojson'] = { "type": "Point", 
-								"coordinates": [self.jpgps.coordinates()[1], 
-									self.jpgps.coordinates()[0]]}
+								"coordinates": 
+									[ self.jpgps.coordinates()[1], 
+									 self.jpgps.coordinates()[0] ]
+							  }
 
 	def close(self):
 		self.fh.close()
@@ -154,39 +166,31 @@ def process(jpeg, collection, user):
 
 	db_dupes = get_db_duplicates(jpeg.md5sum, collection, user)
 	if db_dupes:
-		if len(db_dupes) > 1:
-			print('Multiple DB duplicates found. Exiting: ', jpeg.file_name_orig)
-			sys.exit(3)
-		else:
-			# if there's a single duplicate and the image already exists, skip it:
-			if os.path.exists(os.path.join(PHOTO_FOLDER,jpeg.file_name_new)):
-				print('Duplicate found. Skipping: ', jpeg.file_name_orig)
-			# there's already a db entry but the image was deleted, just copy the image:
-			else:
-				print('DB entry found but file is missing... copying file')
-				write_file_only = True	
-
-	# write file:
-	try:
-		jpeg.save()
-	except Exception as e:
-		print('Failed to write image to file system: %s' % e)
-		jpeg.close()
-		return
-	
+		jpeg.close()	
+		raise DBError('%s: already in database' % jpeg.file_name_orig)
 
 	# write json for each of the different sizes availabe
 	# for each image:
+	##################
+	########## FIX ME
+	##################
 	db_entry['sizes'] = {}
 	for key, size in sizes.items():
 		db_entry['sizes'][key] = {'height': size['height'], 'width': size['width'], 'name': size['name']}
+	try:
+		update_db(db_entry, collection)
+	except InsertError as e:
+		print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
+		jpeg.close()
+		return
 
-	# db update:
-	if not write_file_only:
-		try:
-			update_db(db_entry, collection)
-		except InsertError as e:
-			print('Failed to update database with %s: %s' % (jpeg.file_name_orig, e))
+	# write file:
+	try:
+		jpeg.save_s3()
+	except Exception as e:
+		print('Failed to write image: %s' % e)
+		jpeg.close()
+		return
 
 	jpeg.close()
 	
@@ -218,14 +222,16 @@ if __name__ == '__main__':
 		print('Failed to open directory: %s' % e)	
 		sys.exit(2)
 	for item in dir_items:
-		if imghdr.what(os.path.join(location,item)) == 'jpeg':
-			try:
-				jpeg = Jpeg(os.path.join(location, item))
-			except Exception as e:
-				print('Failed to create jpeg object from %s: %s' % (item, e))
-			else:
-				print('Original File Name: %s' % jpeg.file_name_orig)
-				try:
-					process(jpeg, collection, user)
-				finally:
-					jpeg.close()
+		if not imghdr.what(os.path.join(location,item)) == 'jpeg':
+			return
+		try:
+			jpeg = Jpeg(os.path.join(location, item))
+		except Exception as e:
+			print('Failed to create jpeg object from %s: %s' % (item, e))
+			return
+
+		print('Original File Name: %s' % item)
+		try:
+			process(jpeg, collection, user)
+		finally:
+			jpeg.close()
