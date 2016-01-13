@@ -9,6 +9,7 @@ import ConfigParser
 import datetime
 import os
 import sys
+import tempfile
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = '/tmp/upload'
@@ -79,7 +80,17 @@ def album_api(user):
 
 def handle_file(f):
 	""" do appropriate stuff with uploaded files """
-	f.save(os.path.join(app.config['UPLOAD_FOLDER'], f.filename))
+
+	upload_folder = app.config['UPLOAD_FOLDER']
+	tempdir = tempfile.mkdtemp(dir=upload_folder)
+	try:
+		filename = f.filename
+		f.save(os.path.join(upload_folder, tempdir, filename))
+	except Exception as e:
+		print('Failed to save file %s: %s' % (filename, e))
+		raise
+	try:
+		## import_data script
 
 @app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
 def photo_api(user,album):
