@@ -10,6 +10,8 @@ import datetime
 import os
 import sys
 import tempfile
+import imghdr
+import photo_importer
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = '/tmp/upload'
@@ -81,20 +83,44 @@ def album_api(user):
 def handle_file(f):
 	""" do appropriate stuff with uploaded files """
 
+	collection = flask.g.collection
 	upload_folder = app.config['UPLOAD_FOLDER']
-	tempdir = tempfile.mkdtemp(dir=upload_folder)
+	filename = f.filename
 	try:
-		filename = f.filename
-		f.save(os.path.join(upload_folder, tempdir, filename))
+		temp_f = tempfile.TemporaryFile(dir=upload_folder)
+		f.save(os.path.join(upload_folder, temp_f))
 	except Exception as e:
 		print('Failed to save file %s: %s' % (filename, e))
-		raise
+		return
+
+	if not imghdr.what(os.path.join(location,item)) == 'jpeg':
+		print('%s not a jpeg' % filename)
+		return
+	
 	try:
-		## import_data script
+		jpeg = photo_importer.Jpeg(temp_f)
+	except Exception as e:
+		print('Failed to create jpeg object from %s: %s' % (filename, e))
+		return
+
+	### should I check for DB duplicates here?
+	try:
+		collection.insert_one(jpeg.db_entry())	
+	except Exception as e:
+		print('Failed to update database with %s: %s' % (filename, e))
+		return
+
+	try:
+		########
+		##### SAVE FILE
+		#########
 
 @app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
-def photo_api(user,album):
-	""" sort and return photo list json given user and album """
+def photo_api(user, album):
+	""" GET: sort and return photo list json given user and album 
+		POST: expects photo uploads, not json, does the storage 
+			of photos and db update
+	"""
 
 	if flask.request.method == 'POST':
 		""" this shows file number but obviously only gets first one
