@@ -12,6 +12,7 @@ import hashlib
 from PIL import Image
 import cStringIO
 import shutil
+import tinys3
 
 class JpegError(Exception):
 	pass
@@ -41,7 +42,7 @@ class Jpeg:
 			print('Failed to instantiate Jpeg object: %s' % e)
 			raise JpegError
 		else:
-			self.name = fh.name
+			self.name = self.fh.name
 			# is it a bad idea to have 3 separate
 			# things reading the fh at once?
 			self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
@@ -50,6 +51,7 @@ class Jpeg:
 			self.fh.seek(0)
 			self.image = Image.open(self.fh)
 			self.width, self.height = self.image.size
+			self.get_sizes()
 
 		# this just checks whether self.rotate() has
 		# already been called, so it doesn't do it again:
@@ -75,7 +77,7 @@ class Jpeg:
 
 		width = self.width
 		height = self.height
-		name = self.name
+		name = self.md5sum
 
 		self.sizes = {
 			'full': {
@@ -108,18 +110,9 @@ class Jpeg:
 				'name': name + '-small' + EXT
 			}
 
-
-	def resize(self, width, height, *options):
-		""" doesn't actually save it, returns
-			a new resized image """
-
-		print('Saving dimensions: %s\t%s' % (self.height, self.width)
-		resized = self.image.resize((width, height)), Image.ANTIALIAS)
-		return resized	
-
 	def save(self, location, rotation=True, s3=True):
 		""" save to either s3 or disk -- location is either
-			folder location or s3 connection """
+			folder location (s3==False) or s3 connection (s3==True) """
 
 		QUALITY = 60
 		TYPE = 'jpeg'
@@ -129,30 +122,23 @@ class Jpeg:
 
 		for key, size in self.sizes.items():
 			try:
-				print('Saving %s... ' % destination)
-
-				####### 
-				###### clean this shit up
-				########
-
 				# save to buffer:
 				buf = cStringIO.StringIO()
-				self.image.save(buf, TYPE)
 				if key != 'full':
-					if s3:
-						self._write_s3(location, buf, size['name'])
-					else:
-						self._write_fs(location, buf, size['name'])
-				else:
 					resized = self.image.resize((size['width'], size['height']), Image.ANTIALIAS)
-					if s3:
-                        self._write_s3(location, resized, size['name'])
-                    else:
-                        self._write_fs(location, resized, size['name'])
+					#resized.save(buf, TYPE, quality=QUALITY)
+					resized.save(buf, TYPE)
+				else:
+					self.image.save(buf, TYPE)
 
-					resized.save(destination, TYPE, quality=QUALITY)
+				if s3:
+					print('location = %s name = %s' % (location, size['name']))
+					self._write_s3(location, buf, size['name'])
+				else:
+					self._write_fs(location, buf, size['name'])
+
 			except Exception as e:
-				raise SaveError('Failed to save %s: %s' % (destination, e))
+				raise SaveError('Failed to save: %s' % e)
 
 	def _write_fs(self, location, buf, name):
 		""" for writing to file system"""
@@ -163,10 +149,10 @@ class Jpeg:
 			shutil.copyfileobj(buf, f)
 
 	def _write_s3(self, location, buf, name):
-		""" for writing to s3 """
+		""" for writing to s3  -- location is a boto.s3.key.Key object """
 
 		buf.seek(0)
-		location.upload(name, buf)
+		location.set_contents_from_file(name, buf)
 
 	def db_entry(self, user):
 		""" build json for db """
@@ -234,7 +220,7 @@ if __name__ == '__main__':
 
 	for item in dir_items:
 		if not imghdr.what(os.path.join(location,item)) == 'jpeg':
-			return
+			sys.exit(234)
 
 		try:
 			print('Processing %s' % item)
@@ -253,8 +239,5 @@ if __name__ == '__main__':
 			print('Failed to update database with %s: %s' % (jpeg.name, e))
 			raise
 
-		try:
-			jpeg.save()
-			jpeg.close()
-			finally:
-				jpeg.close()
+		#jpeg.save(location=)
+		#jpeg.close()

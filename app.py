@@ -12,6 +12,8 @@ import sys
 import tempfile
 import imghdr
 import photo_importer
+import boto
+from boto.s3.key import Key
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = '/tmp/upload'
@@ -23,12 +25,18 @@ MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
 MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
 DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-KEY=p.get('GMAPS', 'KEY')
+KEY = p.get('GMAPS', 'KEY')
+S3_KEY = p.get('STORAGE', 'S3_KEY')
+S3_SECRET = p.get('STORAGE', 'S3_SECRET')
+S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
 
 @app.before_request
 def before_request():
 	db = MongoClient(MONGODB_HOST, MONGODB_PORT)
 	flask.g.collection = db[DB_NAME][COLLECTION_NAME]
+	s3 = boto.connect_s3()
+	bucket = s3.get_bucket(S3_BACKUP)
+	flask.g.bucket = Key(bucket)	
 
 @app.teardown_request
 def teardown_request(exception):
@@ -80,40 +88,47 @@ def album_api(user):
 	albums = json.dumps(albums, default=json_util.default)
 	return albums
 
-def handle_file(f):
+def handle_file(f, user):
 	""" do appropriate stuff with uploaded files """
 
 	collection = flask.g.collection
+	bucket = flask.g.bucket
 	upload_folder = app.config['UPLOAD_FOLDER']
 	filename = f.filename
+	EXT = 'jpeg'
 	try:
-		temp_f = tempfile.TemporaryFile(dir=upload_folder)
-		f.save(os.path.join(upload_folder, temp_f))
+		temp_f = tempfile.NamedTemporaryFile(dir=upload_folder)
+		f.save(temp_f)
 	except Exception as e:
-		print('Failed to save file %s: %s' % (filename, e))
+		print('Failed to save to temp file %s: %s' % (filename, e))
 		return
 
-	if not imghdr.what(os.path.join(location,item)) == 'jpeg':
-		print('%s not a jpeg' % filename)
+	temp_f.seek(0)
+	if not imghdr.what(temp_f.name) == EXT:
+		print('%s not a %s' % (filename, EXT))
 		return
 	
 	try:
-		jpeg = photo_importer.Jpeg(temp_f)
+		temp_f.seek(0)
+		jpeg = photo_importer.Jpeg(temp_f.name)
 	except Exception as e:
 		print('Failed to create jpeg object from %s: %s' % (filename, e))
 		return
 
 	### should I check for DB duplicates here?
 	try:
-		collection.insert_one(jpeg.db_entry())	
+		collection.insert_one(jpeg.db_entry(user))	
 	except Exception as e:
 		print('Failed to update database with %s: %s' % (filename, e))
 		return
 
 	try:
-		########
-		##### SAVE FILE
-		#########
+		# saves all the different sizes at once
+		jpeg.save(bucket)			
+	except Exception as e:
+		print("Failed to write to storage: %s" % e)
+	else:
+		print('Successfully saved %s to storage' % jpeg.name)
 
 @app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
 def photo_api(user, album):
@@ -131,7 +146,7 @@ def photo_api(user, album):
 		files = flask.request.files
 		for f in files:
 			print(files[f], file=sys.stderr)
-			handle_file(files[f])
+			handle_file(files[f], user)
 		return 'success'
 
 	elif flask.request.method == 'GET':
