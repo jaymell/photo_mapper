@@ -133,7 +133,6 @@ class Jpeg:
 					self.image.save(buf, TYPE)
 
 				if s3:
-					print('location = %s name = %s' % (location, size['name']))
 					self._write_s3(location, buf, size['name'])
 				else:
 					self._write_fs(location, buf, size['name'])
