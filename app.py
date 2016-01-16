@@ -13,7 +13,6 @@ import tempfile
 import imghdr
 import photo_importer
 import boto
-from boto.s3.key import Key
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = '/tmp/upload'
@@ -34,9 +33,6 @@ S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
 def before_request():
 	db = MongoClient(MONGODB_HOST, MONGODB_PORT)
 	flask.g.collection = db[DB_NAME][COLLECTION_NAME]
-	s3 = boto.connect_s3()
-	bucket = s3.get_bucket(S3_BACKUP)
-	flask.g.bucket = Key(bucket)	
 
 @app.teardown_request
 def teardown_request(exception):
@@ -88,14 +84,15 @@ def album_api(user):
 	albums = json.dumps(albums, default=json_util.default)
 	return albums
 
-def handle_file(f, user):
-	""" do appropriate stuff with uploaded files """
+def handle_file(f, user, bucket):
+	""" do appropriate stuff with uploaded files -- bucket
+		is open connection to s3 bucket """
 
 	collection = flask.g.collection
-	bucket = flask.g.bucket
 	upload_folder = app.config['UPLOAD_FOLDER']
 	filename = f.filename
 	EXT = 'jpeg'
+
 	try:
 		temp_f = tempfile.NamedTemporaryFile(dir=upload_folder)
 		f.save(temp_f)
@@ -144,9 +141,13 @@ def photo_api(user, album):
 			print(f, file=sys.stderr)
 		"""
 		files = flask.request.files
+		# open s3 connection, pass it to file handler:
+		conn = boto.connect_s3(S3_KEY, S3_SECRET)
+		bucket = conn.get_bucket(S3_BUCKET)
+
 		for f in files:
 			print(files[f], file=sys.stderr)
-			handle_file(files[f], user)
+			handle_file(files[f], user, bucket)
 		return 'success'
 
 	elif flask.request.method == 'GET':

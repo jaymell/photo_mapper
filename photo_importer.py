@@ -13,6 +13,7 @@ from PIL import Image
 import cStringIO
 import shutil
 import tinys3
+import boto.s3.key
 
 class JpegError(Exception):
 	pass
@@ -148,11 +149,14 @@ class Jpeg:
 			buf.seek(0)
 			shutil.copyfileobj(buf, f)
 
-	def _write_s3(self, location, buf, name):
-		""" for writing to s3  -- location is a boto.s3.key.Key object """
+	def _write_s3(self, bucket, buf, name):
+		""" for writing to s3  -- bucket (passed as location) is the return
+				val of boto.connect_s3().get_bucket() """
 
 		buf.seek(0)
-		location.set_contents_from_file(name, buf)
+		k = boto.s3.key.Key(bucket)
+		k.key = name
+		k.set_contents_from_file(buf)
 
 	def db_entry(self, user):
 		""" build json for db """
@@ -185,8 +189,8 @@ def update_db(db_entry, collection):
 		raise InsertError
 
 if __name__ == '__main__':
-	""" this shouldn't be used, but if needed, do 
-		photo import directly on server """
+	""" this shouldn't be used, but if needed, idea is 
+		to do photo import directly on server """
 	
 	import imghdr
 	import ConfigParser

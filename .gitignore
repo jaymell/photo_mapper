@@ -1,6 +1,6 @@
 photos/*
 jpgps.py
-jpgps.pyc
+*.pyc
 node_modules
 public/img/*
 cfg/config.js
