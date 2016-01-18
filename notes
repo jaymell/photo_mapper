@@ -264,6 +264,14 @@ def dbscan_stuff(coordinates):
 dbscan_stuff(coordinates)
 
 
-
+###############################################################
+file uploads
+. files get uploaded to endpoint /api/users/<user>/albums/<album>/photos 
+. server:
+	-- save files to UPLOAD_DIR/TEMPDIR (python module tempdir for TEMPDIR)
+	-- process files -- use existing import_data code
+		-- put json in db
+ 		-- send to s3
+	-- delete tempdir
 
 

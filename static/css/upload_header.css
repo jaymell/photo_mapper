@@ -5,15 +5,7 @@
 	right: 0;
 	z-index: 2000;
 	width: 100%;
-	opacity: .6;
-/*
-	width: 15%;
-	min-width: 100px;
-*/
-}
-
-.thumbnail {
-	padding: 3px;
+	opacity: .8;
 }
 
 #trashCanSpan {
@@ -27,4 +19,8 @@
 
 #trashCanDesc {
 	display: inline;
+}
+
+#uploadContainer {
+	float: right;
 }

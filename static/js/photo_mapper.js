@@ -1,3 +1,4 @@
+
 // because IE8 sucks:
 if (!('forEach' in Array.prototype)) {
 	Array.prototype.forEach= function(action, that /*opt*/) {
@@ -10,7 +11,7 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
-var linkRoute = '/static/img/';
+var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
 
 // hooray for global variables:
 var photoArray = [];
@@ -85,11 +86,11 @@ var openPhotoSwipe = function(index) {
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
 		if( useLargeImages || item.sizes.scaled !== null ) {
-			item.src = linkRoute + item.sizes.full.name;
+			item.src = photoRoute + item.sizes.full.name;
 			item.w = item.sizes.full.width;
 			item.h = item.sizes.full.height;
 		} else {
-			item.src = linkRoute + item.sizes.scaled.name;
+			item.src = photoRoute + item.sizes.scaled.name;
 			item.w = item.sizes.scaled.width;
 			item.h = item.sizes.scaled.height;
 		}
@@ -283,14 +284,17 @@ var map = (function() {
 	};		
 })();
 
-$.getJSON('/photos', function(json) {
+var user = window.readCookie("user");
+var album = window.readCookie("album");
+var photo_route = "/api/users/" + user + "/albums/" + album + "/photos";
+$.getJSON(photo_route, function(json) {
 	json.forEach(function(item, index, array) {
 		// add links to list:
 		// create img:
 		var $img = $("<img></img>")
 			.attr('class', 'thumbnail')
 			.attr('id', item.md5sum + '-img')
-			.attr('src', linkRoute + item.md5sum + '-small.jpg')
+			.attr('src', photoRoute + item.md5sum + '-small.jpg')
 			.attr('height', '100px')
 			.attr('width', '100px')
 			.wrap($('#'+ item.md5sum));
