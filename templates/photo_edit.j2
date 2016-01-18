@@ -1,0 +1,26 @@
+<html>
+  <head>
+    <title>{{title}} </title>
+    <link rel="stylesheet" href="/static/lib/magnific/magnific-popup.css"/>
+    <link rel="stylesheet" href="/static/css/upload_header.css"/>
+    <link rel="stylesheet" href="/static/css/photo_edit.css"/>
+    <meta name="viewport" content="width = device-width, initial-scale = 1.0"/>
+  </head>
+  <body>
+    <div id="header">
+      <div id="trashCanSpan">
+        <p id="trashCanDesc">Drag Here to Delete</p><img id="trashCan" src="/icon/user_trash.png"/>
+      </div>
+	  <div id="uploadContainer">
+		<input id="inFile" type="file" name="files[]" multiple="true">
+	  </div>
+    </div>
+    <ul id="photoList"></ul>
+    <script src="/static/js/misc.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="/static/lib/magnific/jquery.magnific-popup.min.js"></script>
+    <script src="/static/js/magnific-changes.js"></script>
+    <script src="/static/js/photo_edit.js"></script>
+    <script src="/static/js/header.js"></script>
+  </body>
+</html>

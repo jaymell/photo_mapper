@@ -1,3 +1,7 @@
+var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
+var files;
+var data;
+
 function dragStartHandler(e) {
 	e.dataTransfer.setData("text/plain", e.target.id);
 	e.dataTransfer.dropEffect = 'move';
@@ -32,7 +36,6 @@ function dragEndHandler(e) {
 	console.log('drag is done');
 }
 
-$(document).ready(function() {
     // override magnificPopup.resizeImage:
     $.magnificPopup.instance.resizeImage = betterResizeImage;
 
@@ -41,6 +44,8 @@ $(document).ready(function() {
         type: 'image',
 		closeOnContentClick: true,
 	});
+	
+	$('#trashCanDesc').on('dragover', function(e) { dragOverHandler(e); });
 /* 
 	var magnificLinks = magnific.find('img');
 	magnific.off('click');
@@ -51,24 +56,28 @@ $(document).ready(function() {
 		magnific.magnificPopup('open', magnificLinks.index(this))
 	});
 */
-	$.getJSON('/photos', function(json) {
-		console.log('got json');
-		json.forEach(function(item) {
-			var img=$('<img/>')
-				.attr('id', item.md5sum)
-				.attr('src', '/img/' + item.thumbnail)
-				.attr('class', 'thumbnail')
-				.attr('data-mfp-src', '/img/' + item.file_name)
-				.attr('draggable', 'true')
-				.attr('ondragstart', 'dragStartHandler(event)')
-				.attr('ondragend', 'dragEndHandler(event)')
-				.on('load', function() {
-					if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
-						console.log('error loading ' + item.thumbnail);
-					} else {
-						$('#photoList').append(img);
-					}				
-				});
-		});
+
+var user = window.readCookie("user");
+var album = window.readCookie("album");
+var photoRoute = "/api/users/" + user + "/albums/" + album + "/photos";
+
+$.getJSON(photoRoute, function(json) {
+	console.log('got json');
+	json.forEach(function(item) {
+		var img=$('<img/>')
+			.attr('id', item.md5sum)
+			.attr('src', photoRoute + item.sizes.thumbnail.name)
+			.attr('class', 'thumbnail')
+			.attr('data-mfp-src', photoRoute + item.sizes.full.name)
+			.attr('draggable', 'true')
+			.attr('ondragstart', 'dragStartHandler(event)')
+			.attr('ondragend', 'dragEndHandler(event)')
+			.on('load', function() {
+				if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
+					console.log('error loading ' + item.thumbnail);
+				} else {
+					$('#photoList').append(img);
+				}				
+			});
 	});
 });
