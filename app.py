@@ -76,15 +76,20 @@ def get_album(user, album):
 
 
 """ json routes """
-@app.route("/api/users/<user>/albums")
+@app.route("/api/users/<user>/albums", methods=['GET'])
 def album_api(user):
-	""" return a list of albums given a user name """
-	collection = flask.g.collection	
-	albums = [ i for i in collection.distinct('album', {'user': user}) ]
-	albums = json.dumps(albums, default=json_util.default)
-	return albums
+	""" returns list of albums -- since
+		albums are retrieved from individual
+		photo records """
+	if flask.request.method == 'GET':
+		collection = flask.g.collection	
+		albums = [ i for i in collection.distinct('album', {'user': user}) ]
+		albums = json.dumps(albums, default=json_util.default)
+		return albums
+	else:
+		return 405
 
-def handle_file(f, user, bucket):
+def handle_file(f, user, album, bucket):
 	""" do appropriate stuff with uploaded files -- bucket
 		is open connection to s3 bucket """
 
@@ -114,7 +119,7 @@ def handle_file(f, user, bucket):
 
 	### should I check for DB duplicates here?
 	try:
-		collection.insert_one(jpeg.db_entry(user))	
+		collection.insert_one(jpeg.db_entry(user, album))	
 	except Exception as e:
 		print('Failed to update database with %s: %s' % (filename, e))
 		return
@@ -141,13 +146,13 @@ def photo_api(user, album):
 			print(f, file=sys.stderr)
 		"""
 		files = flask.request.files
-		# open s3 connection, pass it to file handler:
+		# open s3 connection, pass it to handle_file:
 		conn = boto.connect_s3(S3_KEY, S3_SECRET)
 		bucket = conn.get_bucket(S3_BUCKET)
 
 		for f in files:
 			print(files[f], file=sys.stderr)
-			handle_file(files[f], user, bucket)
+			handle_file(files[f], user, album, bucket)
 		return 'success'
 
 	elif flask.request.method == 'GET':

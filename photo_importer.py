@@ -12,7 +12,6 @@ import hashlib
 from PIL import Image
 import cStringIO
 import shutil
-import tinys3
 import boto.s3.key
 
 class JpegError(Exception):
@@ -72,7 +71,7 @@ class Jpeg:
 			written to storage / recorded in DB """
 
 		SCALED = 1200
-		THUMBNAIL = 512
+		THUMBNAIL = 256
 		SMALL = 100
 		EXT = '.jpg'
 
@@ -109,7 +108,7 @@ class Jpeg:
 				'width': SMALL,
 				'height': SMALL,
 				'name': name + '-small' + EXT
-			}
+		}
 
 	def save(self, location, rotation=True, s3=True):
 		""" save to either s3 or disk -- location is either
@@ -148,22 +147,25 @@ class Jpeg:
 			buf.seek(0)
 			shutil.copyfileobj(buf, f)
 
-	def _write_s3(self, bucket, buf, name):
+	def _write_s3(self, bucket, buf, name, content_type='image/jpeg'):
 		""" for writing to s3  -- bucket (passed as location) is the return
 				val of boto.connect_s3().get_bucket() """
 
 		buf.seek(0)
 		k = boto.s3.key.Key(bucket)
 		k.key = name
+		k.content_type = content_type
 		k.set_contents_from_file(buf)
 
-	def db_entry(self, user):
+	def db_entry(self, user, album):
 		""" build json for db """
 
 		db_entry = {}
 		db_entry["user"] = user
+		db_entry["album"] = album
 		db_entry['md5sum'] = self.md5sum
 		db_entry['date'] = self.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if self.jpgps.date() else None
+		db_entry['sizes'] = self.sizes
 		db_entry['geojson'] = { "type": "Point", 
 								"coordinates": 
 									[ self.jpgps.coordinates()[1], 

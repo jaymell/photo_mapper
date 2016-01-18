@@ -2,12 +2,19 @@
   <head>
     <title>{{title}}</title>
     <meta name="viewport" content="width = device-width, initial-scale = 1.0"/>
+	<link rel="stylesheet" href="/static/css/upload_header.css"/>
 	<link rel="stylesheet" href="/static/css/albums.css"/>
   </head>
   <body>
+	<div id="header">
+      <div id="uploadContainer">
+        <input id="inFile" type="file" name="files[]" multiple="true">
+      </div>
+	</div>
+	<div id="spacer"></div>
     <div id="albumList"></div>
     <script src="/static/js/misc.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
     <script src="/static/js/albums.js"></script>
+    <script src="/static/js/header.js"></script>
   </body>
-

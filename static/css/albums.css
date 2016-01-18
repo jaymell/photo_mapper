@@ -8,6 +8,11 @@
 	width: 100px;
 }
 
+#spacer {
+	/* to prevent drawing behind header */
+	height: 15%;
+}
+
 .albumContainerFooter {
 	
 }

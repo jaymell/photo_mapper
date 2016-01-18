@@ -1,4 +1,4 @@
-var linkRoute = '/static/img/';
+var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
 var files;
 var data;
 
@@ -36,7 +36,6 @@ function dragEndHandler(e) {
 	console.log('drag is done');
 }
 
-$(document).ready(function() {
     // override magnificPopup.resizeImage:
     $.magnificPopup.instance.resizeImage = betterResizeImage;
 
@@ -58,54 +57,27 @@ $(document).ready(function() {
 	});
 */
 
-	var user = window.readCookie("user");
-	var album = window.readCookie("album");
-	var photo_route = "/api/users/" + user + "/albums/" + album + "/photos";
+var user = window.readCookie("user");
+var album = window.readCookie("album");
+var photoRoute = "/api/users/" + user + "/albums/" + album + "/photos";
 
-	$.getJSON(photo_route, function(json) {
-		console.log('got json');
-		json.forEach(function(item) {
-			var img=$('<img/>')
-				.attr('id', item.md5sum)
-				.attr('src', linkRoute + item.sizes.thumbnail.name)
-				.attr('class', 'thumbnail')
-				.attr('data-mfp-src', linkRoute + item.sizes.full.name)
-				.attr('draggable', 'true')
-				.attr('ondragstart', 'dragStartHandler(event)')
-				.attr('ondragend', 'dragEndHandler(event)')
-				.on('load', function() {
-					if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
-						console.log('error loading ' + item.thumbnail);
-					} else {
-						$('#photoList').append(img);
-					}				
-				});
-		});
-	});
-
-	// submit form when files selected:
-	// http://abandon.ie/notebook/simple-file-uploads-using-jquery-ajax
-	$('#inFile').on('change', function(e) {
-		files = e.target.files;	
-		console.log('files: ', files);
-		data = new FormData();
-		$.each(files, function(key, value) {
-			data.append(key,value);
-		});
-		console.log('data: ', data);
-
-		var user = window.readCookie("user");
-		var album = window.readCookie("album");
-
-		$.ajax({
-			url: '/api/users/' + user + '/albums/' + album + '/photos',
-			type: 'POST',
-			data: data,
-            cache: false,
-			processData: false,
-			contentType: false,
-			success: function(resp) { console.log('success', resp); },
-			failure: function(resp) { console.log('failure', resp); }
-		});
+$.getJSON(photoRoute, function(json) {
+	console.log('got json');
+	json.forEach(function(item) {
+		var img=$('<img/>')
+			.attr('id', item.md5sum)
+			.attr('src', photoRoute + item.sizes.thumbnail.name)
+			.attr('class', 'thumbnail')
+			.attr('data-mfp-src', photoRoute + item.sizes.full.name)
+			.attr('draggable', 'true')
+			.attr('ondragstart', 'dragStartHandler(event)')
+			.attr('ondragend', 'dragEndHandler(event)')
+			.on('load', function() {
+				if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
+					console.log('error loading ' + item.thumbnail);
+				} else {
+					$('#photoList').append(img);
+				}				
+			});
 	});
 });

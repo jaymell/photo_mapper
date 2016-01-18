@@ -1,29 +1,4 @@
-#header {
-    background: #bf2148;
-	position: fixed;
-	top: 0;
-	right: 0;
-	z-index: 2000;
-	width: 100%;
-	opacity: .8;
-}
 .thumbnail {
 	padding: 3px;
 }
 
-#trashCanSpan {
-	display:inline-block; 
-	float:right;
-}
-
-#trashCan {
-	display: inline;
-}
-
-#trashCanDesc {
-	display: inline;
-}
-
-#uploadContainer {
-	float: right;
-}
