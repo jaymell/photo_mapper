@@ -24,13 +24,10 @@ MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
 MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
 DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-KEY = p.get('GMAPS', 'KEY')
-<<<<<<< HEAD
+GMAPS_KEY = p.get('GMAPS', 'KEY')
 S3_KEY = p.get('STORAGE', 'S3_KEY')
 S3_SECRET = p.get('STORAGE', 'S3_SECRET')
 S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
-=======
->>>>>>> initial
 
 @app.before_request
 def before_request():
@@ -72,7 +69,7 @@ def get_album(user, album):
 		resp.set_cookie('album', album)
 		return resp
 	# default to photo_mapper view of album:		
-	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=KEY))
+	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=GMAPS_KEY))
 	resp.set_cookie('user', user)
 	resp.set_cookie('album', album)
 	return resp
