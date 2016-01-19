@@ -1,4 +1,3 @@
-var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
 var files;
 var data;
 
@@ -59,9 +58,10 @@ function dragEndHandler(e) {
 
 var user = window.readCookie("user");
 var album = window.readCookie("album");
-var photoRoute = "/api/users/" + user + "/albums/" + album + "/photos";
+var apiRoute = "/api/users/" + user + "/albums/" + album + "/photos";
+var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
 
-$.getJSON(photoRoute, function(json) {
+$.getJSON(apiRoute, function(json) {
 	console.log('got json');
 	json.forEach(function(item) {
 		var img=$('<img/>')
