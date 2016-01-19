@@ -2,20 +2,15 @@
 // http://abandon.ie/notebook/simple-file-uploads-using-jquery-ajax 
 
 function validInput(input) {
-	// allow \w and spaces between \w
+	// this needs to be fixed
+	// to allow spaces between words
     return input.match(/^[\w]+$/);
-
 }
-
 $('#inFile').on('change', function(e) { 
-    files = e.target.files;  
-    console.log('files: ', files); 
-    data = new FormData(); 
-    $.each(files, function(key, value) { 
-        data.append(key,value); 
-    }); 
-    console.log('data: ', data); 
- 
+
+	// this should always force prompt
+	// for album name if photos submitted
+	// from album listing page:
 	if (typeof album == 'undefined') {
 		album = prompt("Enter the album name");
 		if ( ! validInput(album) ) {
@@ -24,22 +19,27 @@ $('#inFile').on('change', function(e) {
 			return;
 		}
 	}
-	console.log('album: ',album);
 	if (user === 'undefined') {
 		alert('user is undefined!');
 		return;
 	}
+
 	if (album != null) {
-		$.ajax({ 
-			url: '/api/users/' + user + '/albums/' + album + '/photos', 
-			type: 'POST', 
-			data: data, 
-			cache: false, 
-			processData: false, 
-			contentType: false, 
-			success: function(resp) { console.log('success', resp);	}, 
-			failure: function(resp) { console.log('failure', resp); } 
-		}); 
+		var files = e.target.files;  
+		for ( var i=0; i<files.length; i++) {
+			data = new FormData(); 
+			data.append(files[i].name,files[i]); 
+			$.ajax({ 
+				url: '/api/users/' + user + '/albums/' + album + '/photos', 
+				type: 'POST', 
+				data: data, 
+				cache: false, 
+				processData: false, 
+				contentType: false, 
+				success: function(resp) { console.log('success', resp);	}, 
+				failure: function(resp) { console.log('failure', resp); } 
+			}); 
+		}
 	}
 });
 
