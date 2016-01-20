@@ -274,4 +274,54 @@ file uploads
  		-- send to s3
 	-- delete tempdir
 
+############################################
+deployment
+
+__ build app / image
+. build Dockerfile
+	.. tag image the way aws wants you to 
+. send image to registry
+	.. aws cli for docker login and push to registry
+
+__ to docker / aws ecs
+. create security groups
+	.. outbound ?
+	.. inbound based on apps
+. create docker instances based on desired count
+	.. add to inventory group
+. run ansible 'docker' role to install docker
+BETTER: just use aws ecs instances
+. install pip and docker-py python module on docker
+	hosts if using ansible to actually help run docker containers
+. docker run 
+	### there are ansible modules for the following stuff ###
+. set up ecs registry in region us-east-1 -- and this region ONLY
+	.. aws cli
+. give machine that will build docker images registry access
+	.. either via user account with proper role 
+	.. or just give whole instance role to push to registry
+. create iam role for ecs service that runs on each instance
+	.. type: ec2 service 
+	.. attach policy: AmazonEC2ContainerServiceforEC2Role
+. give read/write polciy to s3 bucket where app static content stored
+. read-only s3 access so instances can get /etc/ecs/ecs.config
+	at launch time (for ecs cluster agent)
+
+. create ecs task definition -- basically, your 'docker run'
+	syntax
+
+. create instances or auto-scaling group (your docker hosts)
+	.. associate above-created role with them
+
+. create ecs cluster
+
+. create service to associate with cluser
+	.. specifies number of containers that will be run and
+		whether or not they're behind an ELB
+	.. give service permission via ecsServiceRole to do stuff
+
+. create load balancer that service will assign itself to
+
+.. documentation is unclear as to how to register ec2 instances
+with cluster... to be continued
 
