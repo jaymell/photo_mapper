@@ -1,6 +1,5 @@
 aniso8601==1.1.0
 boto==2.39.0
-configparser==3.3.0.post2
 ExifRead==2.1.2
 Flask==0.10.1
 Flask-RESTful==0.3.5
