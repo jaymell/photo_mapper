@@ -145,7 +145,7 @@ def photo_api(user, album):
 		"""
 		files = flask.request.files
 		# open s3 connection, pass it to handle_file:
-		conn = boto.connect_s3(S3_KEY, S3_SECRET)
+		conn = boto.connect_s3()
 		bucket = conn.get_bucket(S3_BUCKET)
 
 		for f in files:
