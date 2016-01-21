@@ -20,7 +20,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 p = ConfigParser.ConfigParser()
 p.read("config")
-MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
+MONGODB_HOST = os.environ.get('MONGODB_HOST', p.get('DB', 'MONGODB_HOST'))
 MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
 DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
