@@ -25,8 +25,6 @@ MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
 DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
 GMAPS_KEY = p.get('GMAPS', 'KEY')
-S3_KEY = p.get('STORAGE', 'S3_KEY')
-S3_SECRET = p.get('STORAGE', 'S3_SECRET')
 S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
 
 @app.before_request
