@@ -15,8 +15,6 @@ import photo_importer
 import boto
 
 app = flask.Flask(__name__)
-UPLOAD_FOLDER = '/tmp/upload'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 p = ConfigParser.ConfigParser()
 p.read("config")
@@ -26,6 +24,9 @@ DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
 GMAPS_KEY = p.get('GMAPS', 'KEY')
 S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
+UPLOAD_FOLDER = p.get('STORAGE', 'UPLOAD_FOLDER')
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.before_request
 def before_request():
