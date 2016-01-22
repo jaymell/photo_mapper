@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python app.py | tee -a app.log
+python app.py 2>&1 | tee -a app.log
