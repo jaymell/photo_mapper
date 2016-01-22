@@ -24,9 +24,6 @@ DB_NAME = p.get('DB', 'DB_NAME')
 COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
 GMAPS_KEY = p.get('GMAPS', 'KEY')
 S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
-UPLOAD_FOLDER = p.get('STORAGE', 'UPLOAD_FOLDER')
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 @app.before_request
 def before_request():
@@ -93,15 +90,14 @@ def handle_file(f, user, album, bucket):
 		is open connection to s3 bucket """
 
 	collection = flask.g.collection
-	upload_folder = app.config['UPLOAD_FOLDER']
 	filename = f.filename
 	EXT = 'jpeg'
 
 	try:
-		temp_f = tempfile.NamedTemporaryFile(dir=upload_folder)
+		temp_f = tempfile.NamedTemporaryFile()
 		f.save(temp_f)
 	except Exception as e:
-		print('Failed to save to temp file %s: %s' % (filename, e), file=sys.stderr)
+		print('Failed to save %s to temp file: %s' % (filename, e), file=sys.stderr)
 		return
 
 	temp_f.seek(0)
