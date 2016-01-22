@@ -282,6 +282,12 @@ __ build app / image
 	.. tag image the way aws wants you to 
 . send image to registry
 	.. aws cli for docker login and push to registry
+aws ecr get-login --region us-east-1
+docker build -t photo_mapper .
+docker tag adf:latest 799617403160.dkr.ecr.us-east-1.amazonaws.com/adf:latest
+docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/adf:latest
+
+
 
 __ to docker / aws ecs
 . create security groups
@@ -322,6 +328,8 @@ BETTER: just use aws ecs instances
 
 . create load balancer that service will assign itself to
 
-.. documentation is unclear as to how to register ec2 instances
-with cluster... to be continued
+.... need to fully document process of joining 'container instance'
+	to cluster. they will auto-join clusters named 'default', but may
+	need some run-time aws-cli commands stuffed into user data to
+	get more complicated than that
 
