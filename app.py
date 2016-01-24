@@ -15,8 +15,6 @@ import photo_importer
 import boto
 
 app = flask.Flask(__name__)
-UPLOAD_FOLDER = '/tmp/upload'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 p = ConfigParser.ConfigParser()
 p.read("config")
@@ -92,43 +90,42 @@ def handle_file(f, user, album, bucket):
 		is open connection to s3 bucket """
 
 	collection = flask.g.collection
-	upload_folder = app.config['UPLOAD_FOLDER']
 	filename = f.filename
 	EXT = 'jpeg'
 
 	try:
-		temp_f = tempfile.NamedTemporaryFile(dir=upload_folder)
+		temp_f = tempfile.NamedTemporaryFile()
 		f.save(temp_f)
 	except Exception as e:
-		print('Failed to save to temp file %s: %s' % (filename, e))
+		print('Failed to save %s to temp file: %s' % (filename, e), file=sys.stderr)
 		return
 
 	temp_f.seek(0)
 	if not imghdr.what(temp_f.name) == EXT:
-		print('%s not a %s' % (filename, EXT))
+		print('%s not a %s' % (filename, EXT), file=sys.stderr)
 		return
 	
 	try:
 		temp_f.seek(0)
 		jpeg = photo_importer.Jpeg(temp_f.name)
 	except Exception as e:
-		print('Failed to create jpeg object from %s: %s' % (filename, e))
+		print('Failed to create jpeg object from %s: %s' % (filename, e), file=sys.stderr)
 		return
 
 	### should I check for DB duplicates here?
 	try:
 		collection.insert_one(jpeg.db_entry(user, album))	
 	except Exception as e:
-		print('Failed to update database with %s: %s' % (filename, e))
+		print('Failed to update database with %s: %s' % (filename, e), file=sys.stderr)
 		return
 
 	try:
 		# saves all the different sizes at once
 		jpeg.save(bucket)			
 	except Exception as e:
-		print("Failed to write to storage: %s" % e)
+		print("Failed to write to storage: %s" % e, file=sys.stderr)
 	else:
-		print('Successfully saved %s to storage' % jpeg.name)
+		print('Successfully saved %s to storage' % jpeg.name, file=sys.stderr)
 
 @app.route("/api/users/<user>/albums/<album>/photos", methods=['GET', 'POST'])
 def photo_api(user, album):
