@@ -4,8 +4,6 @@ jpgps.py
 node_modules
 cfg/config.js
 *.swp
-public/icon/*
 config
-public/img
 static/img
 app.log

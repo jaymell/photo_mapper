@@ -19,23 +19,44 @@ app = flask.Flask(__name__)
 p = ConfigParser.ConfigParser()
 p.read("config")
 MONGODB_HOST = os.environ.get('MONGODB_HOST', p.get('DB', 'MONGODB_HOST'))
-MONGODB_PORT = p.getint('DB', 'MONGODB_PORT')
-DB_NAME = p.get('DB', 'DB_NAME')
-COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-GMAPS_KEY = p.get('GMAPS', 'KEY')
-S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
+MONGODB_PORT = int(os.environ.get('MONGODB_PORT', p.get('DB', 'MONGODB_PORT')))
+DB_NAME = os.environ.get('DB_NAME', p.get('DB', 'DB_NAME'))
+COLLECTION_NAME = os.environ.get('COLLECTION_NAME', p.get('DB', 'COLLECTION_NAME'))
+GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY'))
+S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET'))
+S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL'))
+UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER'))
 
-@app.before_request
-def before_request():
-	db = MongoClient(MONGODB_HOST, MONGODB_PORT)
-	flask.g.collection = db[DB_NAME][COLLECTION_NAME]
+# constant set at runtime to disable use of s3 -- expects True or False
+# -- but assume True:
+USE_S3 = os.environ.get('USE_S3')
+if USE_S3.lower() == 'false':
+	USE_S3 = False
+else:
+	USE_S3 = True
 
-@app.teardown_request
-def teardown_request(exception):
-    db = getattr(flask.g, 'db', None)
-    if db is not None:
-        db.close()	
+def get_collection():
+	""" handles connections to Mongo; pymongo.MongoClient does its own
+		pooling, so nothing fancy required --- just make a handle to
+		the db collection available """
 
+	collection = getattr(flask.g, '_collection', None)
+	if collection is None:
+		db = MongoClient(MONGODB_HOST, MONGODB_PORT)
+		collection = flask.g._collection = db[DB_NAME][COLLECTION_NAME]
+	return collection
+
+def get_s3():
+	""" handles connections to s3; only creation new object if
+		doesn't already exist; boto is supposed to be smart enough
+		to handle re-connections itself """
+	
+	bucket = getattr(flask.g, '_bucket', None)
+	if bucket is None:
+		connection = boto.connect_s3()
+        bucket = flask.g._bucket = connection.get_bucket(S3_BUCKET)
+	return bucket
+	
 """ html routes """
 @app.route("/")
 def index():
@@ -65,7 +86,11 @@ def get_album(user, album):
 		resp.set_cookie('album', album)
 		return resp
 	# default to photo_mapper view of album:		
-	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=GMAPS_KEY))
+	if USE_S3:
+		photo_url = S3_URL
+	else:
+		photo_url = "/static/img/"	
+	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=GMAPS_KEY, photo_route=photo_url))
 	resp.set_cookie('user', user)
 	resp.set_cookie('album', album)
 	return resp
@@ -78,18 +103,25 @@ def album_api(user):
 		albums are retrieved from individual
 		photo records """
 	if flask.request.method == 'GET':
-		collection = flask.g.collection	
+		collection = get_collection()
 		albums = [ i for i in collection.distinct('album', {'user': user}) ]
 		albums = json.dumps(albums, default=json_util.default)
 		return albums
 	else:
 		return 405
 
-def handle_file(f, user, album, bucket):
-	""" do appropriate stuff with uploaded files -- bucket
-		is open connection to s3 bucket """
+def handle_file(f, user, album):
+	""" do appropriate stuff with uploaded files, including
+		db insertion and permanent s3/local storage"""
 
-	collection = flask.g.collection
+	collection = get_collection()
+	# if s3 enabled, location == s3 bucket, else it's
+	# globally defined UPLOAD_FOLDER:
+	if USE_S3:
+		location = get_s3()
+	else:
+		location = UPLOAD_FOLDER
+
 	filename = f.filename
 	EXT = 'jpeg'
 
@@ -105,6 +137,9 @@ def handle_file(f, user, album, bucket):
 		print('%s not a %s' % (filename, EXT), file=sys.stderr)
 		return
 	
+	####
+	# create Jpeg object from file:
+	####
 	try:
 		temp_f.seek(0)
 		jpeg = photo_importer.Jpeg(temp_f.name)
@@ -120,8 +155,9 @@ def handle_file(f, user, album, bucket):
 		return
 
 	try:
-		# saves all the different sizes at once
-		jpeg.save(bucket)			
+		# saves all the different sizes at once -- value of 
+		# USE_S3 indicates whether save function assumes s3 or local storage:
+		jpeg.save(location, s3=USE_S3)			
 	except Exception as e:
 		print("Failed to write to storage: %s" % e, file=sys.stderr)
 	else:
@@ -141,17 +177,14 @@ def photo_api(user, album):
 			print(f, file=sys.stderr)
 		"""
 		files = flask.request.files
-		# open s3 connection, pass it to handle_file:
-		conn = boto.connect_s3()
-		bucket = conn.get_bucket(S3_BUCKET)
 
 		for f in files:
 			print(files[f], file=sys.stderr)
-			handle_file(files[f], user, album, bucket)
+			handle_file(files[f], user, album)
 		return 'success'
 
 	elif flask.request.method == 'GET':
-		collection = flask.g.collection
+		collection = get_collection()
 		photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
 		photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
 		photos = json.dumps(photos, default=json_util.default)

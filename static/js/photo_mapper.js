@@ -11,8 +11,6 @@ var selectedColor = '#671780',
 	basePinColor = 'FE7569',
 	changedPinColor = '8169fe';
 
-var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
-
 // hooray for global variables:
 var photoArray = [];
 

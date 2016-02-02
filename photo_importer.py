@@ -120,6 +120,9 @@ class Jpeg:
 		if rotation:
 			self.rotate()
 
+		#### 
+		# save copies based on various dimensions
+		#### defined in self.sizes:
 		for key, size in self.sizes.items():
 			try:
 				# save to buffer:
@@ -202,7 +205,7 @@ if __name__ == '__main__':
 	MONGODB_PORT = p.get('DB', 'MONGODB_PORT')
 	DB_NAME = p.get('DB', 'DB_NAME')
 	COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-	PHOTO_FOLDER = p.get('STORAGE', 'PHOTO_FOLDER')
+	UPLOAD_FOLDER = p.get('STORAGE', 'UPLOAD_FOLDER')
 	S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
 
 	connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
