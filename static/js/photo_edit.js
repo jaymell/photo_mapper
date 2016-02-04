@@ -59,25 +59,29 @@ function dragEndHandler(e) {
 var user = window.readCookie("user");
 var album = window.readCookie("album");
 var apiRoute = "/api/users/" + user + "/albums/" + album + "/photos";
-var photoRoute = 'https://s3-us-west-2.amazonaws.com/photomapper/';
 
-$.getJSON(apiRoute, function(json) {
-	console.log('got json');
-	json.forEach(function(item) {
-		var img=$('<img/>')
-			.attr('id', item.md5sum)
-			.attr('src', photoRoute + item.sizes.thumbnail.name)
-			.attr('class', 'thumbnail')
-			.attr('data-mfp-src', photoRoute + item.sizes.full.name)
-			.attr('draggable', 'true')
-			.attr('ondragstart', 'dragStartHandler(event)')
-			.attr('ondragend', 'dragEndHandler(event)')
-			.on('load', function() {
-				if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
-					console.log('error loading ' + item.thumbnail);
-				} else {
-					$('#photoList').append(img);
-				}				
-			});
+function loadData() {
+	$('#photoList').empty();
+	$.getJSON(apiRoute, function(json) {
+		console.log('got json');
+		json.forEach(function(item) {
+			var img=$('<img/>')
+				.attr('id', item.md5sum)
+				.attr('src', photoRoute + item.sizes.thumbnail.name)
+				.attr('class', 'thumbnail')
+				.attr('data-mfp-src', photoRoute + item.sizes.full.name)
+				.attr('draggable', 'true')
+				.attr('ondragstart', 'dragStartHandler(event)')
+				.attr('ondragend', 'dragEndHandler(event)')
+				.on('load', function() {
+					if (!this.complete || typeof this.naturalWidth == "undefined" || this.naturalWidth == 0) {
+						console.log('error loading ' + item.thumbnail);
+					} else {
+						$('#photoList').append(img);
+					}				
+				});
+		});
 	});
-});
+}
+
+loadData();

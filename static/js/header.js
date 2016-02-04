@@ -6,6 +6,13 @@ function validInput(input) {
 	// to allow spaces between words
     return input.match(/^[\w]+$/);
 }
+
+// called when all photos
+// processed:
+function uploadsComplete() {
+	loadData();	
+}
+
 $('#inFile').on('change', function(e) { 
 
 	// this should always force prompt
@@ -19,13 +26,18 @@ $('#inFile').on('change', function(e) {
 			return;
 		}
 	}
+	// possible if something
+	// is wrong with cookie handling:
 	if (user === 'undefined') {
 		alert('user is undefined!');
 		return;
 	}
 
+	// if we actually got an album 
+	// name from input:
 	if (album != null) {
 		var files = e.target.files;  
+		var num_completed = 0;
 		for ( var i=0; i<files.length; i++) {
 			data = new FormData(); 
 			data.append(files[i].name,files[i]); 
@@ -36,8 +48,16 @@ $('#inFile').on('change', function(e) {
 				cache: false, 
 				processData: false, 
 				contentType: false, 
-				success: function(resp) { console.log('success', resp);	}, 
-				failure: function(resp) { console.log('failure', resp); } 
+				success: function(resp) { 
+					console.log('success', resp);
+					num_completed += 1;
+					if (num_completed == files.length) uploadsComplete();
+				}, 
+				failure: function(resp) { 
+					console.log('failure', resp);
+					num_completed += 1;
+					if (num_completed == files.length) uploadsComplete();
+				} 
 			}); 
 		}
 	}

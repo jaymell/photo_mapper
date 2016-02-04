@@ -284,40 +284,42 @@ var map = (function() {
 
 var user = window.readCookie("user");
 var album = window.readCookie("album");
-var photo_route = "/api/users/" + user + "/albums/" + album + "/photos";
-$.getJSON(photo_route, function(json) {
-	json.forEach(function(item, index, array) {
-		// add links to list:
-		// create img:
-		var $img = $("<img></img>")
-			.attr('class', 'thumbnail')
-			.attr('id', item.md5sum + '-img')
-			.attr('src', photoRoute + item.md5sum + '-small.jpg')
-			.attr('height', '100px')
-			.attr('width', '100px')
-			.wrap($('#'+ item.md5sum));
-		var $a = $("<a></a>")
-			.attr('class', 'thumbLink')
-			.attr('id', item.md5sum)
-			.append($img)
-			.appendTo($('#mapLeft'));
+var apiRoute = "/api/users/" + user + "/albums/" + album + "/photos";
+function loadData() {
+	$.getJSON(apiRoute, function(json) {
+		json.forEach(function(item, index, array) {
+			// add links to list:
+			// create img:
+			var $img = $("<img></img>")
+				.attr('class', 'thumbnail')
+				.attr('id', item.md5sum + '-img')
+				.attr('src', photoRoute + item.md5sum + '-small.jpg')
+				.attr('height', '100px')
+				.attr('width', '100px')
+				.wrap($('#'+ item.md5sum));
+			var $a = $("<a></a>")
+				.attr('class', 'thumbLink')
+				.attr('id', item.md5sum)
+				.append($img)
+				.appendTo($('#mapLeft'));
 
-		var longitude = item.geojson.coordinates[0] ? item.geojson.coordinates[0] : null;
-		var latitude = item.geojson.coordinates[1] ? item.geojson.coordinates[1] : null;
+			var longitude = item.geojson.coordinates[0] ? item.geojson.coordinates[0] : null;
+			var latitude = item.geojson.coordinates[1] ? item.geojson.coordinates[1] : null;
 
-		// build photoArray for photoSwipe:
-		photoArray.push({
-			id: item.md5sum,
-			sizes: item.sizes,
-			// is geo-tagged? true or false:
-			geo: (latitude && longitude) ? true : false 
+			// build photoArray for photoSwipe:
+			photoArray.push({
+				id: item.md5sum,
+				sizes: item.sizes,
+				// is geo-tagged? true or false:
+				geo: (latitude && longitude) ? true : false 
+			});
 		});
-	});
 
-	// pass entire array to map, let it
-	// parse them and add the geo-tagged ones:
-	map.addPins(json);
-});
+		// pass entire array to map, let it
+		// parse them and add the geo-tagged ones:
+		map.addPins(json);
+	});
+}
 
 // add click handlers for items in list -- open
 // photoSwipe, change color of viewed pins and
@@ -382,4 +384,4 @@ var html = ' \
 
 
 $(document.body).append(html);
-
+loadData();

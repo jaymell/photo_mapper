@@ -78,18 +78,20 @@ def get_albums(user):
 @app.route("/users/<user>/albums/<album>")
 def get_album(user, album):
 	""" photos page """
-	# if request to edit was made, do it:
-	if flask.request.args.get('edit') == 'true':
-		# there's got to be better way to get this:
-		resp = flask.make_response(flask.render_template("photo_edit.j2"))
-		resp.set_cookie('user', user)
-		resp.set_cookie('album', album)
-		return resp
-	# default to photo_mapper view of album:		
+
 	if USE_S3:
 		photo_url = S3_URL
 	else:
-		photo_url = "/static/img/"	
+		photo_url = "/static/img/"
+
+	# if request to edit was made, do it:
+	if flask.request.args.get('edit') == 'true':
+		# there's got to be better way to get this:
+		resp = flask.make_response(flask.render_template("photo_edit.j2", photo_route=photo_url))
+		resp.set_cookie('user', user)
+		resp.set_cookie('album', album)
+		return resp
+
 	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=GMAPS_KEY, photo_route=photo_url))
 	resp.set_cookie('user', user)
 	resp.set_cookie('album', album)
