@@ -17,6 +17,7 @@ function loadData() {
 			$('#albumList').empty();
 			json.forEach(function(item, index, array) {
 				var $a=$('<a></a>')
+					.attr('class', 'albumLink')
 					.attr('href', htmlRoute + item)
 					.text(item)
 					.appendTo($('#albumList'));
