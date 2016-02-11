@@ -18,5 +18,9 @@
 	margin: 10px;
 }
 
+.albumItem {
+	text-align: center;
+}
+
 .albumContainerFooter {
 }
