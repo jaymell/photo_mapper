@@ -50,20 +50,16 @@ class Jpeg:
 			self.jpgps = jpgps.Jpgps(self.fh)
 			self.fh.seek(0)
 			self.image = Image.open(self.fh)
+			self.rotate()
 			self.width, self.height = self.image.size
 			self.get_sizes()
 
-		# this just checks whether self.rotate() has
-		# already been called, so it doesn't do it again:
-		self.is_rotated = False
-
 	def rotate(self):
-		""" only do it once """
-		if not self.is_rotated:	
-			rotation = self.jpgps.rotation()
-			if rotation:
-				self.image = self.image.rotate(self.jpgps.rotation())
-		self.is_rotated = True
+		""" rotate image, necessary because PIL
+			strips out exif data  """
+		rotation = self.jpgps.rotation()
+		if rotation:
+			self.image = self.image.rotate(self.jpgps.rotation())
 
 	def get_sizes(self):
 		"""	called when class initialized; calculate
@@ -116,9 +112,6 @@ class Jpeg:
 
 		QUALITY = 60
 		TYPE = 'jpeg'
-
-		if rotation:
-			self.rotate()
 
 		#### 
 		# save copies based on various dimensions

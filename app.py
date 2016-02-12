@@ -30,10 +30,11 @@ UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER'
 # constant set at runtime to disable use of s3 -- expects True or False
 # -- but assume True:
 USE_S3 = os.environ.get('USE_S3')
-if USE_S3.lower() == 'false':
-	USE_S3 = False
-else:
-	USE_S3 = True
+if USE_S3:
+	if USE_S3.lower() == 'false':
+		USE_S3 = False
+	else:
+		USE_S3 = True
 
 def get_collection():
 	""" handles connections to Mongo; pymongo.MongoClient does its own
