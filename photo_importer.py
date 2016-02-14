@@ -59,7 +59,7 @@ class Jpeg:
 			strips out exif data  """
 		rotation = self.jpgps.rotation()
 		if rotation:
-			self.image = self.image.rotate(self.jpgps.rotation())
+			self.image = self.image.rotate(rotation)
 
 	def get_sizes(self):
 		"""	called when class initialized; calculate
@@ -122,7 +122,6 @@ class Jpeg:
 				buf = cStringIO.StringIO()
 				if key != 'full':
 					resized = self.image.resize((size['width'], size['height']), Image.ANTIALIAS)
-					#resized.save(buf, TYPE, quality=QUALITY)
 					resized.save(buf, TYPE)
 				else:
 					self.image.save(buf, TYPE)
