@@ -22,7 +22,6 @@ function loadData(apiRoute, htmlRoute) {
 				});
 				var $img = $("<img></img>")
 					.attr('class', 'thumbnail')
-					.attr('id', item.md5sum + '-img')
 					.attr('src', photoRoute + link)
 					.attr('height', '100px')
 					.attr('width', '100px');
