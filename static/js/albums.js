@@ -19,23 +19,23 @@ function loadData(apiRoute, htmlRoute) {
 				// get photo JSON:
 				$.getJSON(apiRoute + '/' + album + '/photos', function(photoList) {
 					var link = getPhotoLink(photoList);
+					var $img = $("<img></img>")
+						.attr('class', 'thumbnail')
+						.attr('src', photoRoute + link)
+						.attr('height', '100px')
+						.attr('width', '100px');
+					var $a = $('<a></a>')
+						.attr('class', 'albumLink')
+						.attr('href', htmlRoute + album)
+						.text(album)
+						.append($img);
+					var $p = $('</p></p>')
+						.text('ALBUM NAME');
+					var $div = $('<div/>', { class: albumItem })
+						.append($a)
+						.append($p)
+						.appendTo($('#albumList'));
 				});
-				var $img = $("<img></img>")
-					.attr('class', 'thumbnail')
-					.attr('src', photoRoute + link)
-					.attr('height', '100px')
-					.attr('width', '100px');
-				var $a = $('<a></a>')
-					.attr('class', 'albumLink')
-					.attr('href', htmlRoute + album)
-					.text(album)
-					.append($img);
-				var $p = $('</p></p>')
-					.text('ALBUM NAME');
-				var $div = $('<div/>', { class: albumItem })
-					.append($a)
-					.append($p)
-					.appendTo($('#albumList'));
 			});
 		}
 	});
