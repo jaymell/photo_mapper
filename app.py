@@ -25,6 +25,7 @@ COLLECTION_NAME = os.environ.get('COLLECTION_NAME', p.get('DB', 'COLLECTION_NAME
 GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY'))
 S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET'))
 S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL'))
+LOCAL_URL = os.environ.get('LOCAL_URL', p.get('STORAGE', 'LOCAL_URL'))
 UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER'))
 
 # constant set at runtime to disable use of s3 -- expects True or False
@@ -71,7 +72,12 @@ def user_landing(user):
 @app.route("/users/<user>/albums")
 def get_albums(user):
 	""" render albums template -- save user in cookie """
-	resp = flask.make_response(flask.render_template("albums.j2"))
+    if USE_S3:
+        photo_url = S3_URL
+    else:
+        photo_url = LOCAL_URL
+
+	resp = flask.make_response(flask.render_template("albums.j2", photo_route=photo_url))
 	resp.set_cookie('user', user)
 	return resp
 
@@ -82,7 +88,7 @@ def get_album(user, album):
 	if USE_S3:
 		photo_url = S3_URL
 	else:
-		photo_url = "/static/img/"
+		photo_url = LOCAL_URL
 
 	# if request to edit was made, do it:
 	if flask.request.args.get('edit') == 'true':
@@ -104,6 +110,11 @@ def album_api(user):
 	""" returns list of albums -- since
 		albums are retrieved from individual
 		photo records """
+    if USE_S3:
+        photo_url = S3_URL
+    else:
+        photo_url = LOCAL_URL
+
 	if flask.request.method == 'GET':
 		collection = get_collection()
 		albums = [ i for i in collection.distinct('album', {'user': user}) ]
