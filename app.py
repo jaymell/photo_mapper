@@ -111,10 +111,10 @@ def album_api(user):
 	""" returns list of albums -- since
 		albums are retrieved from individual
 		photo records """
-    if USE_S3:
-        photo_url = S3_URL
-    else:
-        photo_url = LOCAL_URL
+	if USE_S3:
+		photo_url = S3_URL
+	else:
+		photo_url = LOCAL_URL
 
 	if flask.request.method == 'GET':
 		collection = get_collection()
