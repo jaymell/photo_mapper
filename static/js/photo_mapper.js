@@ -293,7 +293,7 @@ function loadData() {
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
 				.attr('id', item.md5sum + '-img')
-				.attr('src', photoRoute + item.md5sum + '-small.jpg')
+				.attr('src', photoRoute + '/' + item.md5sum + '-small.jpg')
 				.attr('height', '100px')
 				.attr('width', '100px');
 			var $a = $("<a></a>")
