@@ -72,10 +72,11 @@ def user_landing(user):
 @app.route("/users/<user>/albums")
 def get_albums(user):
 	""" render albums template -- save user in cookie """
-    if USE_S3:
-        photo_url = S3_URL
-    else:
-        photo_url = LOCAL_URL
+
+	if USE_S3:
+		photo_url = S3_URL
+	else:
+		photo_url = LOCAL_URL
 
 	resp = flask.make_response(flask.render_template("albums.j2", photo_route=photo_url))
 	resp.set_cookie('user', user)
