@@ -61,3 +61,5 @@ function loadData() {
 	var htmlRoute = "/users/" + user + "/albums/";
 	loadData(apiRoute, htmlRoute);
 }
+
+loadData()
