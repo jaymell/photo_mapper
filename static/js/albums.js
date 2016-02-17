@@ -28,11 +28,9 @@ function loadData(apiRoute, htmlRoute) {
 						.attr('class', 'albumLink')
 						.attr('href', htmlRoute + album)
 						.append($img);
-					var $p = $('</p></p>')
-						.text('album');
 					var $div = $('<div/>', { class: 'albumItem' })
 						.append($a)
-						.append($p)
+						.text(album)
 						.appendTo($('#albumList'));
 				});
 			});
