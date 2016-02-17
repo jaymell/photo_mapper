@@ -22,5 +22,8 @@
 	text-align: center;
 }
 
+.albumItemText {
+	display: inline;
+}
 .albumContainerFooter {
 }
