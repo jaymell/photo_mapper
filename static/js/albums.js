@@ -29,7 +29,7 @@ function loadData(apiRoute, htmlRoute) {
 						.attr('class', 'albumLink')
 						.attr('href', htmlRoute + album)
 						.append($img);
-					var $p = $('</p></p>', { class: 'albumItemText' } )
+					var $p = $('<p></p>', { class: 'albumItemText' } )
 						.text(album);
 					var $div = $('<div/>', { class: 'albumItem' })
 						.append($a)
