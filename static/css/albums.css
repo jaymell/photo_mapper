@@ -13,16 +13,17 @@
 	height: 15%;
 }
 
+.albumItem {
+	display: inline-block;
+}
+
+/*
 .albumLink {
 	display: inline-block;
 	margin: 10px;
 }
-
-.albumItem {
-	text-align: center;
-}
-
-.albumItemText {
-	display: inline;
+*/
+.albumCaption {
+	/*display: inline;*/
 }
 
