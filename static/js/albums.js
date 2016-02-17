@@ -2,7 +2,12 @@
 //
 // why is this using global variables ????
 //
-function loadData(apiRoute, htmlRoute) {
+
+var user = window.readCookie("user");
+var apiRoute = "/api/users/" + user + "/albums";
+var htmlRoute = "/users/" + user + "/albums/";
+
+function loadData() {
 	$.getJSON(apiRoute, function(albumList) {
 		console.log('got json');
 		// if no albums:
@@ -53,8 +58,4 @@ function getPhotoLink(albumJson) {
 
 }
 
-var user = window.readCookie("user");
-var apiRoute = "/api/users/" + user + "/albums";
-var htmlRoute = "/users/" + user + "/albums/";
-
-loadData(apiRoute, htmlRoute);
+loadData();
