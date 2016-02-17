@@ -2,7 +2,12 @@
 //
 // why is this using global variables ????
 //
-function loadContent(apiRoute, htmlRoute) {
+
+var user = window.readCookie("user");
+var apiRoute = "/api/users/" + user + "/albums";
+var htmlRoute = "/users/" + user + "/albums/";
+
+function loadData() {
 	$.getJSON(apiRoute, function(albumList) {
 		console.log('got json');
 		// if no albums:
@@ -46,20 +51,10 @@ function getPhotoLink(albumJson) {
 	// first, middle, last, most popular, whatever
 	// return link -- src attrib for img tag
 	return albumJson[0]['sizes']['thumbnail']['name'];
-
-/* sample json return:
+/*
 [{"album": "testing", "sizes": {"scaled": {"width": 1200, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-scaled.jpg", "height": 900}, "small": {"width": 100, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-small.jpg", "height": 100}, "full": {"width": 2560, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5.jpg", "height": 1920}, "thumbnail": {"width": 256, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-thumbnail.jpg", "height": 192}}, "md5sum": "2fc4bce30b0468bd9629ee13f0d2e5e5", "geojson": {"type": "Point", "coordinates": [8.809077277777778, 47.31462408333333]}, "user": "james", "date": "1969-12-31 19:04:16"}]
 */
 
 }
 
-// quick crappy way to avoid having to call loadData with vars passed
-// from header code:
-function loadData() {
-	var user = window.readCookie("user");
-	var apiRoute = "/api/users/" + user + "/albums";
-	var htmlRoute = "/users/" + user + "/albums/";
-	loadData(apiRoute, htmlRoute);
-}
-
-loadData()
+loadData();
