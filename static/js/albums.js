@@ -17,6 +17,7 @@ function loadData(apiRoute, htmlRoute) {
 			$('#albumList').empty();
 			albumList.forEach(function(album, index, array) {
 				// get photo JSON:
+				console.log('album = ', album);
 				$.getJSON(apiRoute + '/' + album + '/photos', function(photoList) {
 					var link = getPhotoLink(photoList);
 					var $img = $("<img></img>")
