@@ -296,7 +296,6 @@ function loadData() {
 				.attr('src', photoRoute + item.md5sum + '-small.jpg')
 				.attr('height', '100px')
 				.attr('width', '100px');
-				//.wrap($('#'+ item.md5sum));
 			var $a = $("<a></a>")
 				.attr('class', 'thumbLink')
 				.attr('id', item.md5sum)
