@@ -32,6 +32,8 @@ function loadData(apiRoute, htmlRoute) {
 					var $p = $('<p></p>', { class: 'albumItemText' } )
 						.text(album);
 					var $div = $('<div/>', { class: 'albumItem' })
+						.attr('height', '100px')
+						.attr('width', '100px')
 						.append($a)
 						.append($p)
 						.appendTo($('#albumList'));
