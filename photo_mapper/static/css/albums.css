@@ -11,6 +11,7 @@
 .albumItem {
 	display: inline-block;
 	text-align: center;
+	font-weight: bold;
 	width: 100px;
 	margin: 10px;
 }

@@ -50,16 +50,16 @@ class Jpeg:
 			self.jpgps = jpgps.Jpgps(self.fh)
 			self.fh.seek(0)
 			self.image = Image.open(self.fh)
-			self.rotate()
+			self.fix_orientation()
 			self.width, self.height = self.image.size
 			self.get_sizes()
 
-	def rotate(self):
+	def fix_orientation(self):
 		""" rotate image, necessary because PIL
 			strips out exif data  """
 		rotation = self.jpgps.rotation()
 		if rotation:
-			self.image = self.image.rotate(rotation)
+			self.image = self.image.rotate(rotation, expand=True)
 
 	def get_sizes(self):
 		"""	called when class initialized; calculate
@@ -171,7 +171,6 @@ class Jpeg:
 	def close(self):
 		self.fh.close()
 
-	##### dumb bloated class ends here
 
 def get_db_duplicates(md5sum, collection, user):
 	results = [ i for i in collection.find({'md5sum': md5sum, 'user': user}) ]

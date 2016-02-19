@@ -13,7 +13,8 @@ function loadData() {
 		// if no albums:
 		if ( albumList.length == 0 ) {
 			var $p = $('<p></p>')
-				.text('No albums found')
+				.attr('id', 'noAlbumsFoundText')
+				.text('No albums found. You should upload some photos.')
 				.appendTo($('#albumList'));
 		}
 		else { 
