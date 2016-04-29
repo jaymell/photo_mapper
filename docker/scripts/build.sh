@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 REPO_URL=799617403160.dkr.ecr.us-east-1.amazonaws.com
-
+REPO_BUCKET=jaymell-docker
 
 # should match dir name:
 TAG=$1
@@ -17,6 +17,8 @@ TAG=$1
 if [[ $TAG -eq "pm-flask-2" ]]
 then
 	cd ../$TAG && \
+		# get the config file first:
+		aws s3 cp s3://$REPO_BUCKET/config .
 		docker build --no-cache -t $REPO_URL/$TAG:$TAG_VER .
 else
 	cd ../$TAG && \

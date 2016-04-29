@@ -1,4 +1,0 @@
-aws ecr get-login --region us-east-1
-aws s3 cp s3://jaymell-docker/config .
-docker build --no-cache -t 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2:latest .
-docker push 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2:latest
