@@ -23,3 +23,4 @@ else
         docker build -t $REPO_URL/$TAG:$TAG_VER .
 fi
 
+docker push $REPO_URL/$TAG:$TAG_VER
