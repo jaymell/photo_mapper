@@ -1,5 +1,9 @@
 pm-flask:
-    image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2
+  image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2
+  environment:
+    # expects this has been exported prior to running docker-compose up
+    - MONGODB_HOST
+    - USE_S3=False 
     
 pm-nginx:
   image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-nginx
@@ -7,7 +11,3 @@ pm-nginx:
     - pm-flask
   ports:
     - "80:80"
-  environment:
-    # expects this has been exported prior to running docker-compose up
-    - MONGODB_HOST
-    - USE_S3=False 
