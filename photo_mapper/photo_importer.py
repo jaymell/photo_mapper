@@ -214,6 +214,7 @@ if __name__ == '__main__':
 		print('Failed to open directory: %s' % e)	
 		sys.exit(2)
 
+        """
 	##########
 	#### not currently working
 	##########
@@ -241,3 +242,4 @@ if __name__ == '__main__':
 
 		#jpeg.save(location=)
 		#jpeg.close()
+        """
