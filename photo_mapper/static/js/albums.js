@@ -28,7 +28,7 @@ function loadData() {
 					var link = getPhotoLink(photoList);
 					var $img = $("<img></img>")
 						.attr('class', 'thumbnail')
-						.attr('src', photoRoute + link)
+						.attr('src', photoRoute + '/' + link)
 						.attr('height', '100px')
 						.attr('width', '100px');
 					var $a = $('<a></a>')
