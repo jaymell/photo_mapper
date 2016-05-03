@@ -84,11 +84,11 @@ var openPhotoSwipe = function(index) {
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
 		if( useLargeImages || item.sizes.scaled !== null ) {
-			item.src = photoRoute + item.sizes.full.name;
+			item.src = photoRoute + '/' + item.sizes.full.name;
 			item.w = item.sizes.full.width;
 			item.h = item.sizes.full.height;
 		} else {
-			item.src = photoRoute + item.sizes.scaled.name;
+			item.src = photoRoute + '/' + item.sizes.scaled.name;
 			item.w = item.sizes.scaled.width;
 			item.h = item.sizes.scaled.height;
 		}
