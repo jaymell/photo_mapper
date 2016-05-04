@@ -15,6 +15,8 @@ import photo_importer
 import boto
 
 app = flask.Flask(__name__)
+# 100 MB upload limit:
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 
 p = ConfigParser.ConfigParser()
 p.read("config")

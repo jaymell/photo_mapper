@@ -1,5 +1,5 @@
 pm-flask:
-  image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2
+  image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-flask-2:dev
   environment:
     # expects this has been exported prior to running docker-compose up
     - MONGODB_HOST
