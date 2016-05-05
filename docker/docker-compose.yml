@@ -5,6 +5,7 @@ pm-flask:
     - MONGODB_HOST
     - USE_S3=False 
   volumes:
+    # the Z is for selinux:
     - /var/lib/photo_mapper:/app/photo_mapper/static/img:Z
     
 pm-nginx:

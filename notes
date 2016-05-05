@@ -333,3 +333,6 @@ BETTER: just use aws ecs instances
 	need some run-time aws-cli commands stuffed into user data to
 	get more complicated than that
 
+# manually uploading a file via curl:
+curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@20150908_152122.jpg" http://i7w/api/users/james/testy/photos
+
