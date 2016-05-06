@@ -187,6 +187,7 @@ def photo_api(user, album):
 			of photos and db update
 	"""
 
+        collection = get_collection()
 	if flask.request.method == 'POST':
 		""" this shows file number but obviously only gets first one
 		files = flask.request.files.getlist('0')
@@ -195,13 +196,22 @@ def photo_api(user, album):
 		"""
 		files = flask.request.files
 
+                ### need to check user and
+                ### album before unleashing on db:
+                if not collection.find(
+                    {"$and": 
+                        [ 
+                         {"user": user}, 
+                         {"album": album}
+                        ]
+                    }).count():
+                    return 404
 		for f in files:
 			print(files[f], file=sys.stderr)
 			handle_file(files[f], user, album)
 		return 'success'
 
 	elif flask.request.method == 'GET':
-		collection = get_collection()
 		photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
 		photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
 		photos = json.dumps(photos, default=json_util.default)

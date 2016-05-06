@@ -336,3 +336,9 @@ BETTER: just use aws ecs instances
 # manually uploading a file via curl:
 curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@20150908_152122.jpg" http://i7w/api/users/james/testy/photos
 
+
+api classes:
+#http://blog.miguelgrinberg.com/post/designing-a-restful-api-using-flask-restful
+class UserAPI
+class AlbumAPI
+class 
