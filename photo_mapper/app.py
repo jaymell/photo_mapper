@@ -128,7 +128,7 @@ def album_api(user):
 		albums = json.dumps(albums, default=json_util.default)
 		return albums
 	else:
-		return 405
+		return 'error', 405
 
 def handle_file(f, user, album):
 	""" do appropriate stuff with uploaded files, including
@@ -208,7 +208,7 @@ def photo_api(user, album):
                          {"album": album}
                         ]
                     }).count():
-                    return 404
+                    return 'not found', 404
 		for f in files:
 			print(files[f], file=sys.stderr)
 			handle_file(files[f], user, album)
