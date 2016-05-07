@@ -208,7 +208,7 @@ def photo_api(user, album):
                          {"album": album}
                         ]
                     }).count():
-                    return 'not found', 404
+                    return 'fuck you', 404
 		for f in files:
 			print(files[f], file=sys.stderr)
 			handle_file(files[f], user, album)
