@@ -13,10 +13,15 @@ import tempfile
 import imghdr
 import photo_importer
 import boto
+import logging
+import logging.handlers
 
 app = flask.Flask(__name__)
 # 100 MB upload limit:
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
+syslogger = logging.handlers.SysLogHandler()
+syslogger.setLevel(logging.WARNING)
+app.logger.addHandler(syslogger)
 
 p = ConfigParser.ConfigParser()
 p.read("config")
