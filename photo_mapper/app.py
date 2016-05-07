@@ -18,6 +18,7 @@ app = flask.Flask(__name__)
 app.config.update(
     # 100 MB upload limit:
     MAX_CONTENT_LENGTH = 100 * 1024 * 1024,
+    PROPAGATE_EXCEPTIONS = True,
     Debug = True
 )
 p = ConfigParser.ConfigParser()
