@@ -198,17 +198,6 @@ def photo_api(user, album):
 			print(f, file=sys.stderr)
 		"""
 		files = flask.request.files
-
-                ### need to check user and
-                ### album before unleashing on db:
-                if not collection.find(
-                    {"$and": 
-                        [ 
-                         {"user": user}, 
-                         {"album": album}
-                        ]
-                    }).count():
-                    return 'NOT FOUND', 404
 		for f in files:
 			print(files[f], file=sys.stderr)
 			handle_file(files[f], user, album)
