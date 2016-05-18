@@ -337,8 +337,73 @@ BETTER: just use aws ecs instances
 curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@20150908_152122.jpg" http://i7w/api/users/james/albums/testy/photos
 
 
+new db format, for now:
+###
+---
+Users:
+- user: james
+  albums: 
+      photos:
+      - date: '2015-09-23 01:34:37'
+        geojson:
+          coordinates: 
+          - 76.73065830555555
+          - 9.623579805555556
+          type: point
+        md5sum: 'ba59718b48662068e9be6ba729f19e81'
+        sizes: 
+          full:
+            height: 2560
+            name: 'ba59718b48662068e9be6ba729f19e81.jpg'
+            width: 1920
+
+... in json:
+{
+	"Users": 
+		[{
+		"user": "james",
+		"albums": [{
+			"vacation": {
+				"photos": null,
+				"date": "2015-09-23 01:34:37",
+				"geojson": {
+					"coordinates": [
+						76.73065830555555,
+						9.623579805555556
+					],
+					"type": "point",
+					"md5sum": "ba59718b48662068e9be6ba729f19e81",
+					"sizes": {
+						"full": null,
+						"height": 2560,
+						"name": "ba59718b48662068e9be6ba729f19e81.jpg",
+						"width": 1920
+					}
+				}
+			}
+		}]
+	}]
+}
+        
 api classes:
 #http://blog.miguelgrinberg.com/post/designing-a-restful-api-using-flask-restful
 class UserAPI
+	separate user collection
 class AlbumAPI
-class 
+	only has delete, which deletes album and all associated photos
+class PhotoAPI
+	put
+	post
+	get
+	delete
+
+quick steps to test mongo within python
+##############
+from pymongo import MongoClient
+MONGODB_HOST = 'localhost'
+MONGODB_PORT = 27017
+COLLECTION_NAME = 'photo_mapper'
+DB_NAME = 'photo_mapper'
+db = MongoClient(MONGODB_HOST, MONGODB_PORT)
+col = db[DB_NAME][COLLECTION_NAME]
+#############
