@@ -341,21 +341,22 @@ new db format, for now:
 ###
 ---
 Users:
-- user: james
-  albums: 
-      photos:
-      - date: '2015-09-23 01:34:37'
-        geojson:
-          coordinates: 
-          - 76.73065830555555
-          - 9.623579805555556
-          type: point
-        md5sum: 'ba59718b48662068e9be6ba729f19e81'
-        sizes: 
-          full:
-            height: 2560
-            name: 'ba59718b48662068e9be6ba729f19e81.jpg'
-            width: 1920
+  james:
+    albums: 
+      vacation:
+        photos:
+        - date: '2015-09-23 01:34:37'
+          geojson:
+            coordinates: 
+            - 76.73065830555555
+            - 9.623579805555556
+            type: point
+          md5sum: 'ba59718b48662068e9be6ba729f19e81'
+          sizes: 
+            full:
+              height: 2560
+              name: 'ba59718b48662068e9be6ba729f19e81.jpg'
+              width: 1920
 
 ... in json:
 {
@@ -387,10 +388,21 @@ Users:
         
 api classes:
 #http://blog.miguelgrinberg.com/post/designing-a-restful-api-using-flask-restful
+class UserListAPI
+	get: get all users? Probably shouldn't allow this
+	post: add user -- how is authentication for this handled? does the client actually do this itself?
+	route: /api/users/
 class UserAPI
-	separate user collection
+	put: update user info, not albums or photos though
+	get: get user-related info
+	delete: How is this handled? Who has permission to fully delete a user account?
+	route: /api/users/<user> -- is <user> name or id?
+
+class AlbumListAPI
 class AlbumAPI
-	only has delete, which deletes album and all associated photos
+	put: update album info, except for photos		
+
+class PhotoListAPI
 class PhotoAPI
 	put
 	post
