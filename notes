@@ -357,35 +357,6 @@ Users:
               height: 2560
               name: 'ba59718b48662068e9be6ba729f19e81.jpg'
               width: 1920
-
-... in json:
-{
-	"Users": 
-		[{
-		"user": "james",
-		"albums": [{
-			"vacation": {
-				"photos": null,
-				"date": "2015-09-23 01:34:37",
-				"geojson": {
-					"coordinates": [
-						76.73065830555555,
-						9.623579805555556
-					],
-					"type": "point",
-					"md5sum": "ba59718b48662068e9be6ba729f19e81",
-					"sizes": {
-						"full": null,
-						"height": 2560,
-						"name": "ba59718b48662068e9be6ba729f19e81.jpg",
-						"width": 1920
-					}
-				}
-			}
-		}]
-	}]
-}
-        
 api classes:
 #http://blog.miguelgrinberg.com/post/designing-a-restful-api-using-flask-restful
 class UserListAPI
@@ -397,17 +368,22 @@ class UserAPI
 	get: get user-related info
 	delete: How is this handled? Who has permission to fully delete a user account?
 	route: /api/users/<user> -- is <user> name or id?
-
 class AlbumListAPI
+	post: add album
+	get: get all albums
+	route: /api/users/<user>/albums
 class AlbumAPI
 	put: update album info, except for photos		
-
+	route: /api/users/<user/albums/<album>
 class PhotoListAPI
+	post: add photo
+	get: all photos
+	route: /api/users/<user>/albums/<album>/photos
 class PhotoAPI
-	put
-	post
-	get
-	delete
+	put: update photo
+	get: invidivual photo
+	delete: delete photo
+	route: /api/users/<user>/albums/<album>/photos/<photo>
 
 quick steps to test mongo within python
 ##############
