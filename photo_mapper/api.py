@@ -2,7 +2,7 @@ from __future__ import print_function
 from photo_mapper import app
 import photo_mapper as pm
 import flask
-import flask.ext.restful
+import flask_restful as fr
 import sys
 import json
 from bson import json_util
@@ -11,7 +11,22 @@ import imghdr
 import photo_importer
 import datetime
 
-@app.route("/api/users/<user>/albums", methods=['GET'])
+api = fr.Api(app)
+
+class User_list(fr.Resource):
+    def get(self):
+        """ the db query here is probably veeerrrryyyy slow,
+            but since getting all users is probably not something
+            that would actually be done that often, hoping it's an 
+            outlier """
+
+        col = pm.get_collection()
+        users = [ i.keys()[0] for i in col.find({},{'_id': False}) ]
+        photos = json.dumps(users, default=json_util.default)
+        return users
+api.add_resource(User_list, '/api/users')
+ 
+app.route("/api/users/<user>/albums", methods=['GET'])
 def album_api(user):
         """ returns list of albums -- since
                 albums are retrieved from individual
@@ -22,8 +37,8 @@ def album_api(user):
                 photo_url = pm.LOCAL_URL
 
         if flask.request.method == 'GET':
-                collection = pm.get_collection()
-                albums = [ i for i in collection.distinct('album', {'user': user}) ]
+                col = pm.get_collection()
+                albums = [ i for i in col.distinct('album', {'user': user}) ]
                 albums = json.dumps(albums, default=json_util.default)
                 return albums
         else:
@@ -34,7 +49,7 @@ def handle_file(f, user, album):
         """ do appropriate stuff with uploaded files, including
                 db insertion and permanent s3/local storage"""
 
-        collection = pm.get_collection()
+        col = pm.get_collection()
         # if s3 enabled, location == s3 bucket, else it's
         # globally defined UPLOAD_FOLDER:
         if pm.USE_S3:
@@ -69,7 +84,7 @@ def handle_file(f, user, album):
 
         ### should I check for DB duplicates here?
         try:
-                collection.insert_one(jpeg.db_entry(user, album))
+                col.insert_one(jpeg.db_entry(user, album))
         except Exception as e:
                 print('Failed to update database with %s: %s' % (filename, e), file=sys.stderr)
                 return
@@ -90,7 +105,7 @@ def photo_api(user, album):
                         of photos and db update
         """
 
-        collection = pm.get_collection()
+        col = pm.get_collection()
         if flask.request.method == 'POST':
                 """ this shows file number but obviously only gets first one
                 files = flask.request.files.getlist('0')
@@ -104,7 +119,7 @@ def photo_api(user, album):
                 return 'success'
 
         elif flask.request.method == 'GET':
-                photos = [ i for i in collection.find({'user': user, 'album': album}, {'_id': False}) ]
+                photos = [ i for i in col.find({'user': user, 'album': album}, {'_id': False}) ]
                 photos.sort(key=lambda k: datetime.datetime.strptime(k['date'],'%Y-%m-%d %H:%M:%S'))
                 photos = json.dumps(photos, default=json_util.default)
                 return photos
