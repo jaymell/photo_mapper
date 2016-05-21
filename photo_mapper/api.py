@@ -29,6 +29,10 @@ class UserAPI(fr.Resource):
         pass
 api.add_resource(UserAPI, '/api/users/<user>')
 
+class AlbumAPI(fr.Resource):
+    def get(self):
+        pass
+
 @app.route("/api/users/<user>/albums", methods=['GET'])
 def album_api(user):
         """ returns list of albums -- since
