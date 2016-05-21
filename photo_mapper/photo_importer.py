@@ -2,7 +2,6 @@
 
 import os
 import uuid
-import datetime
 import json
 from pymongo import MongoClient
 import re
@@ -159,7 +158,7 @@ class Jpeg:
 		db_entry["user"] = user
 		db_entry["album"] = album
 		db_entry['md5sum'] = self.md5sum
-		db_entry['date'] = self.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if self.jpgps.date() else None
+		db_entry['date'] = self.jpgps.date().strftime('%Y-%m-%d %H:%M:%S') if self.jpgps.date() else '1970-01-01 00:00:00'
 		db_entry['sizes'] = self.sizes
 		db_entry['geojson'] = { "type": "Point", 
 								"coordinates": 
@@ -215,7 +214,7 @@ if __name__ == '__main__':
 
         """
 	##########
-	#### not currently working
+	#### not currently working from command line. derp.
 	##########
 
 	for item in dir_items:
