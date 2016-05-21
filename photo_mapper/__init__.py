@@ -110,6 +110,6 @@ def handle_file(f, user, album):
         try:
                 # saves all the different sizes at once -- value of 
                 # USE_S3 indicates whether save function assumes s3 or local storage:
-                jpeg.save(location, s3=pm.USE_S3)
+                jpeg.save(location, s3=USE_S3)
         except Exception as e:
                 print("Failed to write to storage: %s" % e, file=sys.stderr)
