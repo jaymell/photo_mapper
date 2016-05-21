@@ -1,5 +1,6 @@
 from __future__ import print_function
 import flask
+import flask_sqlalchemy as fsql
 import ConfigParser
 import os
 from pymongo import MongoClient
@@ -18,19 +19,24 @@ p.read("config")
 
 # constant set at runtime to disable use of s3 -- expects True or False
 # -- but assume True:
-USE_S3 = os.environ.get('USE_S3')
-if USE_S3:
-        if USE_S3.lower() == 'false':
-                USE_S3 = False
+USE_S3_ENV = os.environ.get('USE_S3')
+if USE_S3_ENV:
+        if USE_S3_ENV.lower() == 'false':
+                USE_S3_ENV = False
         else:
-                USE_S3 = True
+                USE_S3_ENV = True
+
+MYSQL_HOST = os.environ.get('MYSQL_HOST', p.get('DB', 'MYSQL_HOST'))
+MYSQL_PORT = int(os.getenv('MYSQL_PORT', p.get('DB', 'MYSQL_PORT')))
+MYSQL_DB = os.environ.get('MYSQL_DB', p.get('DB', 'MYSQL_DB'))
+MYSQL_USER = os.environ.get('MYSQL_USER', p.get('DB', 'MYSQL_USER'))
+### is this the best way to handle this? probably not
+MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', p.get('DB', 'MYSQL_PASSWORD'))
+####
 
 app.config.update(
-    USE_S3 = USE_S3,
-    MONGODB_HOST = os.environ.get('MONGODB_HOST', p.get('DB', 'MONGODB_HOST')),
-    MONGODB_PORT = int(os.environ.get('MONGODB_PORT', p.get('DB', 'MONGODB_PORT'))),
-    DB_NAME = os.environ.get('DB_NAME', p.get('DB', 'DB_NAME')),
-    COLLECTION_NAME = os.environ.get('COLLECTION_NAME', p.get('DB', 'COLLECTION_NAME')),
+    SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s:%s/%s' % (MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_PORT,MYSQL_DB),
+    USE_S3 = USE_S3_ENV,
     GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY')),
     S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET')),
     S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL')),
@@ -41,8 +47,13 @@ app.config.update(
     PROPAGATE_EXCEPTIONS = True,
     Debug = True
 )
-# just to eliminate confusion if this var name is reused:
-del(USE_S3)
+### unset password variables:
+del(MYSQL_PASSWORD)
+if 'MYSQL_PASSWORD' in os.environ:
+    del(os.environ['MYSQL_PASSWORD'])
+
+# intialize db object:
+db = fsql.SQLAlchemy(app)
 
 def get_collection(): 
         """ handles connections to Mongo; pymongo.MongoClient does its own 
@@ -73,7 +84,7 @@ def handle_file(f, user, album):
         col = get_collection()
         # if s3 enabled, location == s3 bucket, else it's
         # UPLOAD_FOLDER:
-        if app.config['USE_S3']
+        if app.config['USE_S3']:
                 location = get_s3()
         else:
                 location = app.config['UPLOAD_FOLDER']
