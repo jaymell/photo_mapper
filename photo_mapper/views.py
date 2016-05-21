@@ -18,10 +18,10 @@ def user_landing(user):
 def get_albums(user):
 	""" render albums template -- save user in cookie """
 
-	if pm.USE_S3:
-		photo_url = pm.S3_URL
+	if app.config['USE_S3']:
+		photo_url = app.config['S3_URL']
 	else:
-		photo_url = pm.LOCAL_URL
+		photo_url = app.config['LOCAL_URL']
 
 	resp = flask.make_response(flask.render_template("albums.j2", photo_route=photo_url))
 	resp.set_cookie('user', user)
@@ -30,10 +30,10 @@ def get_albums(user):
 @app.route("/users/<user>/albums/<album>")
 def get_album(user, album):
 
-	if pm.USE_S3:
-		photo_url = pm.S3_URL
+	if app.config['USE_S3']:
+		photo_url = app.config['S3_URL']
 	else:
-		photo_url = pm.LOCAL_URL
+		photo_url = app.config['LOCAL_URL']
 
 	# if request to edit was made, do it:
 	if flask.request.args.get('edit') == 'true':
@@ -43,7 +43,7 @@ def get_album(user, album):
 		resp.set_cookie('album', album)
 		return resp
 
-	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=pm.GMAPS_KEY, photo_route=photo_url))
+	resp = flask.make_response(flask.render_template("photo_mapper.j2", KEY=app.config['GMAPS_KEY'], photo_route=photo_url))
 	resp.set_cookie('user', user)
 	resp.set_cookie('album', album)
 	return resp

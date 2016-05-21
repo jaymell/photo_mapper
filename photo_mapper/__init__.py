@@ -13,24 +13,8 @@ app = flask.Flask(__name__)
 import photo_mapper.views
 import photo_mapper.api
 
-
-app.config.update(
-    # 100 MB upload limit:
-    MAX_CONTENT_LENGTH = 100 * 1024 * 1024,
-    PROPAGATE_EXCEPTIONS = True,
-    Debug = True
-)
 p = ConfigParser.ConfigParser()
 p.read("config")
-MONGODB_HOST = os.environ.get('MONGODB_HOST', p.get('DB', 'MONGODB_HOST'))
-MONGODB_PORT = int(os.environ.get('MONGODB_PORT', p.get('DB', 'MONGODB_PORT')))
-DB_NAME = os.environ.get('DB_NAME', p.get('DB', 'DB_NAME'))
-COLLECTION_NAME = os.environ.get('COLLECTION_NAME', p.get('DB', 'COLLECTION_NAME'))
-GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY'))
-S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET'))
-S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL'))
-LOCAL_URL = os.environ.get('LOCAL_URL', p.get('STORAGE', 'LOCAL_URL'))
-UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER'))
 
 # constant set at runtime to disable use of s3 -- expects True or False
 # -- but assume True:
@@ -41,6 +25,25 @@ if USE_S3:
         else:
                 USE_S3 = True
 
+app.config.update(
+    USE_S3 = USE_S3,
+    MONGODB_HOST = os.environ.get('MONGODB_HOST', p.get('DB', 'MONGODB_HOST')),
+    MONGODB_PORT = int(os.environ.get('MONGODB_PORT', p.get('DB', 'MONGODB_PORT'))),
+    DB_NAME = os.environ.get('DB_NAME', p.get('DB', 'DB_NAME')),
+    COLLECTION_NAME = os.environ.get('COLLECTION_NAME', p.get('DB', 'COLLECTION_NAME')),
+    GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY')),
+    S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET')),
+    S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL')),
+    LOCAL_URL = os.environ.get('LOCAL_URL', p.get('STORAGE', 'LOCAL_URL')),
+    UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER')),
+    # 100 MB upload limit:
+    MAX_CONTENT_LENGTH = 100 * 1024 * 1024,
+    PROPAGATE_EXCEPTIONS = True,
+    Debug = True
+)
+# just to eliminate confusion if this var name is reused:
+del(USE_S3)
+
 def get_collection(): 
         """ handles connections to Mongo; pymongo.MongoClient does its own 
                 pooling, so nothing fancy required --- just make a handle to 
@@ -48,8 +51,8 @@ def get_collection():
  
         collection = getattr(flask.g, '_collection', None) 
         if collection is None: 
-                db = MongoClient(MONGODB_HOST, MONGODB_PORT) 
-                collection = flask.g._collection = db[DB_NAME][COLLECTION_NAME] 
+                db = MongoClient(app.config['MONGODB_HOST'], app.config['MONGODB_PORT']) 
+                collection = flask.g._collection = db[app.config['DB_NAME']][app.config['COLLECTION_NAME']] 
         return collection 
  
 def get_s3(): 
@@ -60,7 +63,7 @@ def get_s3():
         bucket = getattr(flask.g, '_bucket', None) 
         if bucket is None: 
                 connection = boto.connect_s3() 
-        bucket = flask.g._bucket = connection.get_bucket(S3_BUCKET) 
+        bucket = flask.g._bucket = connection.get_bucket(app.config['S3_BUCKET']) 
         return bucket 
 
 def handle_file(f, user, album):
@@ -69,11 +72,11 @@ def handle_file(f, user, album):
 
         col = get_collection()
         # if s3 enabled, location == s3 bucket, else it's
-        # globally defined UPLOAD_FOLDER:
-        if USE_S3:
+        # UPLOAD_FOLDER:
+        if app.config['USE_S3']
                 location = get_s3()
         else:
-                location = UPLOAD_FOLDER
+                location = app.config['UPLOAD_FOLDER']
 
         filename = f.filename
         EXT = 'jpeg'
@@ -110,6 +113,6 @@ def handle_file(f, user, album):
         try:
                 # saves all the different sizes at once -- value of 
                 # USE_S3 indicates whether save function assumes s3 or local storage:
-                jpeg.save(location, s3=USE_S3)
+                jpeg.save(location, s3=app.config['USE_S3'])
         except Exception as e:
                 print("Failed to write to storage: %s" % e, file=sys.stderr)
