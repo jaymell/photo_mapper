@@ -1,7 +1,12 @@
+from __future__ import print_function
 import flask
 import ConfigParser
 import os
 from pymongo import MongoClient
+import photo_importer 
+import sys
+import tempfile
+import imghdr
 
 app = flask.Flask(__name__)
 
@@ -58,3 +63,53 @@ def get_s3():
         bucket = flask.g._bucket = connection.get_bucket(S3_BUCKET) 
         return bucket 
 
+def handle_file(f, user, album):
+        """ do appropriate stuff with uploaded files, including
+                db insertion and permanent s3/local storage"""
+
+        col = get_collection()
+        # if s3 enabled, location == s3 bucket, else it's
+        # globally defined UPLOAD_FOLDER:
+        if USE_S3:
+                location = get_s3()
+        else:
+                location = UPLOAD_FOLDER
+
+        filename = f.filename
+        EXT = 'jpeg'
+
+        try:
+                temp_f = tempfile.NamedTemporaryFile()
+                f.save(temp_f)
+        except Exception as e:
+                print('Failed to save %s to temp file: %s' % (filename, e), file=sys.stderr)
+                return
+
+        temp_f.seek(0)
+        if not imghdr.what(temp_f.name) == EXT:
+                print('%s not a %s' % (filename, EXT), file=sys.stderr)
+                return
+
+        ####
+        # create Jpeg object from file:
+        ####
+        try:
+                temp_f.seek(0)
+                jpeg = photo_importer.Jpeg(temp_f.name)
+        except Exception as e:
+                print('Failed to create jpeg object from %s: %s' % (filename, e), file=sys.stderr)
+                return
+
+        ### should I check for DB duplicates here?
+        try:
+                col.insert_one(jpeg.db_entry(user, album))
+        except Exception as e:
+                print('Failed to update database with %s: %s' % (filename, e), file=sys.stderr)
+                return
+
+        try:
+                # saves all the different sizes at once -- value of 
+                # USE_S3 indicates whether save function assumes s3 or local storage:
+                jpeg.save(location, s3=pm.USE_S3)
+        except Exception as e:
+                print("Failed to write to storage: %s" % e, file=sys.stderr)
