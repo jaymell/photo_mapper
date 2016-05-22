@@ -336,10 +336,30 @@ BETTER: just use aws ecs instances
 # manually uploading a file via curl:
 curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@20150908_152122.jpg" http://i7w/api/users/james/albums/testy/photos
 
+#######
+aborted db formats:
+########
+### only semi-cram entire thing into one doc:
+user_name: james
+albums: 
+  - name: kayaking
+    photos:
+    - date: '2015-09-23 01:34:37'
+      geojson:
+        coordinates: 
+        - 76.73065830555555
+        - 9.623579805555556
+        type: point
+      md5sum: 'ba59718b48662068e9be6ba729f19e81'
+      sizes: 
+        full:
+          height: 2560
+          name: 'ba59718b48662068e9be6ba729f19e81.jpg'
+          width: 1920
 
-new db format, for now:
-###
 ---
+#### cram entire application into one __document__? 
+	maybe not the best idea.....
 Users:
   james:
     albums: 
@@ -395,3 +415,26 @@ DB_NAME = 'photo_mapper'
 db = MongoClient(MONGODB_HOST, MONGODB_PORT)
 col = db[DB_NAME][COLLECTION_NAME]
 #############
+
+create database photo_mapper;
+create user 'pm'@'localhost' identified by 'ohsh7Shi';
+create user 'pm'@'%' identified by 'ohsh7Shi';
+grant all privileges on photo_mapper.* to 'pm'@'%';
+
+# quick initialize of db:
+import photo_mapper as pm
+pm.db.create_all()
+
+# query:
+import photo_mapper as pm
+import photo_mapper.models as models
+models.User.query()
+
+# insert:
+user = models.User('bill')
+pm.db.session.add(user)
+pm.db.session.commit()
+
+# curl post:
+curl -H "Content-Type: application/json" -X POST -d '{"user": "james"}' http://localhost:5000/api/users
+

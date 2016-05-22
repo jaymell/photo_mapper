@@ -2,23 +2,29 @@ from __future__ import print_function
 import flask
 from photo_mapper import db
 
-# db is coming from main module file:
+# class names are InitialCaps
+# table names are camelCase
+
 class User(db.Model):
-  __tablename__  = 'User'
+  __tablename__  = 'user'
   id = db.Column(db.Integer, primary_key=True)    
   name = db.Column(db.String(64), unique=True)
+  email = db.Column(db.String(128), unique=True)
+
+  def __init__(self, name):
+    self.name = name
   
 class Album(db.Model):
-  __tablename__  = 'Album'
+  __tablename__  = 'album'
   id = db.Column(db.Integer, primary_key=True)
   name = db.Column(db.String(128), unique=True)
-  photos = db.relationship('Photo', secondary='AlbumPhotoLink')
+  photos = db.relationship('Photo', secondary='albumPhotoLink')
 
 class Photo(db.Model):
-  __tablename__  = 'Photo'
+  __tablename__  = 'photo'
   id = db.Column(db.Integer, primary_key=True)
-  albums = db.relationship('Album', secondary='AlbumPhotoLink')
-  user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+  albums = db.relationship('Album', secondary='albumPhotoLink')
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
   md5sum = db.Column(db.String(128), unique=True)
   date = db.Column(db.DateTime)
   latitude = db.Column(db.Float)
@@ -26,14 +32,14 @@ class Photo(db.Model):
   sizes = db.relationship('PhotoSizes', back_populates='photo')
  
 class AlbumPhotoLink(db.Model):
-  __tablename__  = 'AlbumPhotoLink'
-  album_id = db.Column(db.Integer, db.ForeignKey('Album.id'), primary_key=True)
-  photo_id = db.Column(db.Integer, db.ForeignKey('Photo.id'), primary_key=True)
+  __tablename__  = 'albumPhotoLink'
+  album_id = db.Column(db.Integer, db.ForeignKey('album.id'), primary_key=True)
+  photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), primary_key=True)
 
 class PhotoSizes(db.Model):
-  __tablename__  = 'PhotoSizes'
+  __tablename__  = 'photoSizes'
   id = db.Column(db.Integer, primary_key=True)
-  photo_id = db.Column(db.ForeignKey('Photo.id'))
+  photo_id = db.Column(db.ForeignKey('photo.id'))
   photo = db.relationship('Photo', back_populates='sizes')
   size = db.Column(db.String(16))
   width = db.Column(db.Integer)

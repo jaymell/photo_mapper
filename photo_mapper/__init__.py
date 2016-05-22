@@ -11,9 +11,6 @@ import imghdr
 
 app = flask.Flask(__name__)
 
-import photo_mapper.views
-import photo_mapper.api
-
 p = ConfigParser.ConfigParser()
 p.read("config")
 
@@ -54,6 +51,10 @@ if 'MYSQL_PASSWORD' in os.environ:
 
 # intialize db object:
 db = fsql.SQLAlchemy(app)
+import models
+import photo_mapper.views
+import photo_mapper.api
+
 
 def get_collection(): 
         """ handles connections to Mongo; pymongo.MongoClient does its own 
