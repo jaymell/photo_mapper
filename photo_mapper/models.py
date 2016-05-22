@@ -11,8 +11,16 @@ class User(db.Model):
   name = db.Column(db.String(64), unique=True)
   email = db.Column(db.String(128), unique=True)
 
-  def __init__(self, name):
+  def __init__(self, name, email):
     self.name = name
+    self.email = email
+
+  @property
+  def serialize(self):
+    return {
+        'name': self.name,
+        'email': self.email
+    }
   
 class Album(db.Model):
   __tablename__  = 'album'

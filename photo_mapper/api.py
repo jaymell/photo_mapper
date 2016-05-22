@@ -13,11 +13,27 @@ import models
 
 api = fr.Api(app)
 
+def already_exists(class_name, **kwargs):
+  """ check to see if record already exists, the
+        idea is that all must-be-unique items for a 
+        class are iterated through and checked individually """
+  model = getattr(models, class_name)
+  # iterate through individual key-val pairs of kwargs
+  # and launch separate query for each -- is this any
+  # better than just a failed insert?
+  for k, v in kwargs.items():
+    if len (model.query.filter_by(**{k:v}).all()):
+      return {k:v}
+  return False
+        
+
 class UserListAPI(fr.Resource):
   def __init__(self):
     self.reqparse = reqparse.RequestParser()
     self.reqparse.add_argument('name', type = str, required = True,
       help = "No username provided")
+    self.reqparse.add_argument('email', type = str, required = True,
+      help = "No email provided")
     super(UserListAPI, self).__init__()
 
   def get(self):
@@ -25,15 +41,20 @@ class UserListAPI(fr.Resource):
 
   def post(self):
     args = self.reqparse.parse_args()
-    # insert user into db:
+    results = already_exists('User', name=args.name, email=args.email)
+    if results:
+      return 'already exists: %s' % results, 409
+    # else try to insert:
     try: 
-        user = models.User(args.name)
+        user = models.User(args.name, args.email)
         pm.db.session.add(user)
         pm.db.session.commit()
-    except:
-        return 'error', 500
+    except Exception as e:
+        return '%s' % e, 500
     else:
-        return { 'user': args.name }, 200
+        return user.serialize, 200
+    
+            
     
 api.add_resource(UserListAPI, '/api/users')
  
