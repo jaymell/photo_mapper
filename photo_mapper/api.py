@@ -4,6 +4,7 @@ import photo_mapper as pm
 import flask
 import flask_restful as fr
 from flask_restful import reqparse
+import flask_sqlalchemy as fsql
 import sys
 import json
 from bson import json_util
@@ -13,59 +14,76 @@ import models
 
 api = fr.Api(app)
 
-def already_exists(class_name, **kwargs):
-  """ check to see if record already exists, the
-        idea is that all must-be-unique items for a 
-        class are iterated through and checked individually """
-  model = getattr(models, class_name)
-  # iterate through individual key-val pairs of kwargs
-  # and launch separate query for each -- is this any
-  # better than just a failed insert?
-  for k, v in kwargs.items():
-    if len (model.query.filter_by(**{k:v}).all()):
-      return {k:v}
-  return False
-        
-
 class UserListAPI(fr.Resource):
   def __init__(self):
     self.reqparse = reqparse.RequestParser()
-    self.reqparse.add_argument('name', type = str, required = True,
+    self.reqparse.add_argument('user_name', type = str, required = True,
       help = "No username provided")
     self.reqparse.add_argument('email', type = str, required = True,
       help = "No email provided")
     super(UserListAPI, self).__init__()
 
   def get(self):
-    return User
+    # make this more robust:
+    return [ i.serialize for i in models.User.query.all() ]
 
   def post(self):
     args = self.reqparse.parse_args()
-    results = already_exists('User', name=args.name, email=args.email)
-    if results:
-      return 'already exists: %s' % results, 409
-    # else try to insert:
     try: 
-        user = models.User(args.name, args.email)
+        user = models.User(args.user_name, args.email)
         pm.db.session.add(user)
         pm.db.session.commit()
-    except Exception as e:
-        return '%s' % e, 500
-    else:
-        return user.serialize, 200
-    
-            
-    
+    except fsql.sqlalchemy.exc.IntegrityError:
+      return 'duplicate', 409
+    except:
+      return 'error', 500
+
+    return user.serialize, 200
 api.add_resource(UserListAPI, '/api/users')
  
 class UserAPI(fr.Resource):
-  def get(self):
-    pass
-api.add_resource(UserAPI, '/api/users/<user>')
+  def get(self, user_name):
+    result = models.User.query.filter_by(user_name=user_name).first()
+    if result:
+        return result.serialize
+    else:
+        return 'No records found', 404
+api.add_resource(UserAPI, '/api/users/<user_name>')
+
+class AlbumListAPI(fr.Resource):
+  def __init__(self):
+    self.reqparse = reqparse.RequestParser()
+    self.reqparse.add_argument('album_name', type = str, required = True,
+      help = "No album name provided")
+    super(AlbumListAPI, self).__init__()
+
+  def post(self, user_name):
+    args = self.reqparse.parse_args()
+    user = models.User.query.filter_by(user_name=user_name).first()
+    if not user:
+      return 'user not found', 404
+    try:
+      album = models.Album(args.album_name, user.id)
+      pm.db.session.add(album)
+      pm.db.session.commit()
+    except fsql.sqlalchemy.exc.IntegrityError:
+      return 'duplicate', 409
+    except:
+      return 'error', 500
+
+    return album.serialize, 200
+
+  def get(self, user_name):
+    user = models.User.query.filter_by(user_name=user_name).first()
+    if not user:
+      return 'user not found', 404
+    return [ i.serialize for i in models.Album.query.filter_by(user_id=user.id).all() ]
+api.add_resource(AlbumListAPI, '/api/users/<user_name>/albums')
 
 class AlbumAPI(fr.Resource):
   def get(self):
     pass
+api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>')
 
 
 #@app.route("/api/users/<user>/albums", methods=['GET'])

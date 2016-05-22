@@ -8,31 +8,43 @@ from photo_mapper import db
 class User(db.Model):
   __tablename__  = 'user'
   id = db.Column(db.Integer, primary_key=True)    
-  name = db.Column(db.String(64), unique=True)
+  user_name = db.Column(db.String(64), unique=True)
   email = db.Column(db.String(128), unique=True)
+  albums = db.relationship('Album')
 
-  def __init__(self, name, email):
-    self.name = name
+  def __init__(self, user_name, email):
+    self.user_name = user_name
     self.email = email
 
   @property
   def serialize(self):
     return {
-        'name': self.name,
+        'user_name': self.user_name,
         'email': self.email
     }
   
 class Album(db.Model):
   __tablename__  = 'album'
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String(128), unique=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+  album_name = db.Column(db.String(128), unique=True)
   photos = db.relationship('Photo', secondary='albumPhotoLink')
+  __table_args__ = (db.UniqueConstraint('user_id', 'album_name'),)
+
+  def __init__(self, album_name, user_id):
+    self.album_name = album_name
+    self.user_id = user_id
+
+  @property
+  def serialize(self):
+    return {
+        'name': self.album_name
+    }
 
 class Photo(db.Model):
   __tablename__  = 'photo'
   id = db.Column(db.Integer, primary_key=True)
   albums = db.relationship('Album', secondary='albumPhotoLink')
-  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
   md5sum = db.Column(db.String(128), unique=True)
   date = db.Column(db.DateTime)
   latitude = db.Column(db.Float)
