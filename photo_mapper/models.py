@@ -20,7 +20,8 @@ class User(db.Model):
   def serialize(self):
     return {
         'user_name': self.user_name,
-        'email': self.email
+        'email': self.email,
+        'albums': [i.album_name for i in self.albums]
     }
   
 class Album(db.Model):
@@ -38,7 +39,8 @@ class Album(db.Model):
   @property
   def serialize(self):
     return {
-        'name': self.album_name
+        'name': self.album_name,
+        'num_photos': len(self.photos)
     }
 
 class Photo(db.Model):
