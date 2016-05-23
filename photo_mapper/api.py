@@ -81,10 +81,24 @@ class AlbumListAPI(fr.Resource):
 api.add_resource(AlbumListAPI, '/api/users/<user_name>/albums')
 
 class AlbumAPI(fr.Resource):
-  def get(self):
-    pass
+  def get(self, user_name, album_name):
+    user = models.User.query.filter_by(user_name=user_name).first()
+    if not user:
+      return 'user not found', 404
+    result = models.Album.query.filter_by(user_id=user.id, album_name=album_name).first()
+    if result:
+        return result.serialize
+    else:
+        return 'No records found', 404
 api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>')
 
+class PhotoListAPI(fr.Resource):
+    pass
+api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>/photos')
+
+class PhotoAPI(fr.Resource):
+    pass
+api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>/photos/<photo>')
 
 #@app.route("/api/users/<user>/albums", methods=['GET'])
 #def album_api(user):
