@@ -35,7 +35,8 @@ class UserListAPI(fr.Resource):
         pm.db.session.commit()
     except fsql.sqlalchemy.exc.IntegrityError:
       return 'duplicate', 409
-    except:
+    except Exception as e:
+      print("Error: %s" % e)  
       return 'error', 500
 
     return user.serialize, 200
@@ -58,6 +59,8 @@ class AlbumListAPI(fr.Resource):
     super(AlbumListAPI, self).__init__()
 
   def post(self, user_name):
+    """ FIXME: this function needs some sanity checking on
+        album name """
     args = self.reqparse.parse_args()
     user = models.User.query.filter_by(user_name=user_name).first()
     if not user:
@@ -93,12 +96,32 @@ class AlbumAPI(fr.Resource):
 api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>')
 
 class PhotoListAPI(fr.Resource):
+  """ photos are at same hierarchic level as albums """
+  def __init__(self):
+    self.reqparse = reqparse.RequestParser()
+    super(AlbumListAPI, self).__init__()
+
+  def get(self, user_name):
+    user = models.User.query.filter_by(user_name=user_name).first()
+    if not user:
+      fr.abort(404)
+    return [ i.serialize for i in models.Photo.query.filter_by(user_id=user.id).all() ]
+
+  def post(self):
+    self.reqparse.add_argument('album_list', type = list, required = True,
+      help = ">=1 album id required; pass as array")
+    args = self.reqparse.parse_args()
+    albums = [ i.id for i in models.Album.query.filter_by(album_id=i.album_id).first() if i not None ]
+    if not albums:
+      fr.abort(404)
+    """ now do the thing """
     pass
-api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>/photos')
+
+api.add_resource(PhotoListAPI, '/api/users/<user_name>/photos')
 
 class PhotoAPI(fr.Resource):
-    pass
-api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>/photos/<photo>')
+  pass
+api.add_resource(PhotoAPI, '/api/users/<user_name>/photos/<photo>')
 
 #@app.route("/api/users/<user>/albums", methods=['GET'])
 #def album_api(user):

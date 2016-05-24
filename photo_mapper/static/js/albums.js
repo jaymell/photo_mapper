@@ -21,10 +21,13 @@ function loadData() {
 			// empty div, only matters if called
 			// multiple times without page load
 			$('#albumList').empty();
-			albumList.forEach(function(album, index, array) {
+			// expects albumList to look like this: [ 'album1', 'album2', 'album3' ]
+			albumList.forEach(function(albumJson, index, array) {
+				var album = albumJson.name;
 				// get photo JSON:
 				console.log('album = ', album);
 				$.getJSON(apiRoute + '/' + album + '/photos', function(photoList) {
+					console.log('photoList: ', photoList);
 					var link = getPhotoLink(photoList);
 					var $img = $("<img></img>")
 						.attr('class', 'thumbnail')
@@ -52,10 +55,6 @@ function getPhotoLink(albumJson) {
 	// first, middle, last, most popular, whatever
 	// return link -- src attrib for img tag
 	return albumJson[0]['sizes']['thumbnail']['name'];
-/*
-[{"album": "testing", "sizes": {"scaled": {"width": 1200, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-scaled.jpg", "height": 900}, "small": {"width": 100, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-small.jpg", "height": 100}, "full": {"width": 2560, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5.jpg", "height": 1920}, "thumbnail": {"width": 256, "name": "2fc4bce30b0468bd9629ee13f0d2e5e5-thumbnail.jpg", "height": 192}}, "md5sum": "2fc4bce30b0468bd9629ee13f0d2e5e5", "geojson": {"type": "Point", "coordinates": [8.809077277777778, 47.31462408333333]}, "user": "james", "date": "1969-12-31 19:04:16"}]
-*/
-
 }
 
 loadData();

@@ -19,6 +19,7 @@ class User(db.Model):
   @property
   def serialize(self):
     return {
+        'id': self.id,
         'user_name': self.user_name,
         'email': self.email,
         'albums': [i.album_name for i in self.albums]
@@ -39,6 +40,7 @@ class Album(db.Model):
   @property
   def serialize(self):
     return {
+        'id': self.id,
         'name': self.album_name,
         'num_photos': len(self.photos)
     }
@@ -46,6 +48,7 @@ class Album(db.Model):
 class Photo(db.Model):
   __tablename__  = 'photo'
   id = db.Column(db.Integer, primary_key=True)
+  user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
   albums = db.relationship('Album', secondary='albumPhotoLink')
   md5sum = db.Column(db.String(128), unique=True)
   date = db.Column(db.DateTime)
