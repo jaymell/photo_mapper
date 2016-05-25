@@ -111,12 +111,15 @@ class PhotoListAPI(fr.Resource):
     self.reqparse.add_argument('album_list', type = list, required = True,
       help = ">=1 album id required; pass as array")
     args = self.reqparse.parse_args()
-    albums = [ i.id for i in models.Album.query.filter_by(album_id=i.album_id).first() if i not None ]
+    albums = []
+    for album in album_list:
+      record = models.Album.query.filter_by(album_id=album.album_id).first()
+      if record:
+        albums.append(record.id)
     if not albums:
       fr.abort(404)
-    """ now do the thing """
     pass
-
+  
 api.add_resource(PhotoListAPI, '/api/users/<user_name>/photos')
 
 class PhotoAPI(fr.Resource):
