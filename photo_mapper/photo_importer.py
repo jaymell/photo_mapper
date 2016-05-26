@@ -28,31 +28,25 @@ class S3Error(Exception):
 class DBError(Exception):
 	pass
 
-class Jpeg:
+class Jpeg(object):
 	""" this class does most of the heavy 
 		lifting for imports """
 
 	def __init__(self, f):
-		try: 
-			# open file and leave it open until
-			# explicitly closed:
-			self.fh = open(f, 'rb')
-		except Exception as e:
-			print('Failed to instantiate Jpeg object: %s' % e)
-			raise JpegError
-		else:
-			self.name = self.fh.name
-			# is it a bad idea to have 3 separate
-			# things reading the fh at once?
-			self.md5sum = hashlib.md5(self.fh.read()).hexdigest()
-			self.fh.seek(0)
-			self.jpgps = jpgps.Jpgps(self.fh)
-			self.fh.seek(0)
-			self.image = Image.open(self.fh)
-			self.fix_orientation()
-			self.width, self.height = self.image.size
-			self.get_sizes()
+          """ f should be a file handle, not a file name """
+          f.seek(0)
+          self.md5sum = hashlib.md5(f.read()).hexdigest()
+          f.seek(0)
+          self.jpgps = jpgps.Jpgps(f)
+          f.seek(0)
+          self.image = Image.open(f)
+          self.fix_orientation()
+          self.width, self.height = self.image.size
+          self.get_sizes()
+          self.date = self.get_date()
 
+        def get_date(self, date_format='%Y-%m-%d %H:%M:%S'):
+          return self.jpgps.date().strftime(date_format) if self.jpgps.date() else '1970-01-01 00:00:00'
 	def fix_orientation(self):
 		""" rotate image, necessary because PIL
 			strips out exif data  """
@@ -151,8 +145,8 @@ class Jpeg:
 		k.content_type = content_type
 		k.set_contents_from_file(buf)
 
-	def db_entry(self, user, album):
-		""" build json for db """
+	def mongo_db_entry(self, user, album):
+		""" build json for old mongo db implementation """
 
 		db_entry = {}
 		db_entry["user"] = user
@@ -167,9 +161,6 @@ class Jpeg:
 							  }
 		return db_entry
 
-	def close(self):
-		self.fh.close()
-
 
 def get_db_duplicates(md5sum, collection, user):
 	results = [ i for i in collection.find({'md5sum': md5sum, 'user': user}) ]
@@ -183,61 +174,5 @@ def update_db(db_entry, collection):
 		raise InsertError
 
 if __name__ == '__main__':
-	""" this shouldn't be used, but if needed, idea is 
-		to do photo import directly on server """
-	
-	import imghdr
-	import ConfigParser
-
-	p = ConfigParser.ConfigParser()
-	p.read("config")
-	MONGODB_HOST = p.get('DB', 'MONGODB_HOST')
-	MONGODB_PORT = p.get('DB', 'MONGODB_PORT')
-	DB_NAME = p.get('DB', 'DB_NAME')
-	COLLECTION_NAME = p.get('DB', 'COLLECTION_NAME')
-	UPLOAD_FOLDER = p.get('STORAGE', 'UPLOAD_FOLDER')
-	S3_BUCKET = p.get('STORAGE', 'S3_BUCKET')
-
-	connection = MongoClient(MONGODB_HOST, MONGODB_PORT)
-	collection = connection[DB_NAME][COLLECTION_NAME]
-
-	if len(sys.argv) != 2:
-		print('Usage: %s <directory name>' % sys.argv[0])
-		sys.exit(1)
-	location = sys.argv[1]
-	user = raw_input('Enter user name: ')
-	try:
-		dir_items = os.listdir(location)	
-	except Exception as e:
-		print('Failed to open directory: %s' % e)	
-		sys.exit(2)
-
-        """
-	##########
-	#### not currently working from command line. derp.
-	##########
-
-	for item in dir_items:
-		if not imghdr.what(os.path.join(location,item)) == 'jpeg':
-			sys.exit(234)
-
-		try:
-			print('Processing %s' % item)
-			jpeg = Jpeg(os.path.join(location, item))
-		except Exception as e:
-			print('Failed to create jpeg object from %s: %s' % (item, e))
-
-		get_db_duplicates(jpeg.md5sum, collection, user)
-		if db_dupes:
-			print('%s: already in database' % jpeg.name)
-			jpeg.close()	
-
-		try:
-			update_db(jpeg.db_entry(), collection)
-		except InsertError as e:
-			print('Failed to update database with %s: %s' % (jpeg.name, e))
-			raise
-
-		#jpeg.save(location=)
-		#jpeg.close()
-        """
+    """ if we ever want to do this from the command line... """
+    pass

@@ -8,20 +8,12 @@ import photo_importer
 import sys
 import tempfile
 import imghdr
+import boto
 
 app = flask.Flask(__name__)
 
 p = ConfigParser.ConfigParser()
 p.read("config")
-
-# constant set at runtime to disable use of s3 -- expects True or False
-# -- but assume True:
-USE_S3_ENV = os.environ.get('USE_S3')
-if USE_S3_ENV:
-        if USE_S3_ENV.lower() == 'false':
-                USE_S3_ENV = False
-        else:
-                USE_S3_ENV = True
 
 MYSQL_HOST = os.environ.get('MYSQL_HOST', p.get('DB', 'MYSQL_HOST'))
 MYSQL_PORT = int(os.getenv('MYSQL_PORT', p.get('DB', 'MYSQL_PORT')))
@@ -31,9 +23,21 @@ MYSQL_USER = os.environ.get('MYSQL_USER', p.get('DB', 'MYSQL_USER'))
 MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', p.get('DB', 'MYSQL_PASSWORD'))
 ####
 
+# this one needs some pre-processing to prevent 'False'
+# being interpreted as True:
+USE_S3_ENV = os.environ.get('USE_S3')
+if USE_S3_ENV:
+        if USE_S3_ENV.lower() == 'false':
+                USE_S3 = False
+        else:
+                USE_S3 = True
+
+
 app.config.update(
+    # based on output of imghdr.what:
+    SUPPORTED_TYPES = ['jpeg'],
     SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s:%s/%s' % (MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_PORT,MYSQL_DB),
-    USE_S3 = USE_S3_ENV,
+    USE_S3 = USE_S3 if 'USE_S3' in globals() else p.getboolean('STORAGE', 'USE_S3'),
     GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY')),
     S3_BUCKET = os.environ.get('S3_BUCKET', p.get('STORAGE', 'S3_BUCKET')),
     S3_URL = os.environ.get('S3_URL', p.get('STORAGE', 'S3_URL')),
@@ -77,54 +81,3 @@ def get_s3():
                 connection = boto.connect_s3() 
         bucket = flask.g._bucket = connection.get_bucket(app.config['S3_BUCKET']) 
         return bucket 
-
-def handle_file(f, user, album):
-        """ do appropriate stuff with uploaded files, including
-                db insertion and permanent s3/local storage"""
-
-        col = get_collection()
-        # if s3 enabled, location == s3 bucket, else it's
-        # UPLOAD_FOLDER:
-        if app.config['USE_S3']:
-                location = get_s3()
-        else:
-                location = app.config['UPLOAD_FOLDER']
-
-        filename = f.filename
-        EXT = 'jpeg'
-
-        try:
-                temp_f = tempfile.NamedTemporaryFile()
-                f.save(temp_f)
-        except Exception as e:
-                print('Failed to save %s to temp file: %s' % (filename, e), file=sys.stderr)
-                return
-
-        temp_f.seek(0)
-        if not imghdr.what(temp_f.name) == EXT:
-                print('%s not a %s' % (filename, EXT), file=sys.stderr)
-                return
-
-        ####
-        # create Jpeg object from file:
-        ####
-        try:
-                temp_f.seek(0)
-                jpeg = photo_importer.Jpeg(temp_f.name)
-        except Exception as e:
-                print('Failed to create jpeg object from %s: %s' % (filename, e), file=sys.stderr)
-                return
-
-        ### should I check for DB duplicates here?
-        try:
-                col.insert_one(jpeg.db_entry(user, album))
-        except Exception as e:
-                print('Failed to update database with %s: %s' % (filename, e), file=sys.stderr)
-                return
-
-        try:
-                # saves all the different sizes at once -- value of 
-                # USE_S3 indicates whether save function assumes s3 or local storage:
-                jpeg.save(location, s3=app.config['USE_S3'])
-        except Exception as e:
-                print("Failed to write to storage: %s" % e, file=sys.stderr)
