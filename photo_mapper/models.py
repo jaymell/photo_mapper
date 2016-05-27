@@ -54,15 +54,15 @@ class Photo(db.Model):
   date = db.Column(db.DateTime)
   latitude = db.Column(db.Float)
   longitude = db.Column(db.Float)
-  sizes = db.relationship('PhotoSizes', back_populates='photo')
+  sizes = db.relationship('PhotoSize', back_populates='photo')
  
 class AlbumPhotoLink(db.Model):
   __tablename__  = 'albumPhotoLink'
   album_id = db.Column(db.Integer, db.ForeignKey('album.id'), primary_key=True)
   photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), primary_key=True)
 
-class PhotoSizes(db.Model):
-  __tablename__  = 'photoSizes'
+class PhotoSize(db.Model):
+  __tablename__  = 'photoSize'
   id = db.Column(db.Integer, primary_key=True)
   photo_id = db.Column(db.ForeignKey('photo.id'))
   photo = db.relationship('Photo', back_populates='sizes')
