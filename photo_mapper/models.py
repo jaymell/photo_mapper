@@ -1,5 +1,6 @@
 from __future__ import print_function
 import flask
+import flask_restful as fr
 from photo_mapper import db
 
 # class names are InitialCaps
@@ -50,12 +51,25 @@ class Photo(db.Model):
   id = db.Column(db.Integer, primary_key=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
   albums = db.relationship('Album', secondary='albumPhotoLink')
-  md5sum = db.Column(db.String(128), unique=True)
+  md5sum = db.Column(db.String(32), unique=True)
+  photo_type = db.Column(db.String(16))
   date = db.Column(db.DateTime)
   latitude = db.Column(db.Float)
   longitude = db.Column(db.Float)
   sizes = db.relationship('PhotoSize', back_populates='photo')
- 
+
+  @property
+  def serialize(self):
+    return {
+      'id': self.id,
+      'albums': [ i.album_name for i in self.albums ],
+      'sizes': [ i.serialize for i in self.sizes ],
+      'latitude': self.latitude,
+      'longitude': self.longitude,
+      'type': self.photo_type,
+      'date': self.date.strftime('%Y-%m-%d %H:%M:%S')
+    }
+
 class AlbumPhotoLink(db.Model):
   __tablename__  = 'albumPhotoLink'
   album_id = db.Column(db.Integer, db.ForeignKey('album.id'), primary_key=True)
@@ -69,5 +83,16 @@ class PhotoSize(db.Model):
   size = db.Column(db.String(16))
   width = db.Column(db.Integer)
   height = db.Column(db.Integer)
-  # name doesn't need to be stored; it's just a function of md5sum and size
+  name = db.Column(db.String(64))
+
+  @property
+  def serialize(self):
+    return {
+        'id': self.id,
+        'photoId': self.photo_id,
+        'size': self.size,
+        'width': self.width,
+        'height': self.height,
+        'name': self.name
+    }
 
