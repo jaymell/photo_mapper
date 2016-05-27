@@ -436,5 +436,8 @@ pm.db.session.add(user)
 pm.db.session.commit()
 
 # curl post:
-curl -H "Content-Type: application/json" -X POST -d '{"user": "james"}' http://localhost:5000/api/users
+curl -H "Content-Type: application/json" -X POST -d '{"user_name": "james", "email": "email@gmail.com"}' http://localhost:5000/api/users
 
+# for testing jpeg object:
+import photo_mapper.photo_importer as pi
+a = pi.Jpeg(open("/home/james/Pictures/2015-vacation/james/20150911_045437.jpg"))

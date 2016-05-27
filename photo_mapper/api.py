@@ -135,7 +135,17 @@ class PhotoListAPI(fr.Resource):
         longitude=jpeg.jpgps.coordinates()[1]
         )
       insert(photo)
-      # get foreign key, use it write sizes to database
+      # if prior insert was successful, photo.id should
+      # be available to use as FK, so insert photo sizes:
+      for size in jpeg.sizes:
+        photo_size = models.PhotoSize(
+          photo_id=photo.id,
+          size=size,
+          width=jpeg.sizes[size]['width'],
+          height=jpeg.sizes[size]['height'],
+        )
+        insert(photo_size)
+      # finally, actually write all sizes to storage:
       jpeg.save(location, s3=app.config['USE_S3'])
     return 'success', 200
 
