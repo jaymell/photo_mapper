@@ -15,19 +15,6 @@ import models
 
 api = fr.Api(app)
 
-size_fields = {
-}  
-
-photo_fields =  {
-  'photo': fields.Url('photo'),
-  #'albums': [ i.album_name for i in self.albums ],
-  #'sizes': [ i.serialize for i in self.sizes ],
-  'latitude': fields.String,
-  'longitude': fields.String,
-  'type': fields.String,
-  'date': fields.String
-}
-
 def insert(record):
     """ insert record or abort """
     try:
@@ -54,25 +41,31 @@ class UserListAPI(fr.Resource):
 
   def get(self):
     # make this more robust:
-    return [ i.serialize for i in models.User.query.all() ]
+    return [ marshal(i, UserAPI.user_fields) for i in models.User.query.all() ]
 
   def post(self):
     args = self.reqparse.parse_args()
     user = models.User(args.user_name, args.email)
     # will abort if it fails: 
     insert(user)
-    return user.serialize, 200
+    return marshal(user, UserAPI.user_fields), 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
-  def get(self, user_name):
+  user_fields = {
+    'uri': fields.Url('user'),
+    'user_name': fields.String,
+    'email': fields.String,
+    #albums
+  }
+  def get(self, user_id):
     # FIXME:
-    result = models.User.query.filter_by(user_name=user_name).first()
+    result = models.User.query.filter_by(user_id=user_id).first()
     if result:
-        return result.serialize
+        return marshal(result, UserAPI.user_fields)
     else:
         return 'No records found', 404
-api.add_resource(UserAPI, '/api/users/<user_name>', endpoint='user')
+api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
 class AlbumListAPI(fr.Resource):
   def __init__(self):
@@ -81,57 +74,62 @@ class AlbumListAPI(fr.Resource):
       help = "No album name provided")
     super(AlbumListAPI, self).__init__()
 
-  def post(self, user_name):
+  def post(self, user_id):
     """ FIXME: this function needs some sanity checking on
         album name """
     args = self.reqparse.parse_args()
     # FIXME:
-    user = models.User.query.filter_by(user_name=user_name).first()
+    user = models.User.query.filter_by(user_id=user_id).first()
     album = models.Album(args.album_name, user.user_id)
     # will abort if it fails: 
     insert(album)
-    return album.serialize, 200
+    return marshal(album, AlbumAPI.album_fields), 200
 
-  def get(self, user_name):
+  def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_name=user_name).first()
+    user = models.User.query.filter_by(user_id=user_id).first()
     if not user:
       return 'user not found', 404
-    return [ i.serialize for i in models.Album.query.filter_by(user_id=user.user_id).all() ]
-api.add_resource(AlbumListAPI, '/api/users/<user_name>/albums', endpoint='albums')
+    return [ marshal(i, i.AlbumAPI.album_fields) for i in models.Album.query.filter_by(user_id=user.user_id).all() ]
+api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
 class AlbumAPI(fr.Resource):
-  def get(self, user_name, album_name):
+  album_fields = {
+    'uri': fields.Url('album'),
+    'album_name': fields.String,
+    #'photos'
+  }
+  def get(self, user_id, album_id):
     # FIXME:
-    user = models.User.query.filter_by(user_name=user_name).first()
+    user = models.User.query.filter_by(user_id=user_id).first()
     if not user:
       return 'user not found', 404
     # FIXME:
-    result = models.Album.query.filter_by(user_id=user.user_id, album_name=album_name).first()
+    result = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).first()
     if result:
-        return result.serialize
+        return marshal(result, AlbumAPI.album_fields)
     else:
         return 'No records found', 404
-api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>', endpoint='album')
+api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
 
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
 
-  def get(self, user_name):
+  def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_name=user_name).first()
+    user = models.User.query.filter_by(user_id=user_id).first()
     if not user:
       fr.abort(404)
-    return [ i.serialize for i in models.Photo.query.filter_by(user_id=user.user_id).all() ]
+    return [ marshal(i, PhotoAPI.photo_fields) for i in models.Photo.query.filter_by(user_id=user.user_id).all() ]
 
-  def post(self, user_name):
+  def post(self, user_id):
     """ this route takes a file only -- it gets the relevant
         meta out of it with photo_importer module, 
         puts it into Photo table, puts sizes into Sizes table,
         then saves it to storage -- if all successful, return uri
         so photo can then be added to albums via separate request """
     # FIXME:
-    user = models.User.query.filter_by(user_name=user_name).first()
+    user = models.User.query.filter_by(user_id=user_id).first()
     if not user:
       fr.abort(404)
     location = pm.get_s3() if app.config['USE_S3'] else app.config['UPLOAD_FOLDER']
@@ -171,21 +169,30 @@ class PhotoListAPI(fr.Resource):
         )
         insert(photo_size)
         photo_sizes.append(photo_size)
-    #return photo.serialize, 200
-    return {'photo': marshal(photo, photo_fields) }
-api.add_resource(PhotoListAPI, '/api/users/<user_name>/photos', endpoint='photos')
+    return {'photo': marshal(photo, PhotoAPI.photo_fields) }
+api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
 class PhotoAPI(fr.Resource):
-  def get(self, user_name, photo_id):
-    user = models.User.query.filter_by(user_name=user_name).first()
+
+  photo_fields =  {
+    'uri': fields.Url('photo'),
+    #'albums': [ i.album_name for i in self.albums ],
+    #'sizes': [ i.serialize for i in self.sizes ],
+    'latitude': fields.String,
+    'longitude': fields.String,
+    'type': fields.String,
+    'date': fields.String
+  }
+
+  def get(self, user_id, photo_id):
+    user = models.User.query.filter_by(user_id=user_id).first()
     print('this is user: %s' % user)
     photo = models.Photo.query.filter_by(user_id=user.user_id, id=photo_id).first()
     print('this is photo: %s' % photo)
-    photo.__dict__['user_name'] = user.user_name
     if not user or not photo:
       fr.abort(404)
-    return {'photo': marshal(photo, photo_fields) }
+    return {'photo': marshal(photo, PhotoAPI.photo_fields) }
 
-api.add_resource(PhotoAPI, '/api/users/<user_name>/photos/<photo_id>', endpoint='photo')
+api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
 
 
