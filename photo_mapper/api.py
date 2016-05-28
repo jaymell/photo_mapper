@@ -87,7 +87,7 @@ class AlbumListAPI(fr.Resource):
     args = self.reqparse.parse_args()
     # FIXME:
     user = models.User.query.filter_by(user_name=user_name).first()
-    album = models.Album(args.album_name, user.id)
+    album = models.Album(args.album_name, user.user_id)
     # will abort if it fails: 
     insert(album)
     return album.serialize, 200
@@ -97,7 +97,7 @@ class AlbumListAPI(fr.Resource):
     user = models.User.query.filter_by(user_name=user_name).first()
     if not user:
       return 'user not found', 404
-    return [ i.serialize for i in models.Album.query.filter_by(user_id=user.id).all() ]
+    return [ i.serialize for i in models.Album.query.filter_by(user_id=user.user_id).all() ]
 api.add_resource(AlbumListAPI, '/api/users/<user_name>/albums', endpoint='albums')
 
 class AlbumAPI(fr.Resource):
@@ -107,7 +107,7 @@ class AlbumAPI(fr.Resource):
     if not user:
       return 'user not found', 404
     # FIXME:
-    result = models.Album.query.filter_by(user_id=user.id, album_name=album_name).first()
+    result = models.Album.query.filter_by(user_id=user.user_id, album_name=album_name).first()
     if result:
         return result.serialize
     else:
@@ -116,16 +116,13 @@ api.add_resource(AlbumAPI, '/api/users/<user_name>/albums/<album_name>', endpoin
 
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
-#  def __init__(self):
-#    self.reqparse = reqparse.RequestParser()
-#    super(PhotoListAPI, self).__init__()
 
   def get(self, user_name):
     # FIXME:
     user = models.User.query.filter_by(user_name=user_name).first()
     if not user:
       fr.abort(404)
-    return [ i.serialize for i in models.Photo.query.filter_by(user_id=user.id).all() ]
+    return [ i.serialize for i in models.Photo.query.filter_by(user_id=user.user_id).all() ]
 
   def post(self, user_name):
     """ this route takes a file only -- it gets the relevant
@@ -153,21 +150,20 @@ class PhotoListAPI(fr.Resource):
       # insert stuff in db:
       # FIXME: inserts need to be ATOMIC:
       photo = models.Photo(
-        user_id=user.id,
+        user_id=user.user_id,
         md5sum=jpeg.md5sum,
         date=jpeg.date,
         latitude=jpeg.jpgps.coordinates()[0],
         longitude=jpeg.jpgps.coordinates()[1],
         photo_type=photo_type
-
         )
       insert(photo)
-      # if prior insert was successful, photo.id should
+      # if prior insert was successful, photo.photo_id should
       # be available to use as FK, so insert photo sizes:
       photo_sizes = [] 
       for size in jpeg.sizes:
         photo_size = models.PhotoSize(
-          photo_id = photo.id,
+          photo_id = photo.photo_id,
           size = size,
           width = jpeg.sizes[size]['width'],
           height = jpeg.sizes[size]['height'],
@@ -175,12 +171,21 @@ class PhotoListAPI(fr.Resource):
         )
         insert(photo_size)
         photo_sizes.append(photo_size)
-    return photo.serialize, 200
-    #return {'photo': marshal(photo, photo_fields) }
+    #return photo.serialize, 200
+    return {'photo': marshal(photo, photo_fields) }
 api.add_resource(PhotoListAPI, '/api/users/<user_name>/photos', endpoint='photos')
 
 class PhotoAPI(fr.Resource):
-  pass
-api.add_resource(PhotoAPI, '/api/users/<user_name>/photos/<photo>', endpoint='photo')
+  def get(self, user_name, photo_id):
+    user = models.User.query.filter_by(user_name=user_name).first()
+    print('this is user: %s' % user)
+    photo = models.Photo.query.filter_by(user_id=user.user_id, id=photo_id).first()
+    print('this is photo: %s' % photo)
+    photo.__dict__['user_name'] = user.user_name
+    if not user or not photo:
+      fr.abort(404)
+    return {'photo': marshal(photo, photo_fields) }
+
+api.add_resource(PhotoAPI, '/api/users/<user_name>/photos/<photo_id>', endpoint='photo')
 
 
