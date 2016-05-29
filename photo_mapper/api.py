@@ -202,8 +202,7 @@ api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 class PhotoAPI(fr.Resource):
   def __init__(self):
     self.reqparse = reqparse.RequestParser()
-    #FIXME: append not working:
-    self.reqparse.add_argument('album_id', type = int, action="append")
+    self.reqparse.add_argument('album_id', type=int, action="append")
     super(PhotoAPI, self).__init__()
 
 
