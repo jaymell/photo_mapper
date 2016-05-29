@@ -36,6 +36,7 @@ if USE_S3_ENV:
 app.config.update(
     # based on output of imghdr.what:
     SUPPORTED_TYPES = ['jpeg'],
+    SQLALCHEMY_TRACK_MODIFICATIONS = False,
     SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s:%s/%s' % (MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_PORT,MYSQL_DB),
     USE_S3 = USE_S3 if 'USE_S3' in globals() else p.getboolean('STORAGE', 'USE_S3'),
     GMAPS_KEY = os.environ.get('KEY', p.get('GMAPS', 'KEY')),

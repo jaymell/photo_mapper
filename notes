@@ -435,8 +435,11 @@ user = models.User('bill')
 pm.db.session.add(user)
 pm.db.session.commit()
 
-# curl post:
+# post user:
 curl -H "Content-Type: application/json" -X POST -d '{"user_name": "james", "email": "email@gmail.com"}' http://localhost:5000/api/users
+# post album:
+curl -H "Content-Type: application/json" -X POST -d '{"album_name": "vacation"}' http://localhost:5000/api/users/1/albums
+
 
 # for testing jpeg object:
 import photo_mapper.photo_importer as pi
