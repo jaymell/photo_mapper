@@ -77,14 +77,15 @@ class UserListAPI(fr.Resource):
 
   def get(self):
     # make this more robust:
-    return [ UserSchema().dump(i) for i in models.User.query.all() ]
+    users = models.User.query.all()
+    return UserSchema(many=True).dump(users).data, 200
 
   def post(self):
     args = self.reqparse.parse_args()
     user = models.User(args.user_name, args.email)
     # will abort if it fails: 
     insert(user)
-    return UserSchema().dump(user), 200
+    return UserSchema().dump(user).data, 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
@@ -93,7 +94,7 @@ class UserAPI(fr.Resource):
     user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
         return 'No records found', 404
-    return UserSchema().dump(user), 200
+    return UserSchema().dump(user).data, 200
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
 class AlbumListAPI(fr.Resource):
@@ -111,7 +112,7 @@ class AlbumListAPI(fr.Resource):
     album = models.Album(args.album_name, user_id=user_id)
     # will abort if it fails: 
     insert(album)
-    return AlbumSchema().dump(album), 200
+    return AlbumSchema().dump(album).data, 200
 
   def get(self, user_id):
     # FIXME:
@@ -119,7 +120,7 @@ class AlbumListAPI(fr.Resource):
     if not user:
       return 'user not found', 404
     albums = models.Album.query.filter_by(user_id=user.user_id).all()
-    return AlbumSchema(many=True).dump(albums), 200
+    return AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
  
@@ -132,7 +133,7 @@ class AlbumAPI(fr.Resource):
     # FIXME:
     album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).one()
     if album:
-        return AlbumSchema().dump(album), 200
+        return AlbumSchema().dump(album).data, 200
     else:
         return 'No records found', 404
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
@@ -146,7 +147,7 @@ class PhotoListAPI(fr.Resource):
     if not user:
       fr.abort(404)
     photos = models.Photo.query.filter_by(user_id=user.user_id).all()
-    return PhotoSchema(many=True).dump(photos), 200
+    return PhotoSchema(many=True).dump(photos).data, 200
 
   def post(self, user_id):
     """ this route takes a file only -- it gets the relevant
@@ -195,7 +196,7 @@ class PhotoListAPI(fr.Resource):
         )
         insert(photo_size)
         photo_sizes.append(photo_size)
-    return PhotoSchema(many=True).dump(photo), 200
+    return PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
 class PhotoAPI(fr.Resource):
@@ -216,7 +217,7 @@ class PhotoAPI(fr.Resource):
         album = models.Album.query.filter_by(album_id=i).one()
         photo.albums.append(album)
     insert(photo)
-    return PhotoSchema().dump(photo), 200
+    return PhotoSchema().dump(photo).data, 200
 
   def get(self, user_id, photo_id):
     user = models.User.query.filter_by(user_id=user_id).one()
@@ -225,7 +226,7 @@ class PhotoAPI(fr.Resource):
     print('this is photo: %s' % photo)
     if not user or not photo:
       fr.abort(404)
-    return PhotoSchema().dump(photo), 200
+    return PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
 
 
