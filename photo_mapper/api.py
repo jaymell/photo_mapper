@@ -88,15 +88,9 @@ class UserListAPI(fr.Resource):
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
-  user_fields = {
-    'uri': fields.Url('user'),
-    'user_name': fields.String,
-    'email': fields.String,
-    #albums
-  }
   def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
         return 'No records found', 404
     return UserSchema().dump(user), 200
@@ -121,21 +115,22 @@ class AlbumListAPI(fr.Resource):
 
   def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
       return 'user not found', 404
-    return [ AlbumSchema().dump(i) for i in models.Album.query.filter_by(user_id=user.user_id).all() ]
+    albums = models.Album.query.filter_by(user_id=user.user_id).all()
+    return AlbumSchema(many=True).dump(albums), 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
  
 class AlbumAPI(fr.Resource):
   def get(self, user_id, album_id):
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
       return 'user not found', 404
     # FIXME:
-    album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).first()
+    album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).one()
     if album:
         return AlbumSchema().dump(album), 200
     else:
@@ -147,10 +142,11 @@ class PhotoListAPI(fr.Resource):
 
   def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
       fr.abort(404)
-    return [ PhotoSchema().dump(i) for i in models.Photo.query.filter_by(user_id=user.user_id).all() ]
+    photos = models.Photo.query.filter_by(user_id=user.user_id).all()
+    return PhotoSchema(many=True).dump(photos), 200
 
   def post(self, user_id):
     """ this route takes a file only -- it gets the relevant
@@ -159,7 +155,7 @@ class PhotoListAPI(fr.Resource):
         then saves it to storage -- if all successful, return uri
         so photo can then be added to albums via separate request """
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     if not user:
       fr.abort(404)
     location = pm.get_s3() if app.config['USE_S3'] else app.config['UPLOAD_FOLDER']
@@ -199,18 +195,33 @@ class PhotoListAPI(fr.Resource):
         )
         insert(photo_size)
         photo_sizes.append(photo_size)
-    return PhotoSchema().dump(photo), 200
+    return PhotoSchema(many=True).dump(photo), 200
 api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
 class PhotoAPI(fr.Resource):
+  def __init__(self):
+    self.reqparse = reqparse.RequestParser()
+    #FIXME: append not working:
+    self.reqparse.add_argument('album_id', type = int, action="append")
+    super(PhotoAPI, self).__init__()
+
+
   def put(self, user_id, photo_id):
     """ mostly for adding albums to photo """
-    pass 
+    args = self.reqparse.parse_args()
+    user = models.User.query.filter_by(user_id=user_id).one()
+    photo = models.Photo.query.filter_by(photo_id=photo_id).one()
+    if args.album_id:
+      for i in args.album_id:
+        album = models.Album.query.filter_by(album_id=i).one()
+        photo.albums.append(album)
+    insert(photo)
+    return PhotoSchema().dump(photo), 200
 
   def get(self, user_id, photo_id):
-    user = models.User.query.filter_by(user_id=user_id).first()
+    user = models.User.query.filter_by(user_id=user_id).one()
     print('this is user: %s' % user)
-    photo = models.Photo.query.filter_by(user_id=user.user_id, photo_id=photo_id).first()
+    photo = models.Photo.query.filter_by(user_id=user.user_id, photo_id=photo_id).one()
     print('this is photo: %s' % photo)
     if not user or not photo:
       fr.abort(404)

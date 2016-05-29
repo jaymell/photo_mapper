@@ -439,12 +439,14 @@ pm.db.session.commit()
 curl -H "Content-Type: application/json" -X POST -d '{"user_name": "james", "email": "email@gmail.com"}' http://localhost:5000/api/users
 # post album:
 curl -H "Content-Type: application/json" -X POST -d '{"album_name": "vacation"}' http://localhost:5000/api/users/1/albums
+# post photos in a loop:
+for i in `ls -C /home/james/Pictures/2015-vacation/james/*jpg`;   do  curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@""${i}" http://localhost:5000/api/users/james/photos; done
+# put photo update:
+curl -X PUT -d album_id=1 album_id=2 http://localhost:5000/api/users/james/photos/597
+
 
 
 # for testing jpeg object:
 import photo_mapper.photo_importer as pi
 a = pi.Jpeg(open("/home/james/Pictures/2015-vacation/james/20150911_045437.jpg"))
-
-# upload in a loop:
-for i in `ls -C /home/james/Pictures/2015-vacation/james/*jpg`;   do  curl -i -X POST -H "Content-Type: multipart/form-data" -F "data=@""${i}" http://localhost:5000/api/users/james/photos; done
 
