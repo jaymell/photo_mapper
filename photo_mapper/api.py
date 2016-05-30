@@ -33,15 +33,16 @@ def insert_or_fail(record):
     try:
       db.session.add(record)
       db.session.commit()
-    # this could be a duplicate or any sort of malformed request, needs
-    # some logic: 
-    #except fsql.sqlalchemy.exc.IntegrityError:
+    except fsql.sqlalchemy.exc.IntegrityError as e:
+      # is there a better way to do this?
+      if "Duplicate entry" in str(e):
+        print("Duplicate entry")
+        fr.abort(409)
+      else:
+        raise e
     except Exception as e:
-      print("Error: %s" % e)
+      print("Unknown error: %s" % e)
       fr.abort(400)
-    #except Exception as e:
-    #  print("Error: %s" % e)
-    #  fr.abort(500)
 
 #### serialization schema
 class UserSchema(marsh.Schema):
