@@ -17,7 +17,6 @@ from flask_marshmallow import Marshmallow
 api = fr.Api(app)
 marsh = Marshmallow(app)
 
-
 def build_link(name):
   """ i.e., take a picture's name and prepend appropriate URL to it """
   location = app.config['S3_URL'] if app.config['USE_S3'] else app.config['LOCAL_URL']
@@ -43,11 +42,6 @@ class UserSchema(marsh.Schema):
   uri = marsh.UrlFor('user', user_id='<user_id>')
   user_name = marsh.String()
 
-class AlbumSchema(marsh.Schema): 
-  uri = marsh.UrlFor('album', album_id='<album_id>', user_id='<user_id>')
-  album_id = marsh.Int() 
-  album_name = marsh.String() 
- 
 class PhotoSizeSchema(marsh.Schema): 
   photoSize_id = marsh.Int() 
   photo_id = marsh.Int() 
@@ -59,11 +53,17 @@ class PhotoSizeSchema(marsh.Schema):
 class PhotoSchema(marsh.Schema): 
   uri = marsh.UrlFor('photo', photo_id='<photo_id>', user_id='<user_id>') 
   photo_id = marsh.Int() 
-  albums = marsh.Nested(AlbumSchema, many=True) 
   sizes = marsh.Nested(PhotoSizeSchema, many=True) 
   latitude = marsh.Float() 
   longitude = marsh.Float() 
   date = marsh.String() 
+  albums = marsh.Nested('AlbumSchema', many=True, only=('album_id',))
+
+class AlbumSchema(marsh.Schema): 
+  uri = marsh.UrlFor('album', album_id='<album_id>', user_id='<user_id>')
+  album_id = marsh.Int() 
+  album_name = marsh.String() 
+  photos = marsh.Nested(PhotoSchema, many=True, exclude=('albums',))
 ####
 
 class UserListAPI(fr.Resource):
@@ -185,7 +185,6 @@ class PhotoListAPI(fr.Resource):
       insert(photo)
       # if prior insert was successful, photo.photo_id should
       # be available to use as FK, so insert photo sizes:
-      photo_sizes = [] 
       for size in jpeg.sizes:
         photo_size = models.PhotoSize(
           photo_id = photo.photo_id,
@@ -195,7 +194,6 @@ class PhotoListAPI(fr.Resource):
           name = jpeg.sizes[size]['name']
         )
         insert(photo_size)
-        photo_sizes.append(photo_size)
     return PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
