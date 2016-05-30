@@ -17,11 +17,6 @@ from flask_marshmallow import Marshmallow
 api = fr.Api(app)
 marsh = Marshmallow(app)
 
-def build_link(name):
-  """ i.e., take a picture's name and prepend appropriate URL to it """
-  location = app.config['S3_URL'] if app.config['USE_S3'] else app.config['LOCAL_URL']
-  return location + name
-
 def get_or_404(model, obj_id, code=404):
   obj = model.query.get(obj_id)
   if obj is None:
@@ -55,16 +50,29 @@ class PhotoSizeSchema(marsh.Schema):
   size = marsh.String() 
   width = marsh.Int() 
   height = marsh.Int() 
-  name = marsh.Function(lambda x: build_link(x.name)) 
+  name = marsh.Function(lambda x: pm.build_link(x.name)) 
+ 
+def get_size(obj, desired_size):
+  """ allow marsh.Function to pass desired size """
+  for i in obj.sizes:
+    if i.size == desired_size:
+      return i.serialize
  
 class PhotoSchema(marsh.Schema): 
   uri = marsh.UrlFor('photo', photo_id='<photo_id>', user_id='<user_id>') 
   photo_id = marsh.Int() 
-  sizes = marsh.Nested(PhotoSizeSchema, many=True) 
   latitude = marsh.Float() 
   longitude = marsh.Float() 
   date = marsh.String() 
   albums = marsh.Nested('AlbumSchema', many=True, only=('album_id',))
+  # for getting individual sizes -- may be better way to do this, but
+  # this is the first working way I've found to get sizes as attributes
+  # of photo rather than just an unordered list of sizes that requires iteration:
+  #sizes = marsh.Nested(PhotoSizeSchema, many=True) 
+  thumbnail = marsh.Function(lambda x: get_size(x, 'thumbnail'))
+  full = marsh.Function(lambda x: get_size(x, 'full'))
+  small = marsh.Function(lambda x: get_size(x, 'small'))
+  scaled = marsh.Function(lambda x: get_size(x, 'scaled'))
 
 class AlbumSchema(marsh.Schema): 
   uri = marsh.UrlFor('album', album_id='<album_id>', user_id='<user_id>')

@@ -2,6 +2,7 @@ from __future__ import print_function
 import flask
 import flask_restful as fr
 from photo_mapper import db, app
+import photo_mapper as pm
 
 # class names are InitialCaps
 # table names are camelCase
@@ -57,4 +58,14 @@ class PhotoSize(db.Model):
   height = db.Column(db.Integer)
   name = db.Column(db.String(64))
 
+  # currently needed so that we can return 
+  # individual sizes as attributes of photo:
+  @property
+  def serialize(self):
+    return {
+      'height': self.height,
+      'width': self.width,
+      'size': self.size,
+      'name': pm.build_link(self.name),
+    }
 

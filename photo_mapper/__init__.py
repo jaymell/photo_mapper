@@ -82,3 +82,9 @@ def get_s3():
                 connection = boto.connect_s3() 
         bucket = flask.g._bucket = connection.get_bucket(app.config['S3_BUCKET']) 
         return bucket 
+
+def build_link(name):
+  """ i.e., take a picture's name and prepend appropriate URL to it """
+  location = app.config['S3_URL'] if app.config['USE_S3'] else app.config['LOCAL_URL']
+  return location + name
+
