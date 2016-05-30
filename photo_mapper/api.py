@@ -22,6 +22,12 @@ def build_link(name):
   location = app.config['S3_URL'] if app.config['USE_S3'] else app.config['LOCAL_URL']
   return location + name
 
+def get_or_404(model, obj_id, code=404):
+  obj = model.query.get(obj_id)
+  if obj is None:
+    abort(404)
+  return obj
+
 def insert(record):
     """ insert record or abort """
     try:
@@ -91,9 +97,7 @@ api.add_resource(UserListAPI, '/api/users', endpoint='users')
 class UserAPI(fr.Resource):
   def get(self, user_id):
     # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).one()
-    if not user:
-        return 'No records found', 404
+    user = get_or_404(models.User, user_id)
     return UserSchema().dump(user).data, 200
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
@@ -115,10 +119,7 @@ class AlbumListAPI(fr.Resource):
     return AlbumSchema().dump(album).data, 200
 
   def get(self, user_id):
-    # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).one()
-    if not user:
-      return 'user not found', 404
+    user = get_or_404(models.User, user_id)
     albums = models.Album.query.filter_by(user_id=user.user_id).all()
     return AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
@@ -126,10 +127,7 @@ api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
  
 class AlbumAPI(fr.Resource):
   def get(self, user_id, album_id):
-    # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).one()
-    if not user:
-      return 'user not found', 404
+    user = get_or_404(models.User, user_id)
     # FIXME:
     album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).one()
     if album:
@@ -142,10 +140,7 @@ class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
 
   def get(self, user_id):
-    # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).one()
-    if not user:
-      fr.abort(404)
+    user = get_or_404(models.User, user_id)
     photos = models.Photo.query.filter_by(user_id=user.user_id).all()
     return PhotoSchema(many=True).dump(photos).data, 200
 
@@ -155,10 +150,7 @@ class PhotoListAPI(fr.Resource):
         puts it into Photo table, puts sizes into Sizes table,
         then saves it to storage -- if all successful, return uri
         so photo can then be added to albums via separate request """
-    # FIXME:
-    user = models.User.query.filter_by(user_id=user_id).one()
-    if not user:
-      fr.abort(404)
+    user = get_or_404(models.User, user_id)
     location = pm.get_s3() if app.config['USE_S3'] else app.config['UPLOAD_FOLDER']
     # should be only one, but files is a dict, so iterate:
     for f in flask.request.files:
@@ -173,7 +165,6 @@ class PhotoListAPI(fr.Resource):
       # save various sizes of files:
       jpeg.save(location, s3=app.config['USE_S3'])
       # insert stuff in db:
-      # FIXME: inserts need to be ATOMIC:
       photo = models.Photo(
         user_id=user.user_id,
         md5sum=jpeg.md5sum,
