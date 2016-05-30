@@ -31,7 +31,7 @@ function loadData() {
 					var link = getPhotoLink(photoList);
 					var $img = $("<img></img>")
 						.attr('class', 'thumbnail')
-						.attr('src', photoRoute + '/' + link)
+						.attr('src', link)
 						.attr('height', '100px')
 						.attr('width', '100px');
 					var $a = $('<a></a>')
@@ -52,7 +52,7 @@ function loadData() {
 
 function getPhotoLink(albumJson) {
 	// get an appropriate image from the json array
-	// first, middle, last, most popular, whatever
+	// first, middle, last, most popular, whatever... 
 	// return link -- src attrib for img tag
 	return albumJson[0]['sizes']['thumbnail']['name'];
 }

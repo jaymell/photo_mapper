@@ -67,9 +67,9 @@ function loadData() {
 		json.forEach(function(item) {
 			var img=$('<img/>')
 				.attr('id', item.md5sum)
-				.attr('src', photoRoute + '/' + item.sizes.thumbnail.name)
+				.attr('src', item.sizes.thumbnail.name)
 				.attr('class', 'thumbnail')
-				.attr('data-mfp-src', photoRoute + item.sizes.full.name)
+				.attr('data-mfp-src', item.sizes.full.name)
 				.attr('draggable', 'true')
 				.attr('ondragstart', 'dragStartHandler(event)')
 				.attr('ondragend', 'dragEndHandler(event)')

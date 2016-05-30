@@ -84,11 +84,11 @@ var openPhotoSwipe = function(index) {
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
 		if( useLargeImages || item.sizes.scaled !== null ) {
-			item.src = photoRoute + '/' + item.sizes.full.name;
+			item.src = item.sizes.full.name;
 			item.w = item.sizes.full.width;
 			item.h = item.sizes.full.height;
 		} else {
-			item.src = photoRoute + '/' + item.sizes.scaled.name;
+			item.src = item.sizes.scaled.name;
 			item.w = item.sizes.scaled.width;
 			item.h = item.sizes.scaled.height;
 		}
@@ -293,7 +293,7 @@ function loadData() {
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
 				.attr('id', item.md5sum + '-img')
-				.attr('src', photoRoute + '/' + item.md5sum + '-small.jpg')
+				.attr('src', item.md5sum + '-small.jpg')
 				.attr('height', '100px')
 				.attr('width', '100px');
 			var $a = $("<a></a>")
