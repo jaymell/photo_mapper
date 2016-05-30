@@ -25,10 +25,10 @@ def build_link(name):
 def get_or_404(model, obj_id, code=404):
   obj = model.query.get(obj_id)
   if obj is None:
-    abort(404)
+    fr.abort(404)
   return obj
 
-def insert(record):
+def insert_or_fail(record):
     """ insert record or abort """
     try:
       db.session.add(record)
@@ -90,13 +90,12 @@ class UserListAPI(fr.Resource):
     args = self.reqparse.parse_args()
     user = models.User(args.user_name, args.email)
     # will abort if it fails: 
-    insert(user)
+    insert_or_fail(user)
     return UserSchema().dump(user).data, 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
   def get(self, user_id):
-    # FIXME:
     user = get_or_404(models.User, user_id)
     return UserSchema().dump(user).data, 200
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
@@ -115,7 +114,7 @@ class AlbumListAPI(fr.Resource):
     # FIXME:
     album = models.Album(args.album_name, user_id=user_id)
     # will abort if it fails: 
-    insert(album)
+    insert_or_fail(album)
     return AlbumSchema().dump(album).data, 200
 
   def get(self, user_id):
@@ -173,7 +172,7 @@ class PhotoListAPI(fr.Resource):
         longitude=jpeg.jpgps.coordinates()[1],
         photo_type=photo_type
         )
-      insert(photo)
+      insert_or_fail(photo)
       # if prior insert was successful, photo.photo_id should
       # be available to use as FK, so insert photo sizes:
       for size in jpeg.sizes:
@@ -184,7 +183,7 @@ class PhotoListAPI(fr.Resource):
           height = jpeg.sizes[size]['height'],
           name = jpeg.sizes[size]['name']
         )
-        insert(photo_size)
+        insert_or_fail(photo_size)
     return PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
@@ -204,7 +203,7 @@ class PhotoAPI(fr.Resource):
       for i in args.album_id:
         album = models.Album.query.filter_by(album_id=i).one()
         photo.albums.append(album)
-    insert(photo)
+    insert_or_fail(photo)
     return PhotoSchema().dump(photo).data, 200
 
   def get(self, user_id, photo_id):
