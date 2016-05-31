@@ -68,11 +68,12 @@ class PhotoSchema(marsh.Schema):
   # for getting individual sizes -- may be better way to do this, but
   # this is the first working way I've found to get sizes as attributes
   # of photo rather than just an unordered list of sizes that requires iteration:
-  #sizes = marsh.Nested(PhotoSizeSchema, many=True) 
+  sizes = marsh.Nested(PhotoSizeSchema, many=True) 
   thumbnail = marsh.Function(lambda x: get_size(x, 'thumbnail'))
   full = marsh.Function(lambda x: get_size(x, 'full'))
   small = marsh.Function(lambda x: get_size(x, 'small'))
   scaled = marsh.Function(lambda x: get_size(x, 'scaled'))
+  md5sum = marsh.String()
 
 class AlbumSchema(marsh.Schema): 
   uri = marsh.UrlFor('album', album_id='<album_id>', user_id='<user_id>')

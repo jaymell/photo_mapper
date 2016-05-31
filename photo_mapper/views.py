@@ -35,5 +35,3 @@ def get_album(user, album):
   resp.set_cookie('album', album)
   return resp
 
-
-

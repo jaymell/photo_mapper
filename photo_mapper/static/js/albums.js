@@ -23,38 +23,41 @@ function loadData() {
 			$('#albumList').empty();
 			// expects albumList to look like this: [ 'album1', 'album2', 'album3' ]
 			albumList.forEach(function(albumJson, index, array) {
-				var album = albumJson.name;
-				// get photo JSON:
-				console.log('album = ', album);
-				$.getJSON(apiRoute + '/' + album + '/photos', function(photoList) {
-					console.log('photoList: ', photoList);
-					var link = getPhotoLink(photoList);
-					var $img = $("<img></img>")
-						.attr('class', 'thumbnail')
-						.attr('src', link)
-						.attr('height', '100px')
-						.attr('width', '100px');
-					var $a = $('<a></a>')
-						.attr('class', 'albumLink')
-						.attr('href', htmlRoute + album)
-						.append($img);
-					var $span = $('<span/>', { class: 'albumCaption' } )
-						.text(album);
-					var $div = $('<div/>', { class: 'albumItem' })
-						.append($a)
-						.append($span)
-						.appendTo($('#albumList'));
-				});
+				var albumId = albumJson.album_id;
+				var thumbnail = getThumbnail(albumJson.photos);
+
+				var $img = $("<img></img>")
+					.attr('class', 'thumbnail')
+					.attr('src', thumbnail.name)
+					.attr('height', thumbnail.height)
+					.attr('width', thumbnail.width);
+				var $a = $('<a></a>')
+					.attr('class', 'albumLink')
+					.attr('href', htmlRoute + albumId)
+					.append($img);
+				var $span = $('<span/>', { class: 'albumCaption' } )
+					.text(albumId);
+				var $div = $('<div/>', { class: 'albumItem' })
+					.append($a)
+					.append($span)
+					.appendTo($('#albumList'));
 			});
 		}
 	});
 }
-
-function getPhotoLink(albumJson) {
+function getThumbnail(photoList) {
 	// get an appropriate image from the json array
 	// first, middle, last, most popular, whatever... 
 	// return link -- src attrib for img tag
-	return albumJson[0]['sizes']['thumbnail']['name'];
+	if (photoList.length > 0)
+		return photoList[0].small;
+    else
+      return {
+        'height': 100,
+        'width': 100,
+        'size': 'thumbnail',
+        'name': 'http://s3.amazonaws.com/jaymell-pm-static/no_photo.png'
+      }
 }
 
 loadData();

@@ -42,7 +42,7 @@ $('#inFile').on('change', function(e) {
 			data = new FormData(); 
 			data.append(files[i].name,files[i]); 
 			$.ajax({ 
-				url: '/api/users/' + user + '/albums/' + album + '/photos', 
+				url: '/api/users/' + user + '/photos', 
 				type: 'POST', 
 				data: data, 
 				cache: false, 

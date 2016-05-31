@@ -80,17 +80,16 @@ var openPhotoSwipe = function(index) {
 
 	// gettingData event fires each time PhotoSwipe retrieves image source & size
 	gallery.listen('gettingData', function(index, item) {
-
 		// Set image source & size based on real viewport width,
 		// but only if the scaled images actuallly exist:
-		if( useLargeImages || item.sizes.scaled !== null ) {
-			item.src = item.sizes.full.name;
-			item.w = item.sizes.full.width;
-			item.h = item.sizes.full.height;
+		if( useLargeImages || item.scaled !== null ) {
+			item.src = item.full.name;
+			item.w = item.full.width;
+			item.h = item.full.height;
 		} else {
-			item.src = item.sizes.scaled.name;
-			item.w = item.sizes.scaled.width;
-			item.h = item.sizes.scaled.height;
+			item.src = item.scaled.name;
+			item.w = item.scaled.width;
+			item.h = item.scaled.height;
 		}
 	});
 	
@@ -237,8 +236,8 @@ var map = (function() {
 		addPins: function(photoList) {
 			var zoom = _map.getZoom();
 			photoList.forEach(function(photo, index, array) {
-				var longitude = photo.geojson.coordinates[0] ? photo.geojson.coordinates[0] : null;
-				var latitude = photo.geojson.coordinates[1] ? photo.geojson.coordinates[1] : null;
+				var longitude = photo.longitude ? photo.longitude : null;
+				var latitude = photo.latitude ? photo.latitude : null;
 				// only if photo actually has coordinates:
 				if (latitude && longitude) {
 					var marker = new google.maps.Marker({
@@ -284,39 +283,41 @@ var map = (function() {
 
 var user = window.readCookie("user");
 var album = window.readCookie("album");
-var apiRoute = "/api/users/" + user + "/albums/" + album + "/photos";
+var apiRoute = "/api/users/" + user + "/albums/" + album;
 function loadData() {
-	$.getJSON(apiRoute, function(json) {
-		json.forEach(function(item, index, array) {
+	$.getJSON(apiRoute, function(albumJson) {
+		albumJson.photos.forEach(function(photo, index, array) {
 			// add links to list:
 			// create img:
 			var $img = $("<img></img>")
 				.attr('class', 'thumbnail')
-				.attr('id', item.md5sum + '-img')
-				.attr('src', item.md5sum + '-small.jpg')
+				.attr('id', photo.md5sum + '-img')
+				.attr('src', photo.small.name)
 				.attr('height', '100px')
 				.attr('width', '100px');
 			var $a = $("<a></a>")
 				.attr('class', 'thumbLink')
-				.attr('id', item.md5sum)
+				.attr('id', photo.md5sum)
 				.append($img)
 				.appendTo($('#mapLeft'));
 
-			var longitude = item.geojson.coordinates[0] ? item.geojson.coordinates[0] : null;
-			var latitude = item.geojson.coordinates[1] ? item.geojson.coordinates[1] : null;
+			var longitude = photo.longitude ? photo.longitude : null;
+			var latitude = photo.latitude ? photo.latitude  : null;
 
 			// build photoArray for photoSwipe:
 			photoArray.push({
-				id: item.md5sum,
-				sizes: item.sizes,
+				id: photo.md5sum,
+				full: photo.full,
+				scaled: photo.scaled,
 				// is geo-tagged? true or false:
 				geo: (latitude && longitude) ? true : false 
 			});
 		});
 
+        console.log('photoArray: ', photoArray);
 		// pass entire array to map, let it
 		// parse them and add the geo-tagged ones:
-		map.addPins(json);
+		map.addPins(albumJson.photos);
 	});
 }
 
