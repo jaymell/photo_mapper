@@ -23,9 +23,7 @@ function loadData() {
 			$('#albumList').empty();
 			// expects albumList to look like this: [ 'album1', 'album2', 'album3' ]
 			albumList.forEach(function(albumJson, index, array) {
-				var albumId = albumJson.album_id;
 				var thumbnail = getThumbnail(albumJson.photos);
-
 				var $img = $("<img></img>")
 					.attr('class', 'thumbnail')
 					.attr('src', thumbnail.name)
@@ -33,10 +31,10 @@ function loadData() {
 					.attr('width', thumbnail.width);
 				var $a = $('<a></a>')
 					.attr('class', 'albumLink')
-					.attr('href', htmlRoute + albumId)
+					.attr('href', htmlRoute + albumJson.album_id)
 					.append($img);
 				var $span = $('<span/>', { class: 'albumCaption' } )
-					.text(albumId);
+					.text(albumJson.album_name);
 				var $div = $('<div/>', { class: 'albumItem' })
 					.append($a)
 					.append($span)
