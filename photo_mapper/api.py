@@ -21,7 +21,7 @@ def valid_password(password1, password2):
     """ add some minimum password requirements here""" 
 
     if password1 != password2:
-      ('not valid password')
+      print('not valid password')
       return False
 
     return True
@@ -110,20 +110,13 @@ class UserListAPI(fr.Resource):
     return UserSchema(many=True).dump(users).data, 200
 
   def post(self):
-    print('i am here')
     args = self.reqparse.parse_args()
-    print('i am here here')
     if not valid_password(args.password1, args.password2):
       print('not valid')
       abort(400)
-    print('here')
     user = models.User(args.user_name, args.email)
-    print('now here')
     user.hash_pw(args.password1)
-    print('now here here')
-    # will abort if it fails: 
     insert_or_fail(user)
-    print('now here here here')
     return UserSchema().dump(user).data, 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
