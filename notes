@@ -436,7 +436,17 @@ pm.db.session.add(user)
 pm.db.session.commit()
 
 # post user:
-curl -H "Content-Type: application/json" -X POST -d '{"user_name": "james", "email": "email@gmail.com"}' http://localhost:5000/api/users
+curl -H "Content-Type: application/json" -X POST -d '{"user_name": "james", "email": "email@gmail.com", "password1": "StrongPassword", "password2": "StrongPassword"}' http://localhost:5000/api/users
+
+curl -H "Content-Type: application/json" -X POST -d \
+	'{ \
+		"user_name": "franklin", \
+		"email": "email@gmail.com", \
+		"password1": "StrongPassword", \
+		"password2": "StrongPassword" \
+	}' \
+	http://localhost:5000/api/users
+
 # post album:
 curl -H "Content-Type: application/json" -X POST -d '{"album_name": "vacation"}' http://localhost:5000/api/users/1/albums
 # post photos in a loop:

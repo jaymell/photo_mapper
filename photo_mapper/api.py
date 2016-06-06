@@ -17,6 +17,15 @@ from flask_marshmallow import Marshmallow
 api = fr.Api(app)
 marsh = Marshmallow(app)
 
+def valid_password(password1, password2):
+    """ add some minimum password requirements here""" 
+
+    if password1 != password2:
+      ('not valid password')
+      return False
+
+    return True
+
 def get_or_404(model, obj_id, code=404):
   obj = model.query.get(obj_id)
   if obj is None:
@@ -89,6 +98,10 @@ class UserListAPI(fr.Resource):
       help = "No username provided")
     self.reqparse.add_argument('email', type = str, required = True,
       help = "No email provided")
+    self.reqparse.add_argument('password1', type = str, required = True,
+      help = "Missing password1")
+    self.reqparse.add_argument('password2', type = str, required = True,
+      help = "Missing password2")
     super(UserListAPI, self).__init__()
 
   def get(self):
@@ -97,10 +110,20 @@ class UserListAPI(fr.Resource):
     return UserSchema(many=True).dump(users).data, 200
 
   def post(self):
+    print('i am here')
     args = self.reqparse.parse_args()
+    print('i am here here')
+    if not valid_password(args.password1, args.password2):
+      print('not valid')
+      abort(400)
+    print('here')
     user = models.User(args.user_name, args.email)
+    print('now here')
+    user.hash_pw(args.password1)
+    print('now here here')
     # will abort if it fails: 
     insert_or_fail(user)
+    print('now here here here')
     return UserSchema().dump(user).data, 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
@@ -206,6 +229,7 @@ class PhotoAPI(fr.Resource):
 
   def put(self, user_id, photo_id):
     """ mostly for adding albums to photo """
+    # TODO: allow update of password or email address
     args = self.reqparse.parse_args()
     user = models.User.query.filter_by(user_id=user_id).one()
     photo = models.Photo.query.filter_by(photo_id=photo_id).one()

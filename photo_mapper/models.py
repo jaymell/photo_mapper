@@ -3,6 +3,7 @@ import flask
 import flask_restful as fr
 from photo_mapper import db, app
 import photo_mapper as pm
+import passlib.apps
 
 # class names are InitialCaps
 # table names are camelCase
@@ -14,10 +15,18 @@ class User(db.Model):
   user_name = db.Column(db.String(64), unique=True)
   email = db.Column(db.String(128), unique=True)
   albums = db.relationship('Album')
+  pw_hash = db.Column(db.String(128))
 
   def __init__(self, user_name, email):
     self.user_name = user_name
     self.email = email
+  
+  def hash_pw(self, pw):
+    self.pw_hash = passlib.apps.custom_app_context.encrypt(pw)
+
+  def verify_pw(self, pw):
+    return passlib.apps.custom_app_context.verify(pw, self.pw_hash)
+
 
 class Album(db.Model):
   __tablename__  = 'album'
