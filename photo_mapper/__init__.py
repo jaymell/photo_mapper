@@ -32,10 +32,10 @@ if USE_S3_ENV:
         else:
                 USE_S3 = True
 
-
 app.config.update(
     # based on output of imghdr.what:
     SUPPORTED_TYPES = ['jpeg'],
+    SECRET_KEY = os.environ.get('SECRET_KEY', p.get('SECURITY', 'SECRET_KEY')),
     SQLALCHEMY_TRACK_MODIFICATIONS = False,
     SQLALCHEMY_DATABASE_URI = 'mysql://%s:%s@%s:%s/%s' % (MYSQL_USER,MYSQL_PASSWORD,MYSQL_HOST,MYSQL_PORT,MYSQL_DB),
     USE_S3 = USE_S3 if 'USE_S3' in globals() else p.getboolean('STORAGE', 'USE_S3'),
@@ -49,10 +49,6 @@ app.config.update(
     PROPAGATE_EXCEPTIONS = True,
     Debug = True
 )
-### unset password variables:
-del(MYSQL_PASSWORD)
-if 'MYSQL_PASSWORD' in os.environ:
-    del(os.environ['MYSQL_PASSWORD'])
 
 # intialize db object:
 db = fsql.SQLAlchemy(app)

@@ -5,6 +5,9 @@ MYSQL_USER = pm
 MYSQL_PASSWORD = password
 MYSQL_DB = photo_mapper
 
+[SECURITY]
+SECRET_KEY = secret-key
+
 [STORAGE]
 # only used if S3 disabled at runtime:
 UPLOAD_FOLDER = photo_mapper/static/img

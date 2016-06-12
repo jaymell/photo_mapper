@@ -4,6 +4,8 @@ import flask_restful as fr
 from photo_mapper import db, app
 import photo_mapper as pm
 import passlib.apps
+import itsdangerous as itsd
+import hashlib
 
 # class names are InitialCaps
 # table names are camelCase
@@ -22,11 +24,32 @@ class User(db.Model):
     self.email = email
   
   def hash_pw(self, pw):
+    """ hash plaintext password """
     self.pw_hash = passlib.apps.custom_app_context.encrypt(pw)
 
   def verify_pw(self, pw):
+    """ verify pw matches db hash """
     return passlib.apps.custom_app_context.verify(pw, self.pw_hash)
 
+  def generate_token(self, expiration=600):
+    """ generate sha256 hash of user id """
+    token = itsd.TimedJSONWebSignatureSerializer(app.config['SECRET_KEY'], 
+                                                 signer_kwargs = {'digest_method': hashlib.sha256}, 
+                                                 expires_in = expiration
+                                                )
+    return token.dumps( { 'user_id': self.user_id } )
+
+  @staticmethod
+  def verify_token(token):
+    """ verify token can be decrypted, hasn't expired, and corresponds
+        to extant user -- static b/c user isn't known yet """
+    s = itsd.TimedJSONWebSignatureSerializer(app.config['SECRET_KEY'], signer_kwargs={'digest_method': hashlib.sha256})
+    try:
+      data = s.loads(token)
+    except Exception as e:
+      return None 
+    user = User.query.get(data['user_id'])
+    return user 
 
 class Album(db.Model):
   __tablename__  = 'album'

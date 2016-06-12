@@ -13,18 +13,37 @@ import imghdr
 import datetime
 import models
 from flask_marshmallow import Marshmallow
+from flask.ext.httpauth import HTTPBasicAuth
 
 api = fr.Api(app)
 marsh = Marshmallow(app)
+auth = HTTPBasicAuth()
 
-def valid_password(password1, password2):
-    """ add some minimum password requirements here""" 
+def valid_pw(pw1, pw2):
+  """ TODO: add minimum password requirements here""" 
 
-    if password1 != password2:
-      print('not valid password')
+  if pw1 != pw2:
+    print('not valid password')
+    return False
+
+  return True
+
+@auth.verify_password
+def verify_pw(user_or_token, pw):
+  """ verify pw (plaintext) against pw hash in db """
+  # assume it's a token first:
+  try:
+    user = models.User.verify_token(user_or_token)
+  except Exception as e:
+    print("Failed on User.verify_token: %s" % e)
+    fr.abort(500)
+  if not user:
+    # try password auth if token failed:
+    user = models.User.query.filter_by(user_name = user_or_token).first()
+    if not user or not user.verify_pw(pw):
       return False
-
-    return True
+  flask.g.user = user
+  return True
 
 def get_or_404(model, obj_id, code=404):
   obj = model.query.get(obj_id)
@@ -52,6 +71,7 @@ def insert_or_fail(record):
 class UserSchema(marsh.Schema):
   uri = marsh.UrlFor('user', user_id='<user_id>')
   user_name = marsh.String()
+  user_id = marsh.Int()
 
 class PhotoSizeSchema(marsh.Schema): 
   photoSize_id = marsh.Int() 
@@ -111,7 +131,7 @@ class UserListAPI(fr.Resource):
 
   def post(self):
     args = self.reqparse.parse_args()
-    if not valid_password(args.password1, args.password2):
+    if not valid_pw(args.password1, args.password2):
       print('not valid')
       abort(400)
     user = models.User(args.user_name, args.email)
@@ -219,7 +239,6 @@ class PhotoAPI(fr.Resource):
     self.reqparse.add_argument('album_id', type=int, action="append")
     super(PhotoAPI, self).__init__()
 
-
   def put(self, user_id, photo_id):
     """ mostly for adding albums to photo """
     # TODO: allow update of password or email address
@@ -243,4 +262,15 @@ class PhotoAPI(fr.Resource):
     return PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
 
+class TokenAPI(fr.Resource):
+  """ for getting tokens """
 
+  @auth.login_required
+  def get(self):
+    try: 
+      token = flask.g.user.generate_token()
+    except Exception as e:
+      print('error generating token: %s' % e)
+      fr.abort(500)
+    return { 'token': token }
+api.add_resource(TokenAPI, '/api/token')
