@@ -46,8 +46,13 @@ class User(db.Model):
     s = itsd.TimedJSONWebSignatureSerializer(app.config['SECRET_KEY'], signer_kwargs={'digest_method': hashlib.sha256})
     try:
       data = s.loads(token)
-    except Exception as e:
+    except itsd.BadSignature:
       return None 
+    except itsd.SignatureExpired:
+      return None
+    except Exception as e:
+      print(type(e).__name__)
+      return None
     user = User.query.get(data['user_id'])
     return user 
 

@@ -274,3 +274,4 @@ class TokenAPI(fr.Resource):
       fr.abort(500)
     return { 'token': token }
 api.add_resource(TokenAPI, '/api/token')
+
