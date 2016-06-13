@@ -38,14 +38,19 @@ def verify_pw(user_or_token, pw):
     fr.abort(500)
   if not user:
     # try password auth if token failed:
-    user = models.User.query.filter_by(user_name = user_or_token).first()
+    user = models.User.query.filter_by(user_name = user_or_token).one_or_none()
     if not user or not user.verify_pw(pw):
       return False
   flask.g.user = user
   return True
 
-def get_or_404(model, obj_id, code=404):
-  obj = model.query.get(obj_id)
+def get_or_404(model, **kwargs):
+  """ expects to be passed arguments to query.filter_by and return record or 404 """
+  try: 
+    obj = model.query.filter_by(**kwargs).one_or_none()
+  except Exception as e:
+    print('Error in get_or_404: %s' % e)
+    fr.abort(500)
   if obj is None:
     fr.abort(404)
   return obj
@@ -81,14 +86,14 @@ class UserListAPI(fr.Resource):
     super(UserListAPI, self).__init__()
 
   def get(self):
-    # make this more robust:
     users = models.User.query.all()
     return schema.UserSchema(many=True).dump(users).data, 200
 
   def post(self):
+    # FIXME: how authenticate this method, given that if creating
+    # user account, user won't yet exist?
     args = self.reqparse.parse_args()
     if not valid_pw(args.password1, args.password2):
-      print('not valid')
       abort(400)
     user = models.User(args.user_name, args.email)
     user.hash_pw(args.password1)
@@ -98,7 +103,7 @@ api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
   def get(self, user_id):
-    user = get_or_404(models.User, user_id)
+    user = get_or_404(models.User, user_id=user_id)
     return schema.UserSchema().dump(user).data, 200
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
 
@@ -113,22 +118,20 @@ class AlbumListAPI(fr.Resource):
     """ FIXME: this function needs some sanity checking on
         album name """
     args = self.reqparse.parse_args()
-    # FIXME:
     album = models.Album(args.album_name, user_id=user_id)
     # will abort if it fails: 
     insert_or_fail(album)
     return schema.AlbumSchema().dump(album).data, 200
 
   def get(self, user_id):
-    user = get_or_404(models.User, user_id)
+    user = get_or_404(models.User, user_id=user_id)
     albums = models.Album.query.filter_by(user_id=user.user_id).all()
     return schema.AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
- 
 class AlbumAPI(fr.Resource):
   def get(self, user_id, album_id):
-    user = get_or_404(models.User, user_id)
+    user = get_or_404(models.User, user_id=user_id)
     # FIXME:
     album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).one()
     if album:
@@ -137,11 +140,17 @@ class AlbumAPI(fr.Resource):
         return 'No records found', 404
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
 
+#  def get(self, album_id):
+#    user = flask.g.user
+#    album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
+#    return schema.AlbumSchema().dump(album).data, 200
+#api.add_resource(AlbumAPI, '/api/albums/<album_id>', endpoint='album')
+
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
 
   def get(self, user_id):
-    user = get_or_404(models.User, user_id)
+    user = get_or_404(models.User, user_id=user_id)
     photos = models.Photo.query.filter_by(user_id=user.user_id).all()
     return schema.PhotoSchema(many=True).dump(photos).data, 200
 
@@ -151,7 +160,7 @@ class PhotoListAPI(fr.Resource):
         puts it into Photo table, puts sizes into Sizes table,
         then saves it to storage -- if all successful, return uri
         so photo can then be added to albums via separate request """
-    user = get_or_404(models.User, user_id)
+    user = get_or_404(models.User, user_id=user_id)
     location = pm.get_s3() if app.config['USE_S3'] else app.config['UPLOAD_FOLDER']
     # should be only one, but files is a dict, so iterate:
     for f in flask.request.files:
