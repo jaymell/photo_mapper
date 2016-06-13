@@ -460,3 +460,47 @@ curl -X PUT -d album_id=1 album_id=2 http://localhost:5000/api/users/james/photo
 import photo_mapper.photo_importer as pi
 a = pi.Jpeg(open("/home/james/Pictures/2015-vacation/james/20150911_045437.jpg"))
 
+### if we want to limit list returns to logged in user:
+  def get(self):
+    """ only returns photos for logged-in user """
+    # TODO: override for admin to see __all__ photos
+    user = flask.g.user
+    albums = models.Album.query.filter_by(user_id=user.user_id).all()
+    return schema.AlbumSchema(many=True).dump(albums).data, 200
+api.add_resource(AlbumListAPI, '/api/albums', endpoint='albums')
+
+
+
+### current -- routes for photos and albums container user_id:
+@auth.login_required
+/api/users/<user_id>/photos
+1) auth:
+	-- if valid token passed, query database for user id; return user object
+	-- if token auth fails, query database for user name, check password against hash
+2) use flask.g.user in route method:
+	-- if user_id in route matches flask.g.user.user_id, allow access
+	-- else if flask.g.user has ADMIN role
+Downsides:
+	-- it's sort of pointless to require passing user ID in route when you already know it based on token
+	-- it requires client to have to know / keep user ID, even though it's not really needed
+
+### if photos or albums don't require user id in route:
+@auth.login_required
+/api/photos
+1) auth:
+	-- if valid token passed, query database for user id; return user object
+	-- if token auth fails, query database for user name, check password against hash
+2) use flask.g.user in route method:
+	-- if photo is owned by user_id, allow access
+	-- else if user has ADMIN role
+Downsides:
+	-- requires re-doing stuff
+	-- the logic might be complicated to reconcile what resources user has by virtue of owning the resources
+		vs having permission based on a role
+
+### the on_identity_loaded() function:
+. if user is user_id for album or photo, it has permission
+. if user has admin role, it has permission to access photo / album
+. how to delegate permissions, oauth style, for one user to another -- ie, the user associated with
+	external application has access to user 643's albums and photos because user 643 granted it, outh style
+	
