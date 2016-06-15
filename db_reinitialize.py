@@ -9,6 +9,8 @@ try:
     delete from albumPhotoLink;
     delete from photo;
     delete from album;
+    delete from userRoleLink;
+    delete from role;
     delete from user;
     """
   )

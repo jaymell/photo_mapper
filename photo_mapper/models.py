@@ -11,6 +11,17 @@ import hashlib
 # table names are camelCase
 # id field names are tablename_id
 
+class Role(db.Model):
+  __tablename__ = 'role'
+  role_id = db.Column(db.Integer, primary_key=True)
+  role_name = db.Column(db.String(64), unique=True)
+  users = db.relationship('User', secondary='userRoleLink')
+
+class UserRoleLink(db.Model):
+  __tablename__  = 'userRoleLink'
+  user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
+  role_id = db.Column(db.Integer, db.ForeignKey('role.role_id'), primary_key=True)
+
 class User(db.Model):
   __tablename__  = 'user'
   user_id = db.Column(db.Integer, primary_key=True)    
@@ -18,6 +29,7 @@ class User(db.Model):
   email = db.Column(db.String(128), unique=True)
   albums = db.relationship('Album')
   pw_hash = db.Column(db.String(128))
+  roles = db.relationship('Role', secondary='userRoleLink')
 
   def __init__(self, user_name, email):
     self.user_name = user_name

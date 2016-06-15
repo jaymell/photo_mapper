@@ -6,10 +6,15 @@ marsh = Marshmallow(app)
 
 #### serialization schema ####
 
+class RoleSchema(marsh.Schema):
+  role_id = marsh.Int()
+  role_name = marsh.String()
+
 class UserSchema(marsh.Schema):
   uri = marsh.UrlFor('user', user_id='<user_id>')
   user_name = marsh.String()
   user_id = marsh.Int()
+  roles = marsh.Nested(RoleSchema, many=True)
 
 class PhotoSizeSchema(marsh.Schema):
   photoSize_id = marsh.Int()
