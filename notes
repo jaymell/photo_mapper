@@ -493,7 +493,9 @@ Downsides:
 . if user has admin role, it has permission to access photo / album
 . how to delegate permissions, oauth style, for one user to another -- ie, the user associated with
 	external application has access to user 643's albums and photos because user 643 granted it, outh style
-	
+. what about read-all stuff
+. how are permissions to photos within album handled when permission granted to album
+. how is permission to STATIC content handled -- is this possible without signed links?	
 
 
 ############ API Documentationing
@@ -503,8 +505,8 @@ Downsides:
 . administrator -- full read/write
 ### LATER:
 . read-only to someone else's photos
-. read-write to someone else's photos
-. what about photos marked as read-all?
+. photos marked as read-all
+... no plans to add write access to other users... just admin role
 
 /api/users
 # administrator access required
@@ -545,7 +547,4 @@ Downsides:
 
 # stuff left to do to make this work:
 . add user roles
-
-
-
 

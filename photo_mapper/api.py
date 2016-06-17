@@ -1,4 +1,6 @@
 from __future__ import print_function
+import collection as col
+import functools as ft
 from photo_mapper import app, db
 import photo_mapper as pm
 import photo_importer
@@ -14,10 +16,24 @@ import datetime
 import models
 from flask.ext.httpauth import HTTPBasicAuth
 import schema
+import flask.ext.principal as pr
 
 api = fr.Api(app)
 auth = HTTPBasicAuth()
 
+@pr.identity_loaded.connect_via(app)
+def on_identity_loaded(sender, identity):
+  """ when id loaded, add user's permissions to the global
+      identity; currently this is only adding roles since 
+      permissions to most things is currently just a matter of matching
+      user id """
+  identity.user = flask.g.user
+  # is there an 'else' to this if? anonymous user?
+  if hasattr(identity.user, 'user_id'):
+    for role in identity.user.roles:
+      # consider role_id instead of role_name?
+      identity.provides.add(pr.RoleNeed(role.role_name))
+  
 def valid_pw(pw1, pw2):
   """ TODO: add minimum password requirements here""" 
 
@@ -41,7 +57,13 @@ def verify_pw(user_or_token, pw):
     user = models.User.query.filter_by(user_name = user_or_token).one_or_none()
     if not user or not user.verify_pw(pw):
       return False
+
   flask.g.user = user
+  
+  pr.identity_changed.send(
+    flask.current_app._get_current_object(), 
+    identity = pr.Identity(user.user_id)
+  )
   return True
 
 def get_or_404(model, **kwargs):
@@ -129,22 +151,32 @@ class AlbumListAPI(fr.Resource):
     return schema.AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
+AlbumNeed = col.namedtuple('album', ['method', 'value'])
+AlbumReadNeed = ft.partial(AlbumNeed, 'read')
+
+class AlbumReadPermission(pr.Permission):
+  def __init__(self, album_id):
+    need = AlbumReadNeed(album_id)
+    super(AlbumReadPermission, self).__init__(need)
+
 class AlbumAPI(fr.Resource):
   def get(self, user_id, album_id):
+
+    permission = AlbumReadPermission(album_id)
+    if flask.g.user.user_id == user_id:
+      pass
+    elif permission.can()
+      pass
+###TODO#############TODO################
+########################################
     user = get_or_404(models.User, user_id=user_id)
-    # FIXME:
-    album = models.Album.query.filter_by(user_id=user.user_id, album_id=album_id).one()
+    album = get_or_404(user_id=user.user_id, album_id=album_id)
+    
     if album:
         return schema.AlbumSchema().dump(album).data, 200
     else:
         return 'No records found', 404
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
-
-#  def get(self, album_id):
-#    user = flask.g.user
-#    album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
-#    return schema.AlbumSchema().dump(album).data, 200
-#api.add_resource(AlbumAPI, '/api/albums/<album_id>', endpoint='album')
 
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
