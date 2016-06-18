@@ -1,5 +1,5 @@
 from __future__ import print_function
-import collection as col
+import collections as col
 import functools as ft
 from photo_mapper import app, db
 import photo_mapper as pm
@@ -21,18 +21,35 @@ import flask.ext.principal as pr
 api = fr.Api(app)
 auth = HTTPBasicAuth()
 
+AlbumNeed = col.namedtuple('album', ['method', 'value'])
+AlbumReadNeed = ft.partial(AlbumNeed, 'read')
+
+class AlbumReadPermission(pr.Permission):
+  def __init__(self, album_id):
+    need = AlbumReadNeed(album_id)
+    #role_need = pr.RoleNeed('Administrator')
+    super(AlbumReadPermission, self).__init__(need)#, role_need)
+
 @pr.identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
   """ when id loaded, add user's permissions to the global
       identity; currently this is only adding roles since 
       permissions to most things is currently just a matter of matching
       user id """
+  print("on_identity_changed called")
   identity.user = flask.g.user
+  identity.provides.add(AlbumReadNeed('14'))
   # is there an 'else' to this if? anonymous user?
   if hasattr(identity.user, 'user_id'):
     for role in identity.user.roles:
       # consider role_id instead of role_name?
+      print("user: %s, role: %s" % (flask.g.user.user_name, role.role_name)) 
       identity.provides.add(pr.RoleNeed(role.role_name))
+  else:
+    print("no user id")
+    fr.abort(500)
+  flask.g.identity = identity
+  print(identity)
   
 def valid_pw(pw1, pw2):
   """ TODO: add minimum password requirements here""" 
@@ -46,6 +63,7 @@ def valid_pw(pw1, pw2):
 @auth.verify_password
 def verify_pw(user_or_token, pw):
   """ verify pw (plaintext) against pw hash in db """
+  print("verify_pw called")
   # assume it's a token first:
   try:
     user = models.User.verify_token(user_or_token)
@@ -60,7 +78,7 @@ def verify_pw(user_or_token, pw):
 
   flask.g.user = user
   
-  pr.identity_changed.send(
+  pr.identity_loaded.send(
     flask.current_app._get_current_object(), 
     identity = pr.Identity(user.user_id)
   )
@@ -151,31 +169,25 @@ class AlbumListAPI(fr.Resource):
     return schema.AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
-AlbumNeed = col.namedtuple('album', ['method', 'value'])
-AlbumReadNeed = ft.partial(AlbumNeed, 'read')
-
-class AlbumReadPermission(pr.Permission):
-  def __init__(self, album_id):
-    need = AlbumReadNeed(album_id)
-    super(AlbumReadPermission, self).__init__(need)
-
 class AlbumAPI(fr.Resource):
+  @auth.login_required
   def get(self, user_id, album_id):
-
+    print("AlbumAPI.get called")
     permission = AlbumReadPermission(album_id)
-    if flask.g.user.user_id == user_id:
-      pass
-    elif permission.can()
-      pass
-###TODO#############TODO################
-########################################
+    # if no authenticated user:
+    if not hasattr(flask.g, 'user'):
+      print("no authenticated user")
+      fr.abort(403)
+    # if id of authenticated user == user passed in url:
+    if not (unicode(flask.g.user.user_id) == unicode(user_id) or permission.can()):
+      print("auth'd user != user in url") 
+      fr.abort(403) 
     user = get_or_404(models.User, user_id=user_id)
-    album = get_or_404(user_id=user.user_id, album_id=album_id)
-    
-    if album:
-        return schema.AlbumSchema().dump(album).data, 200
-    else:
-        return 'No records found', 404
+    album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
+    if not album:
+      print("no album")
+      fr.abort(404)
+    return schema.AlbumSchema().dump(album).data, 200
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
 
 class PhotoListAPI(fr.Resource):
@@ -260,7 +272,7 @@ class PhotoAPI(fr.Resource):
 api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
 
 class TokenAPI(fr.Resource):
-  """ for getting tokens """
+  """ for getting tokens once basic auth done"""
 
   @auth.login_required
   def get(self):
