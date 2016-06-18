@@ -72,7 +72,7 @@ class Album(db.Model):
   __tablename__  = 'album'
   album_id = db.Column(db.Integer, primary_key=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
-  album_name = db.Column(db.String(128), unique=True)
+  album_name = db.Column(db.String(128))
   photos = db.relationship('Photo', secondary='albumPhotoLink')
   __table_args__ = (db.UniqueConstraint('user_id', 'album_name'),)
 
