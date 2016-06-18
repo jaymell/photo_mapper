@@ -27,8 +27,8 @@ AlbumReadNeed = ft.partial(AlbumNeed, 'read')
 class AlbumReadPermission(pr.Permission):
   def __init__(self, album_id):
     need = AlbumReadNeed(album_id)
-    #role_need = pr.RoleNeed('Administrator')
-    super(AlbumReadPermission, self).__init__(need)#, role_need)
+    role_need = pr.RoleNeed('Administrator')
+    super(AlbumReadPermission, self).__init__(need, role_need)
 
 @pr.identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
@@ -38,7 +38,6 @@ def on_identity_loaded(sender, identity):
       user id """
   print("on_identity_changed called")
   identity.user = flask.g.user
-  identity.provides.add(AlbumReadNeed('14'))
   # is there an 'else' to this if? anonymous user?
   if hasattr(identity.user, 'user_id'):
     for role in identity.user.roles:
