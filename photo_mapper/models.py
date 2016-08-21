@@ -73,6 +73,7 @@ class Album(db.Model):
   album_id = db.Column(db.Integer, primary_key=True)
   user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'))
   album_name = db.Column(db.String(128))
+  global_read = db.Column(db.Boolean, default=False)
   photos = db.relationship('Photo', secondary='albumPhotoLink')
   __table_args__ = (db.UniqueConstraint('user_id', 'album_name'),)
 
@@ -80,6 +81,9 @@ class Album(db.Model):
     self.album_name = album_name
     self.user_id = user_id
 
+  def global_read(self):
+    return self.global_read
+    
 class Photo(db.Model):
   __tablename__  = 'photo'
   photo_id = db.Column(db.Integer, primary_key=True)

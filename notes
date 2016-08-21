@@ -548,3 +548,19 @@ Downsides:
 # stuff left to do to make this work:
 . add user roles
 
+
+## How authentication works
+* flask.ext.httpauth.HTTPBasicAuth used for auth
+* if @auth.login_required decorates a method, then the @auth.verify_password-decorated function is called
+  -- this function (verify_pw) verifies the credentials, sends a signal to principal.identity_loaded which populates the global identity, and returns True assuming pw/token is validated
+
+
+### if we want more fine-grained perms:
+AlbumNeed = col.namedtuple('album', ['method', 'value'])
+AlbumReadNeed = ft.partial(AlbumNeed, 'read')
+ class AlbumReadPermission(pr.Permission):
+   def __init__(self, album_id):
+     need = AlbumReadNeed(album_id)
+     role_need = pr.RoleNeed('Administrator')
+     super(AlbumReadPermission, self).__init__(need, role_need)
+

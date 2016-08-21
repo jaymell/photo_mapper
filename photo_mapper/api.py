@@ -21,14 +21,8 @@ import flask.ext.principal as pr
 api = fr.Api(app)
 auth = HTTPBasicAuth()
 
-AlbumNeed = col.namedtuple('album', ['method', 'value'])
-AlbumReadNeed = ft.partial(AlbumNeed, 'read')
-
-class AlbumReadPermission(pr.Permission):
-  def __init__(self, album_id):
-    need = AlbumReadNeed(album_id)
-    role_need = pr.RoleNeed('Administrator')
-    super(AlbumReadPermission, self).__init__(need, role_need)
+# currently the only thing flask principal is used for:
+AdminPermission = pr.Permission(pr.RoleNeed('Administrator'))
 
 @pr.identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
@@ -61,7 +55,9 @@ def valid_pw(pw1, pw2):
 
 @auth.verify_password
 def verify_pw(user_or_token, pw):
-  """ verify pw (plaintext) against pw hash in db """
+  """ try token auth, if fails try to verify as pw (plaintext) 
+      against pw hash in db """
+
   print("verify_pw called")
   # assume it's a token first:
   try:
@@ -95,21 +91,26 @@ def get_or_404(model, **kwargs):
   return obj
 
 def insert_or_fail(record):
-    """ insert record or abort """
-    try:
-      db.session.add(record)
-      db.session.commit()
-    except fsql.sqlalchemy.exc.IntegrityError as e:
-      # is there a better way to do this?
-      if "Duplicate entry" in str(e):
-        print("Duplicate entry")
-        fr.abort(409)
-      else:
-        print('Unknown IntegrityError: %s' % e)
-        fr.abort(500)
-    except Exception as e:
-      print("Unknown error: %s" % e)
-      fr.abort(400)
+  """ insert record or abort """
+  try:
+    db.session.add(record)
+    db.session.commit()
+  except fsql.sqlalchemy.exc.IntegrityError as e:
+    # is there a better way to do this?
+    if "Duplicate entry" in str(e):
+      print("Duplicate entry")
+      fr.abort(409)
+    else:
+      print('Unknown IntegrityError: %s' % e)
+      fr.abort(500)
+  except Exception as e:
+    print("Unknown error: %s" % e)
+    fr.abort(400)
+
+def is_authenticated_user(user_id):
+  if unicode(flask.g.user.user_id) == unicode(user_id):
+    return True
+  return False
 
 class UserListAPI(fr.Resource):
   def __init__(self):
@@ -123,14 +124,16 @@ class UserListAPI(fr.Resource):
     self.reqparse.add_argument('password2', type = str, required = True,
       help = "Missing password2")
     super(UserListAPI, self).__init__()
-
+  @auth.login_required
   def get(self):
+    if not AdminPermission.can():
+      fr.abort(403)
     users = models.User.query.all()
     return schema.UserSchema(many=True).dump(users).data, 200
-
+  @auth.login_required
+  # TODO: how authenticate this method, given that if creating
+  # user account, user won't yet exist?
   def post(self):
-    # FIXME: how authenticate this method, given that if creating
-    # user account, user won't yet exist?
     args = self.reqparse.parse_args()
     if not valid_pw(args.password1, args.password2):
       abort(400)
@@ -141,7 +144,14 @@ class UserListAPI(fr.Resource):
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
  
 class UserAPI(fr.Resource):
+  @auth.login_required
   def get(self, user_id):
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     user = get_or_404(models.User, user_id=user_id)
     return schema.UserSchema().dump(user).data, 200
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
@@ -153,6 +163,8 @@ class AlbumListAPI(fr.Resource):
       help = "No album name provided")
     super(AlbumListAPI, self).__init__()
 
+  @auth.login_required
+  # TODO: must be user or admin:
   def post(self, user_id):
     """ FIXME: this function needs some sanity checking on
         album name """
@@ -162,6 +174,8 @@ class AlbumListAPI(fr.Resource):
     insert_or_fail(album)
     return schema.AlbumSchema().dump(album).data, 200
 
+  @auth.login_required
+  # TODO: must be user or admin:
   def get(self, user_id):
     user = get_or_404(models.User, user_id=user_id)
     albums = models.Album.query.filter_by(user_id=user.user_id).all()
@@ -172,31 +186,37 @@ class AlbumAPI(fr.Resource):
   @auth.login_required
   def get(self, user_id, album_id):
     print("AlbumAPI.get called")
-    permission = AlbumReadPermission(album_id)
+    # XXX: would be ideal to get user/album _after_ authentication but don't think it's
+    # possible given that album itself's characteristics can grant permission:
+    user = get_or_404(models.User, user_id=user_id)
+    album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
     # if no authenticated user:
     if not hasattr(flask.g, 'user'):
       print("no authenticated user")
       fr.abort(403)
-    # if id of authenticated user == user passed in url:
-    if not (unicode(flask.g.user.user_id) == unicode(user_id) or permission.can()):
-      print("auth'd user != user in url") 
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass 
+    elif album.global_read():
+      pass
+    else:
       fr.abort(403) 
-    user = get_or_404(models.User, user_id=user_id)
-    album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
-    if not album:
-      print("no album")
-      fr.abort(404)
     return schema.AlbumSchema().dump(album).data, 200
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
 
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
 
+  @auth.login_required
+  # TODO: must be user or admin:
   def get(self, user_id):
     user = get_or_404(models.User, user_id=user_id)
     photos = models.Photo.query.filter_by(user_id=user.user_id).all()
     return schema.PhotoSchema(many=True).dump(photos).data, 200
 
+  @auth.login_required
+  # TODO: must be user or admin:
   def post(self, user_id):
     """ this route takes a file only -- it gets the relevant
         meta out of it with photo_importer module, 
@@ -247,9 +267,10 @@ class PhotoAPI(fr.Resource):
     self.reqparse.add_argument('album_id', type=int, action="append")
     super(PhotoAPI, self).__init__()
 
+  @auth.login_required
+  # TODO: must be user or admin
   def put(self, user_id, photo_id):
-    """ mostly for adding albums to photo """
-    # TODO: allow update of password or email address
+    """ add photo to albums """
     args = self.reqparse.parse_args()
     user = models.User.query.filter_by(user_id=user_id).one()
     photo = models.Photo.query.filter_by(photo_id=photo_id).one()
@@ -260,6 +281,8 @@ class PhotoAPI(fr.Resource):
     insert_or_fail(photo)
     return schema.PhotoSchema().dump(photo).data, 200
 
+  @auth.login_required
+  # TODO: must be user, admin, or global read:
   def get(self, user_id, photo_id):
     user = models.User.query.filter_by(user_id=user_id).one()
     print('this is user: %s' % user)
