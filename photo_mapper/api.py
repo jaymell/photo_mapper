@@ -164,10 +164,16 @@ class AlbumListAPI(fr.Resource):
     super(AlbumListAPI, self).__init__()
 
   @auth.login_required
-  # TODO: must be user or admin:
+  # TODO: test authentication
   def post(self, user_id):
     """ FIXME: this function needs some sanity checking on
         album name """
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     args = self.reqparse.parse_args()
     album = models.Album(args.album_name, user_id=user_id)
     # will abort if it fails: 
@@ -175,8 +181,14 @@ class AlbumListAPI(fr.Resource):
     return schema.AlbumSchema().dump(album).data, 200
 
   @auth.login_required
-  # TODO: must be user or admin:
+  # TODO: test authentication
   def get(self, user_id):
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     user = get_or_404(models.User, user_id=user_id)
     albums = models.Album.query.filter_by(user_id=user.user_id).all()
     return schema.AlbumSchema(many=True).dump(albums).data, 200
@@ -190,10 +202,6 @@ class AlbumAPI(fr.Resource):
     # possible given that album itself's characteristics can grant permission:
     user = get_or_404(models.User, user_id=user_id)
     album = get_or_404(models.Album, user_id=user.user_id, album_id=album_id)
-    # if no authenticated user:
-    if not hasattr(flask.g, 'user'):
-      print("no authenticated user")
-      fr.abort(403)
     if is_authenticated_user(user_id):
       pass
     elif AdminPermission.can():
@@ -209,20 +217,32 @@ class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
 
   @auth.login_required
-  # TODO: must be user or admin:
+  # TODO: test authentication
   def get(self, user_id):
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     user = get_or_404(models.User, user_id=user_id)
     photos = models.Photo.query.filter_by(user_id=user.user_id).all()
     return schema.PhotoSchema(many=True).dump(photos).data, 200
 
   @auth.login_required
-  # TODO: must be user or admin:
+  # TODO: test authentication
   def post(self, user_id):
     """ this route takes a file only -- it gets the relevant
         meta out of it with photo_importer module, 
         puts it into Photo table, puts sizes into Sizes table,
         then saves it to storage -- if all successful, return uri
         so photo can then be added to albums via separate request """
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     user = get_or_404(models.User, user_id=user_id)
     location = pm.get_s3() if app.config['USE_S3'] else app.config['UPLOAD_FOLDER']
     # should be only one, but files is a dict, so iterate:
@@ -268,12 +288,18 @@ class PhotoAPI(fr.Resource):
     super(PhotoAPI, self).__init__()
 
   @auth.login_required
-  # TODO: must be user or admin
+  # TODO: test auth
   def put(self, user_id, photo_id):
     """ add photo to albums """
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
     args = self.reqparse.parse_args()
-    user = models.User.query.filter_by(user_id=user_id).one()
-    photo = models.Photo.query.filter_by(photo_id=photo_id).one()
+    user = get_or_404(models.User, user_id=user_id)
+    photo = get_or_404(models.Photo, user_id=user_id, photo_id=photo_id)
     if args.album_id:
       for i in args.album_id:
         album = models.Album.query.filter_by(album_id=i).one()
@@ -282,14 +308,18 @@ class PhotoAPI(fr.Resource):
     return schema.PhotoSchema().dump(photo).data, 200
 
   @auth.login_required
-  # TODO: must be user, admin, or global read:
+  # TODO: test auth
   def get(self, user_id, photo_id):
     user = models.User.query.filter_by(user_id=user_id).one()
-    print('this is user: %s' % user)
-    photo = models.Photo.query.filter_by(user_id=user.user_id, photo_id=photo_id).one()
-    print('this is photo: %s' % photo)
-    if not user or not photo:
-      fr.abort(404)
+    photo = get_or_404(models.Photo, user_id=user_id, photo_id=photo_id)
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass 
+    elif photo.global_read():
+      pass
+    else:
+      fr.abort(403) 
     return schema.PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
 

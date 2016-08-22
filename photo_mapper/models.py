@@ -96,6 +96,14 @@ class Photo(db.Model):
   longitude = db.Column(db.Float)
   sizes = db.relationship('PhotoSize', back_populates='photo')
 
+  def global_read(self):
+    """ photo global read is based on 
+        being in an album that has global read """
+    for album in self.albums:
+      if album.global_read: 
+        return True
+    return False
+
 class AlbumPhotoLink(db.Model):
   __tablename__  = 'albumPhotoLink'
   album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'), primary_key=True)
