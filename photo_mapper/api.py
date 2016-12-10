@@ -24,6 +24,7 @@ auth = HTTPBasicAuth()
 # currently the only thing flask principal is used for:
 AdminPermission = pr.Permission(pr.RoleNeed('Administrator'))
 
+
 @pr.identity_loaded.connect_via(app)
 def on_identity_loaded(sender, identity):
   """ when id loaded, add user's permissions to the global
@@ -44,6 +45,7 @@ def on_identity_loaded(sender, identity):
   flask.g.identity = identity
   print(identity)
   
+
 def valid_pw(pw1, pw2):
   """ TODO: add minimum password requirements here""" 
 
@@ -52,6 +54,7 @@ def valid_pw(pw1, pw2):
     return False
 
   return True
+
 
 @auth.verify_password
 def verify_pw(user_or_token, pw):
@@ -68,7 +71,14 @@ def verify_pw(user_or_token, pw):
   if not user:
     # try password auth if token failed:
     user = models.User.query.filter_by(user_name = user_or_token).one_or_none()
-    if not user or not user.verify_pw(pw):
+    if not user:
+      return False
+    try: 
+      result = user.verify_pw(pw)
+    except Exception as e:
+      print('Exception verifying password: %s' % e)
+      return False
+    if not result:
       return False
 
   flask.g.user = user
@@ -78,6 +88,7 @@ def verify_pw(user_or_token, pw):
     identity = pr.Identity(user.user_id)
   )
   return True
+
 
 def get_or_404(model, **kwargs):
   """ expects to be passed arguments to query.filter_by and return record or 404 """
@@ -89,6 +100,7 @@ def get_or_404(model, **kwargs):
   if obj is None:
     fr.abort(404)
   return obj
+
 
 def insert_or_fail(record):
   """ insert record or abort """
@@ -107,10 +119,22 @@ def insert_or_fail(record):
     print("Unknown error: %s" % e)
     fr.abort(400)
 
+
+def delete_or_fail(record):
+  """ delete record or abort """
+  try:
+    db.session.delete(record)
+    db.session.commit()
+  except Exception as e:
+    print('Unable to delete record')
+    fr.abort(500)
+
+
 def is_authenticated_user(user_id):
   if unicode(flask.g.user.user_id) == unicode(user_id):
     return True
   return False
+
 
 class UserListAPI(fr.Resource):
   def __init__(self):
@@ -124,13 +148,15 @@ class UserListAPI(fr.Resource):
     self.reqparse.add_argument('password2', type = str, required = True,
       help = "Missing password2")
     super(UserListAPI, self).__init__()
+
   @auth.login_required
   def get(self):
     if not AdminPermission.can():
       fr.abort(403)
     users = models.User.query.all()
     return schema.UserSchema(many=True).dump(users).data, 200
-  @auth.login_required
+
+  # @auth.login_required
   # TODO: how authenticate this method, given that if creating
   # user account, user won't yet exist?
   def post(self):
@@ -142,7 +168,8 @@ class UserListAPI(fr.Resource):
     insert_or_fail(user)
     return schema.UserSchema().dump(user).data, 200
 api.add_resource(UserListAPI, '/api/users', endpoint='users')
- 
+
+
 class UserAPI(fr.Resource):
   @auth.login_required
   def get(self, user_id):
@@ -154,7 +181,20 @@ class UserAPI(fr.Resource):
       fr.abort(403)
     user = get_or_404(models.User, user_id=user_id)
     return schema.UserSchema().dump(user).data, 200
+
+  @auth.login_required  
+  def delete(self, user_id):
+    if is_authenticated_user(user_id):
+      pass
+    elif AdminPermission.can():
+      pass
+    else:
+      fr.abort(403)
+    user = get_or_404(models.User, user_id=user_id)
+    delete_or_fail(user)
+    return {'Result': 'Success'}
 api.add_resource(UserAPI, '/api/users/<user_id>', endpoint='user')
+
 
 class AlbumListAPI(fr.Resource):
   def __init__(self):
@@ -194,6 +234,7 @@ class AlbumListAPI(fr.Resource):
     return schema.AlbumSchema(many=True).dump(albums).data, 200
 api.add_resource(AlbumListAPI, '/api/users/<user_id>/albums', endpoint='albums')
 
+
 class AlbumAPI(fr.Resource):
   @auth.login_required
   def get(self, user_id, album_id):
@@ -212,6 +253,7 @@ class AlbumAPI(fr.Resource):
       fr.abort(403) 
     return schema.AlbumSchema().dump(album).data, 200
 api.add_resource(AlbumAPI, '/api/users/<user_id>/albums/<album_id>', endpoint='album')
+
 
 class PhotoListAPI(fr.Resource):
   """ photos are at same hierarchic level as albums """
@@ -281,6 +323,7 @@ class PhotoListAPI(fr.Resource):
     return schema.PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoListAPI, '/api/users/<user_id>/photos', endpoint='photos')
 
+
 class PhotoAPI(fr.Resource):
   def __init__(self):
     self.reqparse = reqparse.RequestParser()
@@ -300,8 +343,10 @@ class PhotoAPI(fr.Resource):
     args = self.reqparse.parse_args()
     user = get_or_404(models.User, user_id=user_id)
     photo = get_or_404(models.Photo, user_id=user_id, photo_id=photo_id)
+    print('args ', args)
     if args.album_id:
       for i in args.album_id:
+        print('i: ',i)
         album = models.Album.query.filter_by(album_id=i).one()
         photo.albums.append(album)
     insert_or_fail(photo)
@@ -322,6 +367,7 @@ class PhotoAPI(fr.Resource):
       fr.abort(403) 
     return schema.PhotoSchema().dump(photo).data, 200
 api.add_resource(PhotoAPI, '/api/users/<user_id>/photos/<photo_id>', endpoint='photo')
+
 
 class TokenAPI(fr.Resource):
   """ for getting tokens once basic auth done"""
