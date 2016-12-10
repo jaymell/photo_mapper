@@ -68,6 +68,7 @@ def get_collection():
                 collection = flask.g._collection = db[app.config['DB_NAME']][app.config['COLLECTION_NAME']] 
         return collection 
  
+
 def get_s3(): 
         """ handles connections to s3; only creation new object if 
                 doesn't already exist; boto is supposed to be smart enough 
@@ -79,8 +80,13 @@ def get_s3():
         bucket = flask.g._bucket = connection.get_bucket(app.config['S3_BUCKET']) 
         return bucket 
 
+
 def build_link(name):
   """ i.e., take a picture's name and prepend appropriate URL to it """
   location = app.config['S3_URL'] if app.config['USE_S3'] else app.config['LOCAL_URL']
   return location + name
+
+
+def init_db():
+  db.create_all()
 
