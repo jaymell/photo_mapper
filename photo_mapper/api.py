@@ -223,6 +223,7 @@ class AlbumListAPI(fr.Resource):
   @auth.login_required
   # TODO: test authentication
   def get(self, user_id):
+    print(self)
     if is_authenticated_user(user_id):
       pass
     elif AdminPermission.can():

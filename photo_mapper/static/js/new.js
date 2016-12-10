@@ -1,4 +1,4 @@
-class Album extends React.Component {
+class Photo extends React.Component {
 
   constructor(props) {
     super(props);
@@ -6,79 +6,93 @@ class Album extends React.Component {
   }
 
   render() {
-    return ( 
-      <div class="thumbnail-div">
-        <a class="albumLink" href={this.props.album.uri}>
-          <img class="thumbnail" src={this.props.album.photos[0].thumbnail.name} height={this.props.album.photos[0].thumbnail.height} width={this.props.album.photos[0].thumbnail.width}> 
+    return (
+      <div className="ListItem">
+          <img className="thumbnail" src={this.props.photo.thumbnail.name} height={this.props.photo.thumbnail.height} width={this.props.photo.thumbnail.width}> 
           </img>
-        </a>
-        <span class="albumItem">{this.props.album_name}</span>
       </div>
-    );
+      );
+    // FIXME: for albums
+    // return ( 
+    //   <div className="ListItem">
+    //       <img className="thumbnail" src={this.props.album.photos[0].small.name} height={this.props.album.photos[0].small.height} width={this.props.album.photos[0].small.width}> 
+    //       </img>
+    //     <span>{this.props.album.album_name}</span>
+    //   </div>
+    // );
   }
 }
 
 
-class AlbumList extends React.Component {
+class PhotoList extends React.Component {
   constructor(props) {
     super(props);
   }
 
   render() {
-    var Albums = this.props.data.map(function(a) {
+    var Photos = this.props.data.map(function(p) {
       return (
-        <Album album={a}></Album>
+        <Photo photo={p} key={p.md5sum}></Photo>
       );
     });
 
     return (
-      <div className="AlbumList">
-        {Albums}
+      <div className="PhotoList">
+        {Photos}
       </div>
     );
   }
 }
 
 
-class AlbumBox extends React.Component {
+class PhotoBox extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { data: null };
+    this.state = { data: null , url: this.props.url, pollInterval: this.props.pollInterval};
   }
 
-  loadAlbumData() {
+  poll() {
     $.ajax({
-      url: this.props.url,
+      type: 'GET',
+      url: this.state.url,
       dataType: 'json',
       cache: false,
+      beforeSend: function(xhr) {
+          xhr.setRequestHeader("Authorization", "Basic " + btoa("eyJhbGciOiJIUzI1NiIsImV4cCI6MjQ4MTQwNTQzNCwiaWF0IjoxNDgxNDA1NDM1fQ.eyJ1c2VyX2lkIjo4fQ.QJgTpuHlzMgJ9eq7YA_ZSIntduv8daEkJE-bCr-za8Y:"))
+      },
       success: function(data) {
         this.setState({ data: data });
       }.bind(this),
       error: function(xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
+        console.error(this.state.url, status, err.toString());
       }.bind(this)
     });
   }
 
+  startPolling() {
+    console.log('starting polling')
+    setInterval(this.poll.bind(this), this.state.pollInterval);
+  }
+
   componentDidMount() {
-    this.loadAlbumData();
-    //setInterval(this.loadAlbumData, this.props.pollInterval);
+    this.startPolling();
   }
     
   render() {
-    if (!this.state.data) return ( <div classname="AlbumBox"> <blink><b>Loading ...</b></blink> </div> )
+    if (!this.state.data) return ( <div><b>Loading ...</b></div> )
     else { 
       return (
-        <div className="AlbumBox">
-          <AlbumList data={this.state.data} />
+        <div className="PhotoBox">
+          <PhotoList data={this.state.data} />
         </div>  
       );
     }
   }
 }
 
+
 ReactDOM.render(
-  <AlbumBox url="/api/users/8/albums" pollInterval={10000} />,
+  <PhotoBox url="/api/users/8/photos" pollInterval={5000} />,
   document.getElementById('content')
 );
 

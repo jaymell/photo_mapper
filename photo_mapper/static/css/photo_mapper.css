@@ -64,3 +64,15 @@ html, body {
 .pswp__img--placeholder--blank  {
 	opacity: 0 !important;
 }
+
+/*.ListItem {
+	display: inline-block;
+	text-align: center;
+	font-weight: bold;
+	width: 100px;
+	margin: 10px;
+}*/
+
+.ListItem {
+	float: left;
+}

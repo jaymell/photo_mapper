@@ -43,7 +43,7 @@ class User(db.Model):
     """ verify pw matches db hash """
     return passlib.apps.custom_app_context.verify(pw, self.pw_hash)
 
-  def generate_token(self, expiration=600):
+  def generate_token(self, expiration=app.config['TOKEN_LIFE']):
     """ generate sha256 hash of user id """
     token = itsd.TimedJSONWebSignatureSerializer(app.config['SECRET_KEY'], 
                                                  signer_kwargs = {'digest_method': hashlib.sha256}, 
@@ -68,6 +68,7 @@ class User(db.Model):
     user = User.query.get(data['user_id'])
     return user 
 
+
 class Album(db.Model):
   __tablename__  = 'album'
   album_id = db.Column(db.Integer, primary_key=True)
@@ -83,7 +84,8 @@ class Album(db.Model):
 
   def global_read(self):
     return self.global_read
-    
+
+
 class Photo(db.Model):
   __tablename__  = 'photo'
   photo_id = db.Column(db.Integer, primary_key=True)
@@ -104,10 +106,12 @@ class Photo(db.Model):
         return True
     return False
 
+
 class AlbumPhotoLink(db.Model):
   __tablename__  = 'albumPhotoLink'
   album_id = db.Column(db.Integer, db.ForeignKey('album.album_id'), primary_key=True)
   photo_id = db.Column(db.Integer, db.ForeignKey('photo.photo_id'), primary_key=True)
+
 
 class PhotoSize(db.Model):
   __tablename__  = 'photoSize'
