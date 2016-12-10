@@ -7,6 +7,7 @@ var user = window.readCookie("user");
 var apiRoute = "/api/users/" + user + "/albums";
 var htmlRoute = "/users/" + user + "/albums/";
 
+
 function loadData() {
 	$.getJSON(apiRoute, function(albumList) {
 		console.log('got json');
@@ -43,6 +44,8 @@ function loadData() {
 		}
 	});
 }
+
+
 function getThumbnail(photoList) {
 	// get an appropriate image from the json array
 	// first, middle, last, most popular, whatever... 
@@ -57,5 +60,6 @@ function getThumbnail(photoList) {
         'name': 'http://s3.amazonaws.com/jaymell-pm-static/no_photo.png'
       }
 }
+
 
 loadData();
