@@ -1,4 +1,32 @@
+var selectedColor = '#671780',
+  basePinColor = 'FE7569',
+  changedPinColor = '8169fe';
 
+// you want to append one of the above colors to this url:
+var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
+// e.g., like this:
+var basePin = pinLink + basePinColor;
+
+function setPinColor(pinColor) {
+  return new google.maps.MarkerImage(
+    pinLink + pinColor,
+    new google.maps.Size(21, 34),
+    new google.maps.Point(0,0),
+    new google.maps.Point(10, 34)
+  );
+};
+
+
+function plusOrMinus() {
+  return Math.random() < 0.5 ? -1 : 1
+}
+
+
+function jitter(zoom) {
+  var numerator = Math.random() * plusOrMinus();
+  var denominator = Math.pow(zoom, 3);
+  return zoom < 18 ? numerator/denominator : 0;
+};
 
 class MapController extends React.Component {
   constructor(props) {
@@ -16,63 +44,69 @@ class MapController extends React.Component {
 }
 
 
-// class Marker extends React.Component {
-//   constructor(props) {
-//     super(props);
-//     this.basePin = setPinColor(this.basePinColor);
-//     this.changedPin = setPinColor(this.changedPinColor);
-//   }
+class Marker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.basePin = setPinColor(this.basePinColor);
+    this.changedPin = setPinColor(this.changedPinColor);
+  }
 
-//   // take an array, parse it for photos with coordinates,
-//   // add them to map, and add call to magnific photo:
-//   addPin(photo) {
-//     let map = this.props.map;
-//     let photo = this.props.photo;
-//     let zoom = map.getZoom();
-//     let longitude = photo.longitude ? photo.longitude : null;
-//     var latitude = photo.latitude ? photo.latitude : null;
-//     // only if photo actually has coordinates:
-//     if (latitude && longitude) {
-//       var marker = new google.maps.Marker({
-//         position: new google.maps.LatLng(
-//           latitude,
-//           longitude
-//         ),
-//         title: photo.date,
-//         map: map,
-//         icon: this.basePin,
-//         md5sum: photo.md5sum,
-//         changePin: function() {
-//           this.setIcon(changedPin);
-//         }
-//       }); 
+  // take an array, parse it for photos with coordinates,
+  // add them to map, and add call to magnific photo:
+  addPin() {
+    console.log('adding pin');
+    let map = this.props.map;
+    let photo = this.props.photo;
+    let zoom = map.getZoom();
+    let longitude = photo.longitude ? photo.longitude : null;
+    var latitude = photo.latitude ? photo.latitude : null;
+    // only if photo actually has coordinates:
+    if (latitude && longitude) {
+      var marker = new google.maps.Marker({
+        position: new google.maps.LatLng(
+          latitude,
+          longitude
+        ),
+        title: photo.date,
+        map: map,
+        icon: this.basePin,
+        md5sum: photo.md5sum,
+        changePin: function() {
+          this.setIcon(changedPin);
+        }
+      }); 
 
-//       //   // add to assoc array:
-//       // markerObj[marker.md5sum] = marker;  
-//       // // do stuff when clicked:
-//       // marker.addListener('click', function() {
-//       //   // put clicked item at top of list:
-//       //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
-//       //   // change pin color
-//       //   marker.setIcon(changedPin);
-//       //   // open the appropriate photo, 
-//       //   // based on array index:
-//       //   openPhotoSwipe(index);
-//       // });
-//     }
-//   }
+      //   // add to assoc array:
+      // markerObj[marker.md5sum] = marker;  
+      // // do stuff when clicked:
+      // marker.addListener('click', function() {
+      //   // put clicked item at top of list:
+      //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
+      //   // change pin color
+      //   marker.setIcon(changedPin);
+      //   // open the appropriate photo, 
+      //   // based on array index:
+      //   openPhotoSwipe(index);
+      // });
+    }
+  }
 
-//   render() {
-//     this.addPin();
-//     return;
-//   }
-// }
+  componentDidUpdate() {
+    if (this.props.map) {
+      this.addPin()
+    }
+  }
+
+  render() {
+    return null;
+  }
+}
 
 
 class Map extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { initialized: false }
+    this.state = { initialized: false, map: null };
   }
 
   initialize() {
@@ -85,8 +119,7 @@ class Map extends React.Component {
       // HYBRID like SATELLITE, but shows labels:
       mapTypeId: google.maps.MapTypeId.ROADMAP // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
-    this.map = new google.maps.Map(this.refs.mapCanvas, mapOptions);
-    console.log('here');
+    this.setState({ map: new google.maps.Map(this.refs.mapCanvas, mapOptions) });
 
     // this.markerObj = {};
     this.setState({initialized: true})
@@ -109,6 +142,7 @@ class Map extends React.Component {
   //     this.map.setCenter(markerObj[md5sum].position);
   //   }
   // }
+
   componentDidMount() {
     if (!this.state.initialized) {
       console.log('initializing');
@@ -117,9 +151,20 @@ class Map extends React.Component {
   }
 
   render() {
+    var markers = this.props.data.map(function(p) {
+      return (
+        <Marker map={this.state.map} photo={p} key={p.md5sum}></Marker>
+      );
+    }.bind(this));
+
     return (
-      <div className="mapCanvas" ref="mapCanvas"></div>
+      <div>
+        <div className="mapCanvas" ref="mapCanvas"></div>
+        {markers}
+      </div>
+
     );
+
     // var markers = this.props.data.map(function(m) {
     //   if ( m.latitude && m.longitude ) {
     //     return (
@@ -129,36 +174,6 @@ class Map extends React.Component {
     // });
   }
 }
-
-// var selectedColor = '#671780',
-//   basePinColor = 'FE7569',
-//   changedPinColor = '8169fe';
-
-// // you want to append one of the above colors to this url:
-// var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
-// // e.g., like this:
-// var basePin = pinLink + basePinColor;
-
-// function setPinColor(pinColor) {
-//   return new google.maps.MarkerImage(
-//     pinLink + pinColor,
-//     new google.maps.Size(21, 34),
-//     new google.maps.Point(0,0),
-//     new google.maps.Point(10, 34)
-//   );
-// };
-
-
-// function plusOrMinus() {
-//   return Math.random() < 0.5 ? -1 : 1
-// }
-
-
-// function jitter(zoom) {
-//   var numerator = Math.random() * plusOrMinus();
-//   var denominator = Math.pow(zoom, 3);
-//   return zoom < 18 ? numerator/denominator : 0;
-// };
 
 
 class Photo extends React.Component {
