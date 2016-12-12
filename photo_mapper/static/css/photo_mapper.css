@@ -8,7 +8,8 @@ html, body {
 	height: 100%;
 }
 
-#mapCanvas { 
+.mapCanvas { 
+	width: 100%;
 	height: 90%;
 }
 

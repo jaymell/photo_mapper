@@ -7,7 +7,7 @@ from photo_mapper import app
 @app.route("/")
 def index():
   """ landing page """
-  return flask.render_template("index.j2")
+  return flask.render_template("index.j2", KEY=app.config['GMAPS_KEY'])
 
 @app.route("/users/<user>")
 def user_landing(user):
