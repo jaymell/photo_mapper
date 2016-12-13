@@ -187,7 +187,7 @@ class Photo extends React.Component {
   render() {
     return (
       <div className="ListItem">
-          <img className="thumbnail" src={this.props.photo.thumbnail.name} height={this.props.photo.thumbnail.height} width={this.props.photo.thumbnail.width}> 
+          <img className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
           </img>
       </div>
     );

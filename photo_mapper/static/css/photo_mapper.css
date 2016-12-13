@@ -9,13 +9,13 @@ html, body {
 }
 
 .mapCanvas { 
-	height: 90%;
+	height: 100%;
 }
 
 @media all and (orientation:landscape) {
 	.PhotoList {
 		float: left;	
-		height: 90%;
+		height: 100%;
 		margin-left: 1%;
 		overflow: auto; 
 		width: 140px; 
@@ -26,7 +26,6 @@ html, body {
     .PhotoList {
         overflow-x: scroll;
         overflow-y: hidden;
-        height: 140px;
 		width: auto; 
 		white-space: nowrap;
     }
@@ -38,18 +37,13 @@ html, body {
 	width: 10px;
 }
 
-#photoList {
-	overflow: auto; 
-	list-style-type: none;
-}
 
 .thumbnail {
-	margin: 5px;
+	margin: 1px;
 	cursor: pointer;
 	cursor: hand;
-}
-
-.thumbLink {
+	width: 100px;
+	height: 100px;
 }
 
 .border {
@@ -65,14 +59,14 @@ html, body {
 	opacity: 0 !important;
 }
 
-/*.ListItem {
+.ListItem {
 	display: inline-block;
 	text-align: center;
 	font-weight: bold;
-	width: 100px;
-	margin: 10px;
-}*/
 
-.ListItem {
+*/}
+
+/*.ListItem {
 	float: left;
 }
+*/
