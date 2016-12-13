@@ -1,3 +1,20 @@
+// TODO
+/* 
+3 events:
+1) photoSwipe open
+2) marker click
+3) photoList click
+
+. photoswipe
+ -- open on marker click
+ -- open on photoList click
+. photoList
+ -- scroll to photo on photoSwipe open
+ -- scroll to photo on marker click
+. marker
+ -- change color on photoList click
+ -- change color on photoSwipe open
+*/
 
 function setPinColor(pinColor) {
 // you want to append one of the above colors to this url:
@@ -70,10 +87,11 @@ class Marker extends React.Component {
       icon: this.basePin,
       md5sum: photo.md5sum,
       changePin: function() {
-        this.setIcon(changedPin);
+        this.setIcon(this.changedPin);
       }
     }); 
-    this.setState({initialized: true})
+    this.setState({initialized: true});
+
     //   // add to assoc array:
     // markerObj[marker.md5sum] = marker;  
     // // do stuff when clicked:
@@ -121,26 +139,9 @@ class Map extends React.Component {
     this.setState({ map: new google.maps.Map(this.refs.mapCanvas, mapOptions) });
 
     // this.markerObj = {};
-    this.setState({initialized: true})
+    this.setState({initialized: true});
+
   }
-
-  // zoom(z) { 
-  //   this.map.setZoom(z); 
-  // }
-  
-  // expects to be passed md5sum, which
-  // corresponds to id of list items:
-  // changePin(md5sum) {
-  //   if (md5sum in markerObj) {
-  //     this.markerObj[md5sum].setIcon(changedPin);
-  //   }
-  // }
-
-  // centerPin(md5sum) {
-  //   if (md5sum in markerObj) {
-  //     this.map.setCenter(markerObj[md5sum].position);
-  //   }
-  // }
 
   componentDidMount() {
     if (!this.state.initialized) {
@@ -151,6 +152,7 @@ class Map extends React.Component {
 
   render() {
     var markers = this.props.data.map(function(p) {
+      // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
           <Marker map={this.state.map} photo={p} key={p.md5sum}></Marker>
@@ -165,14 +167,6 @@ class Map extends React.Component {
       </div>
 
     );
-
-    // var markers = this.props.data.map(function(m) {
-    //   if ( m.latitude && m.longitude ) {
-    //     return (
-    //       <Marker map={this.map} photo={m} key={m.md5sum} />
-    //     );
-    //   }
-    // });
   }
 }
 
