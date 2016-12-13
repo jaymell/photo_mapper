@@ -1,13 +1,7 @@
-var selectedColor = '#671780',
-  basePinColor = 'FE7569',
-  changedPinColor = '8169fe';
-
-// you want to append one of the above colors to this url:
-var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
-// e.g., like this:
-var basePin = pinLink + basePinColor;
 
 function setPinColor(pinColor) {
+// you want to append one of the above colors to this url:
+  var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
   return new google.maps.MarkerImage(
     pinLink + pinColor,
     new google.maps.Size(21, 34),
@@ -28,6 +22,7 @@ function jitter(zoom) {
   return zoom < 18 ? numerator/denominator : 0;
 };
 
+
 class MapController extends React.Component {
   constructor(props) {
     super(props);
@@ -47,8 +42,12 @@ class MapController extends React.Component {
 class Marker extends React.Component {
   constructor(props) {
     super(props);
-    this.basePin = setPinColor(this.basePinColor);
-    this.changedPin = setPinColor(this.changedPinColor);
+    this.state = {initialized: false};
+    let selectedColor = '#671780';
+    let basePinColor = 'FE7569';
+    let changedPinColor = '8169fe';
+    this.basePin = setPinColor(basePinColor);
+    this.changedPin = setPinColor(changedPinColor);
   }
 
   // take an array, parse it for photos with coordinates,
@@ -61,39 +60,39 @@ class Marker extends React.Component {
     let longitude = photo.longitude ? photo.longitude : null;
     var latitude = photo.latitude ? photo.latitude : null;
     // only if photo actually has coordinates:
-    if (latitude && longitude) {
-      var marker = new google.maps.Marker({
-        position: new google.maps.LatLng(
-          latitude,
-          longitude
-        ),
-        title: photo.date,
-        map: map,
-        icon: this.basePin,
-        md5sum: photo.md5sum,
-        changePin: function() {
-          this.setIcon(changedPin);
-        }
-      }); 
-
-      //   // add to assoc array:
-      // markerObj[marker.md5sum] = marker;  
-      // // do stuff when clicked:
-      // marker.addListener('click', function() {
-      //   // put clicked item at top of list:
-      //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
-      //   // change pin color
-      //   marker.setIcon(changedPin);
-      //   // open the appropriate photo, 
-      //   // based on array index:
-      //   openPhotoSwipe(index);
-      // });
-    }
+    var marker = new google.maps.Marker({
+      position: new google.maps.LatLng(
+        latitude,
+        longitude
+      ),
+      title: photo.date,
+      map: map,
+      icon: this.basePin,
+      md5sum: photo.md5sum,
+      changePin: function() {
+        this.setIcon(changedPin);
+      }
+    }); 
+    this.setState({initialized: true})
+    //   // add to assoc array:
+    // markerObj[marker.md5sum] = marker;  
+    // // do stuff when clicked:
+    // marker.addListener('click', function() {
+    //   // put clicked item at top of list:
+    //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
+    //   // change pin color
+    //   marker.setIcon(changedPin);
+    //   // open the appropriate photo, 
+    //   // based on array index:
+    //   openPhotoSwipe(index);
+    // });
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(prevProps) {
     if (this.props.map) {
-      this.addPin()
+      if (!this.state.initialized) {
+        this.addPin()
+      }
     }
   }
 
@@ -152,9 +151,11 @@ class Map extends React.Component {
 
   render() {
     var markers = this.props.data.map(function(p) {
-      return (
-        <Marker map={this.state.map} photo={p} key={p.md5sum}></Marker>
-      );
+      if (p.longitude && p.latitude) {
+        return (
+          <Marker map={this.state.map} photo={p} key={p.md5sum}></Marker>
+        );
+      }
     }.bind(this));
 
     return (
@@ -271,8 +272,8 @@ class App extends React.Component {
     else { 
       return (
         <div>
-          <MapController data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
           <PhotoList data={this.state.data} />
+          <MapController data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
         </div>
       );
     }
