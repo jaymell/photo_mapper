@@ -16,6 +16,32 @@
  -- change color on photoSwipe open
 */
 
+// pass it the name of the container div and the
+// item div you want to move to top of list:
+var scrollToSelected = function($ctDiv, $itDiv) {
+  var scrollSpeed = 250;
+  // portrait --
+  // the portrait code is shaky but it's 
+  // working for mobile devices tested so far --
+  // doesn't work on desktop, but less likely to
+  // be an issue
+  if (window.orientation == 0) {
+        $ctDiv.animate({
+           scrollLeft: $itDiv.offset().left 
+            + $ctDiv.scrollLeft() 
+            - $ctDiv.offset().left
+        }, scrollSpeed);
+  // landscape or window.orientation undefined:
+  } else {
+       $ctDiv.animate({ 
+      scrollTop: $itDiv.offset().top 
+            + $ctDiv.scrollTop() 
+            - $ctDiv.offset().top
+       }, scrollSpeed);
+  }
+};
+
+
 function setPinColor(pinColor) {
 // you want to append one of the above colors to this url:
   var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
@@ -67,6 +93,14 @@ class Marker extends React.Component {
     this.changedPin = setPinColor(changedPinColor);
   }
 
+  onClick() {
+    // put clicked item at top of list:
+    scrollToSelected($('.PhotoList'), $('#'+this.props.md5sum));
+
+    // change pin color
+    this.marker.setIcon(this.changedPin);    
+  }
+
   // take an array, parse it for photos with coordinates,
   // add them to map, and add call to magnific photo:
   addPin() {
@@ -77,7 +111,7 @@ class Marker extends React.Component {
     let longitude = photo.longitude ? photo.longitude : null;
     var latitude = photo.latitude ? photo.latitude : null;
     // only if photo actually has coordinates:
-    var marker = new google.maps.Marker({
+    this.marker = new google.maps.Marker({
       position: new google.maps.LatLng(
         latitude,
         longitude
@@ -89,7 +123,10 @@ class Marker extends React.Component {
       changePin: function() {
         this.setIcon(this.changedPin);
       }
-    }); 
+    });
+
+    this.marker.addListener('click', this.onClick.bind(this));
+
     this.setState({initialized: true});
 
     //   // add to assoc array:
@@ -155,7 +192,7 @@ class Map extends React.Component {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker map={this.state.map} photo={p} key={p.md5sum}></Marker>
+          <Marker map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
         );
       }
     }.bind(this));
@@ -180,7 +217,7 @@ class Photo extends React.Component {
 
   render() {
     return (
-      <div className="ListItem">
+      <div className="ListItem" id={this.props.photo.md5sum} >
           <img className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
           </img>
       </div>
