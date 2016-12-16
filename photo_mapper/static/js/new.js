@@ -16,6 +16,8 @@
  -- change color on photoSwipe open
 */
 
+var photoEvents = $.Callbacks();
+
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
@@ -62,92 +64,26 @@ function jitter(zoom) {
 };
 
 
-class MapController extends React.Component {
+class MapContainer extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {photo: null};
+  }
+
+  updateMap(photo) {
+    this.setState({photo: photo})
+  }
+
+  componentWillMount() {
+    photoEvents.add(this.updateMap.bind(this));
   }
 
   render() {
     if (this.props.mapIsVisible) {
       return (
-        <Map mapCanvas={this.refs.mapCanvas} data={this.props.data}></Map>
+        <Map updatedPhoto={this.state.photo} mapCanvas={this.refs.mapCanvas} data={this.props.data}></Map>
       );
     }
-    return null;
-  }
-}
-
-
-class Marker extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {initialized: false};
-    let selectedColor = '#671780';
-    let basePinColor = 'FE7569';
-    let changedPinColor = '8169fe';
-    this.basePin = setPinColor(basePinColor);
-    this.changedPin = setPinColor(changedPinColor);
-  }
-
-  onClick() {
-    // put clicked item at top of list:
-    scrollToSelected($('.PhotoList'), $('#'+this.props.md5sum));
-
-    // change pin color
-    this.marker.setIcon(this.changedPin);    
-  }
-
-  // take an array, parse it for photos with coordinates,
-  // add them to map, and add call to magnific photo:
-  addPin() {
-    console.log('adding pin');
-    let map = this.props.map;
-    let photo = this.props.photo;
-    let zoom = map.getZoom();
-    let longitude = photo.longitude ? photo.longitude : null;
-    var latitude = photo.latitude ? photo.latitude : null;
-    // only if photo actually has coordinates:
-    this.marker = new google.maps.Marker({
-      position: new google.maps.LatLng(
-        latitude,
-        longitude
-      ),
-      title: photo.date,
-      map: map,
-      icon: this.basePin,
-      md5sum: photo.md5sum,
-      changePin: function() {
-        this.setIcon(this.changedPin);
-      }
-    });
-
-    this.marker.addListener('click', this.onClick.bind(this));
-
-    this.setState({initialized: true});
-
-    //   // add to assoc array:
-    // markerObj[marker.md5sum] = marker;  
-    // // do stuff when clicked:
-    // marker.addListener('click', function() {
-    //   // put clicked item at top of list:
-    //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
-    //   // change pin color
-    //   marker.setIcon(changedPin);
-    //   // open the appropriate photo, 
-    //   // based on array index:
-    //   openPhotoSwipe(index);
-    // });
-  }
-
-  componentDidUpdate(prevProps) {
-    if (this.props.map) {
-      if (!this.state.initialized) {
-        this.addPin()
-      }
-    }
-  }
-
-  render() {
     return null;
   }
 }
@@ -157,6 +93,15 @@ class Map extends React.Component {
   constructor(props) {
     super(props);
     this.state = { initialized: false, map: null };
+    this.markers = {};
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.updatedPhoto != this.props.updatedPhoto ) {
+      if (this.markers[this.props.updatedPhoto]) {
+        this.markers[this.props.updatedPhoto]();
+      }
+    }
   }
 
   initialize() {
@@ -188,7 +133,7 @@ class Map extends React.Component {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
+          <Marker markers={this.markers} map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
         );
       }
     }.bind(this));
@@ -204,20 +149,82 @@ class Map extends React.Component {
 }
 
 
-class Photo extends React.Component {
-
+class Marker extends React.Component {
   constructor(props) {
     super(props);
-    // this.state = {date: new Date()};
+    this.state = {initialized: false};
+    let selectedColor = '#671780';
+    let basePinColor = 'FE7569';
+    let changedPinColor = '8169fe';
+    this.basePin = setPinColor(basePinColor);
+    this.changedPin = setPinColor(changedPinColor);
+  }
+
+  changePin() {
+    // change pin color
+    this.marker.setIcon(this.changedPin);    
+  }
+
+  onClick() {
+    // put clicked item at top of list:
+    scrollToSelected($('.PhotoList'), $('#'+this.props.md5sum));
+
+    this.changePin();
+  }
+
+  // take an array, parse it for photos with coordinates,
+  // add them to map, and add call to magnific photo:
+  addPin() {
+    console.log('adding pin');
+    let map = this.props.map;
+    let photo = this.props.photo;
+    let zoom = map.getZoom();
+    let longitude = photo.longitude ? photo.longitude : null;
+    var latitude = photo.latitude ? photo.latitude : null;
+    // only if photo actually has coordinates:
+    this.marker = new google.maps.Marker({
+      position: new google.maps.LatLng(
+        latitude,
+        longitude
+      ),
+      title: photo.date,
+      map: map,
+      icon: this.basePin,
+      md5sum: photo.md5sum,
+      changePin: function() {
+        this.setIcon(this.changedPin);
+      }
+    });
+
+    this.marker.addListener('click', this.onClick.bind(this));
+    // this is dumb -- add changePin method to parents' object so it can be called from there:
+    this.props.markers[this.props.md5sum] = this.changePin.bind(this);
+    this.setState({initialized: true});
+
+    //   // add to assoc array:
+    // markerObj[marker.md5sum] = marker;  
+    // // do stuff when clicked:
+    // marker.addListener('click', function() {
+    //   // put clicked item at top of list:
+    //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
+    //   // change pin color
+    //   marker.setIcon(changedPin);
+    //   // open the appropriate photo, 
+    //   // based on array index:
+    //   openPhotoSwipe(index);
+    // });
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.map) {
+      if (!this.state.initialized) {
+        this.addPin()
+      }
+    }
   }
 
   render() {
-    return (
-      <div className="ListItem" id={this.props.photo.md5sum} >
-          <img className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
-          </img>
-      </div>
-    );
+    return null;
   }
 }
 
@@ -227,16 +234,41 @@ class PhotoList extends React.Component {
     super(props);
   }
 
+  onPhotoClick(photoId) {
+    photoEvents.fire(photoId);
+  }
+
   render() {
+    var that = this;
     var Photos = this.props.data.map(function(p) {
       return (
-        <Photo photo={p} key={p.md5sum}></Photo>
+        <Photo onPhotoClick={that.onPhotoClick} photo={p} key={p.md5sum}></Photo>
       );
     });
 
     return (
       <div className="PhotoList">
         {Photos}
+      </div>
+    );
+  }
+}
+
+
+class Photo extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  _onClick() {
+    this.props.onPhotoClick(this.props.photo.md5sum);
+  }
+
+  render() {
+    return (
+      <div className="ListItem" id={this.props.photo.md5sum} >
+          <img onClick={this._onClick.bind(this)} className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
+          </img>
       </div>
     );
   }
@@ -300,7 +332,7 @@ class App extends React.Component {
       return (
         <div>
           <PhotoList data={this.state.data} />
-          <MapController data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+          <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
         </div>
       );
     }
