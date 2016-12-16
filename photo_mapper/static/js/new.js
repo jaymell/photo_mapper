@@ -20,18 +20,14 @@
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
   var scrollSpeed = 250;
-  // portrait --
-  // the portrait code is shaky but it's 
-  // working for mobile devices tested so far --
-  // doesn't work on desktop, but less likely to
-  // be an issue
-  if (window.orientation == 0) {
+  // portrait
+  if (window.orientation == 0 || window.innerHeight > window.innerWidth ) {
         $ctDiv.animate({
            scrollLeft: $itDiv.offset().left 
             + $ctDiv.scrollLeft() 
             - $ctDiv.offset().left
         }, scrollSpeed);
-  // landscape or window.orientation undefined:
+  // landscape
   } else {
        $ctDiv.animate({ 
       scrollTop: $itDiv.offset().top 
