@@ -5,5 +5,6 @@ node_modules
 cfg/config.js
 *.swp
 config
-static/img
+photo_mapper/static/img
+photo_mapper/static/lib
 app.log

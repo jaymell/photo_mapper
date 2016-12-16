@@ -6,14 +6,14 @@
 3) photoList click
 
 . photoswipe
- -- open on marker click
- -- open on photoList click
+ -- open on marker click DONE
+ -- open on photoList click DONE
 . photoList
- -- scroll to photo on photoSwipe open
- -- scroll to photo on marker click
+ -- scroll to photo on photoSwipe open DONE
+ -- scroll to photo on marker click DONE
 . marker
- -- change color on photoList click
- -- change color on photoSwipe open
+ -- change color on photoList click DONE
+ -- change color on photoSwipe open 
 */
 
 var photoEvents = $.Callbacks();
@@ -67,11 +67,11 @@ function jitter(zoom) {
 class MapContainer extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {photo: null};
+    this.state = {activePhoto: null};
   }
 
   updateMap(photo) {
-    this.setState({photo: photo})
+    this.setState({activePhoto: photo})
   }
 
   componentWillMount() {
@@ -81,7 +81,7 @@ class MapContainer extends React.Component {
   render() {
     if (this.props.mapIsVisible) {
       return (
-        <Map updatedPhoto={this.state.photo} mapCanvas={this.refs.mapCanvas} data={this.props.data}></Map>
+        <Map activePhoto={this.state.activePhoto} mapCanvas={this.refs.mapCanvas} data={this.props.data}></Map>
       );
     }
     return null;
@@ -97,9 +97,9 @@ class Map extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.updatedPhoto != this.props.updatedPhoto ) {
-      if (this.markers[this.props.updatedPhoto]) {
-        this.markers[this.props.updatedPhoto]();
+    if (prevProps.activePhoto != this.props.activePhoto ) {
+      if (this.markers[this.props.activePhoto]) {
+        this.markers[this.props.activePhoto]();
       }
     }
   }
@@ -129,11 +129,11 @@ class Map extends React.Component {
   }
 
   render() {
-    var markers = this.props.data.map(function(p) {
+    var markers = this.props.data.map(function(p, i) {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker markers={this.markers} map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
+          <Marker index={i} markers={this.markers} map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
         );
       }
     }.bind(this));
@@ -167,9 +167,8 @@ class Marker extends React.Component {
 
   onClick() {
     // put clicked item at top of list:
-    scrollToSelected($('.PhotoList'), $('#'+this.props.md5sum));
-
     this.changePin();
+    photoEvents.fire(this.props.photo.md5sum);
   }
 
   // take an array, parse it for photos with coordinates,
@@ -234,17 +233,24 @@ class PhotoList extends React.Component {
     super(props);
   }
 
+  handleEvent(e) {
+    scrollToSelected($('.PhotoList'), $('#'+e));
+  }
+
+  componentWillMount() {
+    photoEvents.add(this.handleEvent.bind(this));
+  }
+
   onPhotoClick(photoId) {
     photoEvents.fire(photoId);
   }
 
   render() {
-    var that = this;
     var Photos = this.props.data.map(function(p) {
       return (
-        <Photo onPhotoClick={that.onPhotoClick} photo={p} key={p.md5sum}></Photo>
+        <Photo onPhotoClick={this.onPhotoClick} photo={p} key={p.md5sum}></Photo>
       );
-    });
+    }.bind(this));
 
     return (
       <div className="PhotoList">
@@ -271,6 +277,47 @@ class Photo extends React.Component {
           </img>
       </div>
     );
+  }
+}
+
+
+class PhotoSwipeContainer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {isOpen: false}
+  }
+
+  componentDidMount() {
+    // build photoArray for photoSwipe:
+    this.photoArray = this.props.data.map(function(p, i) {
+      return { 
+        id: p.md5sum,
+        index: i,
+        full: p.full,
+        scaled: p.scaled,
+        // is geo-tagged? true or false:
+        geo: (p.latitude && p.longitude) ? true : false 
+      };
+    });
+    // subscribe to events:
+    photoEvents.add(this.handleEvent.bind(this));
+  }
+
+  handleClose() {
+    this.setState({isOpen: false})
+  }
+
+  handleEvent(e) {
+    var curPhoto = this.photoArray.find(function(photo) {
+      return photo.id == e;
+    });
+    if (!this.state.isOpen) {
+      openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this));
+    }
+  }
+
+  render() {
+    return null;
   }
 }
 
@@ -333,6 +380,7 @@ class App extends React.Component {
         <div>
           <PhotoList data={this.state.data} />
           <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+          <PhotoSwipeContainer data={this.state.data} />
         </div>
       );
     }
@@ -346,4 +394,161 @@ ReactDOM.render(
 );
 
 
+// append requisite html for photoSwipe:
+var html = ' \
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true"> \
+<div class="pswp__bg"></div>    \
+<div class="pswp__scroll-wrap">  \
+  <div class="pswp__container"> \
+    <div class="pswp__item"></div> \
+    <div class="pswp__item"></div> \
+    <div class="pswp__item"></div> \
+  </div> \
+  <div class="pswp__ui pswp__ui--hidden"> \
+    <div class="pswp__top-bar"> \
+      <div class="pswp__counter"></div> \
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button> \
+      <button class="pswp__button pswp__button--share" title="Share"></button> \
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button> \
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button> \
+      <img class="pswp__button pswp__button--mapIt" title="Show on map" src="/static/lib/img/map.png"></button> \
+      <div class="pswp__preloader"> \
+        <div class="pswp__preloader__icn"> \
+          <div class="pswp__preloader__cut"> \
+            <div class="pswp__preloader__donut"></div> \
+          </div> \
+        </div> \
+      </div> \
+    </div> \
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap"> \
+      <div class="pswp__share-tooltip"></div> \
+    </div> \
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button> \
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button> \
+    <div class="pswp__caption"> \
+      <div class="pswp__caption__center"></div> \
+    </div> \
+  </div> \
+</div> \
+</div>';
 
+
+$(document.body).append(html);
+
+
+// detect orientation change and make sure list
+// stays in proper location:
+$(window).on('orientationchange', function() {
+  var offset = {
+      scrollTop: $('#mapLeft').scrollTop(),
+      scrollLeft: $('#mapLeft').scrollLeft()
+  };
+  setTimeout(function() {
+    $('#mapLeft').scrollTop(offset.scrollLeft);
+    $('#mapLeft').scrollLeft(offset.scrollTop);
+  }, 500);
+});
+
+
+function openPhotoSwipe(photoArray, index, closeCallback) {
+
+  var pswpElement = $('.pswp')[0];
+  var options = {
+        index: index
+    };
+  var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, photoArray, options);
+
+  // make show map button invisible or not depending on
+  // whether photo is geo-tagged:
+  var prepareMapButton = function() {
+    if ( gallery.currItem.geo )
+      $('.pswp__button--mapIt').css('display', 'block');
+    else 
+      $('.pswp__button--mapIt').css('display', 'none');
+  };
+  gallery.listen('beforeChange', function(index, item) { 
+    photoEvents.fire(item.md5sum);
+    prepareMapButton();
+  });
+  // scroll once load is complete:
+  // gallery.listen('afterChange', function() {
+  //   var itemId = gallery.currItem.id;
+  //   scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
+  // });
+
+  // create variable that will store real size of viewport
+  var realViewportWidth,
+    useLargeImages = false,
+    firstResize = true,
+    imageSrcWillChange;
+
+  /* this 'responsive' code is copied directly from photoswipe.com */
+  // beforeResize event fires each time size of gallery viewport updates
+  gallery.listen('beforeResize', function() {
+
+    // calculate real pixels when size changes
+    realViewportWidth = gallery.viewportSize.x * window.devicePixelRatio;
+
+    // Find out if current images need to be changed
+    if(useLargeImages && realViewportWidth < 1000) {
+      useLargeImages = false;
+      imageSrcWillChange = true;
+    } else if(!useLargeImages && realViewportWidth >= 1000) {
+      useLargeImages = true;
+      imageSrcWillChange = true;
+    }
+
+    // Invalidate items only when source is changed and when it's not the first update
+    if(imageSrcWillChange && !firstResize) {
+      // invalidateCurrItems sets a flag on slides that are in DOM,
+      // which will force update of content (image) on window.resize.
+      gallery.invalidateCurrItems();
+    }
+
+    if(firstResize) 
+      firstResize = false;
+
+    imageSrcWillChange = false;
+
+  });
+
+  // gettingData event fires each time PhotoSwipe retrieves image source & size
+  gallery.listen('gettingData', function(index, item) {
+    // Set image source & size based on real viewport width,
+    // but only if the scaled images actuallly exist:
+    if( useLargeImages || item.scaled !== null ) {
+      item.src = item.full.name;
+      item.w = item.full.width;
+      item.h = item.full.height;
+    } else {
+      item.src = item.scaled.name;
+      item.w = item.scaled.width;
+      item.h = item.scaled.height;
+    }
+  });
+  
+  gallery.listen('close', function() {
+    closeCallback();
+  });
+
+  // close gallery, center on pin
+  // and zoom map on button click:
+  $('.pswp__button--mapIt').on('click touchstart', function(e) {
+    e.stopPropagation()
+    // map.centerPin(gallery.currItem.id);
+    // currentZoom = map.getZoom();
+    // if (currentZoom < 18 ) 
+    //   map.zoom(18);
+    // timeout is only way I can find to prevent touch
+    // from causing picture below map icon to immediately
+    // load a new gallery:
+    setTimeout(function() {
+      gallery.close(); 
+    }, 250);
+  });
+
+  // and initialize:
+  console.log('about to init');
+  gallery.init();
+
+};
