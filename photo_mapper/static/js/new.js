@@ -17,7 +17,7 @@
 */
 
 var photoEvents = $.Callbacks();
-
+photoEvents.add(function() { console.log('photoEvents fired');});
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
@@ -304,15 +304,23 @@ class PhotoSwipeContainer extends React.Component {
   }
 
   handleClose() {
+    console.log('closed called');
     this.setState({isOpen: false})
+    console.log('after setstate false in close: ', this.state);
+
   }
 
   handleEvent(e) {
     var curPhoto = this.photoArray.find(function(photo) {
       return photo.id == e;
     });
-    if (!this.state.isOpen) {
-      openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this));
+    console.log('pre if statement state: ', this.state);
+    if (this.state.isOpen === false) {
+      this.setState({isOpen: true}, function() {
+        openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this));  
+      }.bind(this));
+      console.log('after set state true: ', this.state);
+      
     }
   }
 
@@ -466,10 +474,12 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
     else 
       $('.pswp__button--mapIt').css('display', 'none');
   };
-  gallery.listen('beforeChange', function(index, item) { 
-    photoEvents.fire(item.md5sum);
+
+  gallery.listen('beforeChange', function() { 
+    photoEvents.fire(gallery.currItem.id);
     prepareMapButton();
   });
+
   // scroll once load is complete:
   // gallery.listen('afterChange', function() {
   //   var itemId = gallery.currItem.id;
