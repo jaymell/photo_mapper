@@ -16,8 +16,10 @@
  -- change color on photoSwipe open 
 */
 
+
 var photoEvents = $.Callbacks();
-photoEvents.add(function() { console.log('photoEvents fired');});
+var photoSwipeMapButtonEvents = $.Callbacks();
+
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
@@ -52,18 +54,6 @@ function setPinColor(pinColor) {
 };
 
 
-function plusOrMinus() {
-  return Math.random() < 0.5 ? -1 : 1
-}
-
-
-function jitter(zoom) {
-  var numerator = Math.random() * plusOrMinus();
-  var denominator = Math.pow(zoom, 3);
-  return zoom < 18 ? numerator/denominator : 0;
-};
-
-
 class MapContainer extends React.Component {
   constructor(props) {
     super(props);
@@ -93,14 +83,23 @@ class Map extends React.Component {
   constructor(props) {
     super(props);
     this.state = { initialized: false, map: null };
-    this.markers = {};
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.activePhoto != this.props.activePhoto ) {
-      if (this.markers[this.props.activePhoto]) {
-        this.markers[this.props.activePhoto]();
+  // hackish way to avoid having to pass around
+  // more state just to zoom on the damn marker:
+  handlePhotoSwipeMapButton(id) {
+    let locale = null;
+    for(let i=0; i<this.props.data.length; i++) {
+      let item = this.props.data[i];
+      if(item.md5sum == id) {
+        locale = new google.maps.LatLng(item.latitude, item.longitude);
       }
+    }
+    if (locale) {
+      this.state.map.setCenter(locale);
+      if (this.state.map.getZoom() < 18 ) {
+        this.state.map.setZoom(18);
+      }      
     }
   }
 
@@ -111,14 +110,13 @@ class Map extends React.Component {
       zoom: 4,
       minZoom: 2,
       keyboardShortcuts: false,
-      // HYBRID like SATELLITE, but shows labels:
       mapTypeId: google.maps.MapTypeId.ROADMAP // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
-    this.setState({ map: new google.maps.Map(this.refs.mapCanvas, mapOptions) });
-
-    // this.markerObj = {};
-    this.setState({initialized: true});
-
+    photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton.bind(this));
+    this.setState({ 
+      map: new google.maps.Map(this.refs.mapCanvas, mapOptions), 
+      initialized: true 
+    });
   }
 
   componentDidMount() {
@@ -133,7 +131,7 @@ class Map extends React.Component {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker index={i} markers={this.markers} map={this.state.map} photo={p} key={p.md5sum} md5sum={p.md5sum}></Marker>
+          <Marker activePhoto={this.props.activePhoto} map={this.state.map} photo={p} key={p.md5sum}></Marker>
         );
       }
     }.bind(this));
@@ -153,34 +151,25 @@ class Marker extends React.Component {
   constructor(props) {
     super(props);
     this.state = {initialized: false};
-    let selectedColor = '#671780';
-    let basePinColor = 'FE7569';
-    let changedPinColor = '8169fe';
-    this.basePin = setPinColor(basePinColor);
-    this.changedPin = setPinColor(changedPinColor);
+    this.basePin = setPinColor('FE7569');
+    this.changedPin = setPinColor('8169fe');
   }
 
   changePin() {
     // change pin color
-    this.marker.setIcon(this.changedPin);    
+    this.marker.setIcon(this.changedPin);
   }
 
   onClick() {
-    // put clicked item at top of list:
-    this.changePin();
     photoEvents.fire(this.props.photo.md5sum);
   }
 
-  // take an array, parse it for photos with coordinates,
-  // add them to map, and add call to magnific photo:
-  addPin() {
+  initialize() {
     console.log('adding pin');
     let map = this.props.map;
     let photo = this.props.photo;
-    let zoom = map.getZoom();
-    let longitude = photo.longitude ? photo.longitude : null;
-    var latitude = photo.latitude ? photo.latitude : null;
-    // only if photo actually has coordinates:
+    let longitude = photo.longitude;
+    var latitude = photo.latitude;
     this.marker = new google.maps.Marker({
       position: new google.maps.LatLng(
         latitude,
@@ -194,31 +183,22 @@ class Marker extends React.Component {
         this.setIcon(this.changedPin);
       }
     });
-
     this.marker.addListener('click', this.onClick.bind(this));
-    // this is dumb -- add changePin method to parents' object so it can be called from there:
-    this.props.markers[this.props.md5sum] = this.changePin.bind(this);
     this.setState({initialized: true});
-
-    //   // add to assoc array:
-    // markerObj[marker.md5sum] = marker;  
-    // // do stuff when clicked:
-    // marker.addListener('click', function() {
-    //   // put clicked item at top of list:
-    //   // scrollToSelected($('#mapLeft'), $('#'+marker.md5sum+'-img'));
-    //   // change pin color
-    //   marker.setIcon(changedPin);
-    //   // open the appropriate photo, 
-    //   // based on array index:
-    //   openPhotoSwipe(index);
-    // });
   }
+
+  // shouldComponentUpdate(nextProps, nextState) {
+  //   return this.props.value !== nextProps.value;
+  // }
 
   componentDidUpdate(prevProps) {
     if (this.props.map) {
       if (!this.state.initialized) {
-        this.addPin()
+        this.initialize()
       }
+    }
+    if (this.props.activePhoto == this.props.photo.md5sum) {
+      this.changePin();
     }
   }
 
@@ -545,6 +525,7 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
   // and zoom map on button click:
   $('.pswp__button--mapIt').on('click touchstart', function(e) {
     e.stopPropagation()
+    photoSwipeMapButtonEvents.fire(gallery.currItem.id);
     // map.centerPin(gallery.currItem.id);
     // currentZoom = map.getZoom();
     // if (currentZoom < 18 ) 
