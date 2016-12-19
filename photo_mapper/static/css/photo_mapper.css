@@ -31,13 +31,6 @@ html, body {
     }
 }
 
-#mapRight {
-	height: 90%;
-	float: right;
-	width: 10px;
-}
-
-
 .thumbnail {
 	margin: 1px;
 	cursor: pointer;

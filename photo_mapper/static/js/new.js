@@ -1,23 +1,11 @@
-// TODO
-/* 
-3 events:
-1) photoSwipe open
-2) marker click
-3) photoList click
 
-. photoswipe
- -- open on marker click DONE
- -- open on photoList click DONE
-. photoList
- -- scroll to photo on photoSwipe open DONE
- -- scroll to photo on marker click DONE
-. marker
- -- change color on photoList click DONE
- -- change color on photoSwipe open 
-*/
-
-
+// handle events when markers or photoList are clicked,
+// or when scrolling happens within photoSwipe:
 var photoEvents = $.Callbacks();
+// handle events for clicking on map button that
+// shows in photoswipe display for geo-tagged photos;
+// handled separately b/c I only want auto-zoom ( and 
+// maybe center) to happen in this case:
 var photoSwipeMapButtonEvents = $.Callbacks();
 
 // pass it the name of the container div and the
@@ -314,7 +302,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.pollInterval = 30000;
-    this.state = { data: null , url: this.props.url, mapIsVisible: true};
+    this.state = { data: null , url: this.props.url, mapIsVisible: false};
   }
 
   poll() {
@@ -526,10 +514,6 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
   $('.pswp__button--mapIt').on('click touchstart', function(e) {
     e.stopPropagation()
     photoSwipeMapButtonEvents.fire(gallery.currItem.id);
-    // map.centerPin(gallery.currItem.id);
-    // currentZoom = map.getZoom();
-    // if (currentZoom < 18 ) 
-    //   map.zoom(18);
     // timeout is only way I can find to prevent touch
     // from causing picture below map icon to immediately
     // load a new gallery:
