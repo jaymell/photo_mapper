@@ -1,4 +1,3 @@
-
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
 var photoEvents = $.Callbacks();
@@ -74,7 +73,7 @@ class Map extends React.Component {
   }
 
   // hackish way to avoid having to pass around
-  // more state just to zoom on the damn marker:
+  // more state just to zoom on the marker:
   handlePhotoSwipeMapButton(id) {
     let locale = null;
     for(let i=0; i<this.props.data.length; i++) {
@@ -202,7 +201,7 @@ class PhotoList extends React.Component {
   }
 
   handleEvent(e) {
-    scrollToSelected($('.PhotoList'), $('#'+e));
+    scrollToSelected($('.photoList'), $('#'+e));
   }
 
   componentWillMount() {
@@ -221,7 +220,7 @@ class PhotoList extends React.Component {
     }.bind(this));
 
     return (
-      <div className="PhotoList">
+      <div className="photoList">
         {Photos}
       </div>
     );
@@ -240,7 +239,7 @@ class Photo extends React.Component {
 
   render() {
     return (
-      <div className="ListItem" id={this.props.photo.md5sum} >
+      <div className="listItem" id={this.props.photo.md5sum} >
           <img onClick={this._onClick.bind(this)} className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
           </img>
       </div>
@@ -297,12 +296,40 @@ class PhotoSwipeContainer extends React.Component {
   }
 }
 
+class NavBar extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <div className="header" onClick={this.props.toggleMap} >
+        <MapToggler/>
+      </div>
+    );
+  }
+}
+
+
+class MapToggler extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
+  render() {
+    return (
+      <button className="mapToggler" type="button">Toggle Map</button>
+    );
+  }
+}
+
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.pollInterval = 30000;
     this.state = { data: null , url: this.props.url, mapIsVisible: false};
+    this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
 
   poll() {
@@ -329,12 +356,46 @@ class App extends React.Component {
     this.setState({ url: url })
   }
 
+  // media query change
+  orientationChange(mq) {
+    if (mq.matches) {
+      // landscape
+      console.log('matches landscape');
+      $('.photoList').css({
+        'float': 'left',
+        'height': '100%',
+        'margin-left': '1%',
+        'overflow': 'auto',
+        'width': '140px'
+      });
+    } else {
+      // portrait
+      console.log('matches portrait');
+      $('.photoList').css({
+        'overflow-x': 'scroll',
+        'overflow-y': 'hidden',
+        'width': 'auto',
+        'white-space': 'nowrap'
+      });
+    }
+  }
+
+
   toggleMap() {
     if ( this.state.mapIsVisible ) {
-      this.setState({mapIsVisible: false })      
+      this.setState({mapIsVisible: false })
+      this.mediaquery.removeListener(this.orientationChange);
+      // and actually remove any previous styles
+      $('.photoList').css({
+        'overflow': 'none',
+        'width': '100%',
+        'height': '100%'
+      });      
     }
     else {
       this.setState({mapIsVisible: true })
+      this.orientationChange(this.mediaquery);
+      this.mediaquery.addListener(this.orientationChange);
     }
 
   }
@@ -354,7 +415,8 @@ class App extends React.Component {
     else { 
       return (
         <div>
-          <PhotoList data={this.state.data} />
+          <NavBar toggleMap={this.toggleMap.bind(this)} />
+          <PhotoList ref="photoList" data={this.state.data} />
           <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
           <PhotoSwipeContainer data={this.state.data} />
         </div>
@@ -365,7 +427,7 @@ class App extends React.Component {
 
 
 ReactDOM.render(
-  <App url="/api/users/8/photos" />,
+  <App url="/api/users/8/photos"/>,
   document.getElementById('content')
 );
 
