@@ -215,7 +215,7 @@ class PhotoList extends React.Component {
   render() {
     var Photos = this.props.data.map(function(p) {
       return (
-        <Photo onPhotoClick={this.onPhotoClick} photo={p} key={p.md5sum}></Photo>
+        <Photo onPhotoClick={this.onPhotoClick} photo={p} key={p.md5sum} size={this.props.photoSize}></Photo>
       );
     }.bind(this));
 
@@ -238,9 +238,17 @@ class Photo extends React.Component {
   }
 
   render() {
+    let photo = this.props.photo[this.props.size];
     return (
       <div className="listItem" id={this.props.photo.md5sum} >
-          <img onClick={this._onClick.bind(this)} className="thumbnail" src={this.props.photo.small.name} height={this.props.photo.small.height} width={this.props.photo.small.width}> 
+          <img onClick={this._onClick.bind(this)} 
+               className="thumbnail" 
+               src={photo.name}
+               // height={photo.height < photo.width ? (photo.height + photo.height/3) : photo.height} 
+               // width={photo.height < photo.width ? (photo.width + photo.width/3) : photo.width} 
+               height={photo.height}
+               width={photo.width}
+            >
           </img>
       </div>
     );
@@ -271,23 +279,17 @@ class PhotoSwipeContainer extends React.Component {
   }
 
   handleClose() {
-    console.log('closed called');
     this.setState({isOpen: false})
-    console.log('after setstate false in close: ', this.state);
-
   }
 
   handleEvent(e) {
     var curPhoto = this.photoArray.find(function(photo) {
       return photo.id == e;
     });
-    console.log('pre if statement state: ', this.state);
     if (this.state.isOpen === false) {
       this.setState({isOpen: true}, function() {
         openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this));  
       }.bind(this));
-      console.log('after set state true: ', this.state);
-      
     }
   }
 
@@ -295,6 +297,7 @@ class PhotoSwipeContainer extends React.Component {
     return null;
   }
 }
+
 
 class NavBar extends React.Component {
   constructor(props) {
@@ -305,6 +308,7 @@ class NavBar extends React.Component {
     return (
       <div className="header" onClick={this.props.toggleMap} >
         <MapToggler/>
+        <div className="spacer"></div>
       </div>
     );
   }
@@ -328,8 +332,17 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.pollInterval = 30000;
-    this.state = { data: null , url: this.props.url, mapIsVisible: false};
+    this.state = { data: null , url: this.props.url, mapIsVisible: false, photoSize: 'thumbnail' };
     this.mediaquery = window.matchMedia("(orientation:landscape)");
+  }
+
+  // sort array by date
+  // prior to setting state
+  initData(data) {
+    let sorted = data.sort(function(a,b) {
+      return new Date(a.date) - new Date(b.date);
+    });
+    this.setState({ data: sorted });    
   }
 
   poll() {
@@ -343,7 +356,7 @@ class App extends React.Component {
             xhr.setRequestHeader("Authorization", "Basic " + btoa("eyJhbGciOiJIUzI1NiIsImV4cCI6MjQ4MTQwNTQzNCwiaWF0IjoxNDgxNDA1NDM1fQ.eyJ1c2VyX2lkIjo4fQ.QJgTpuHlzMgJ9eq7YA_ZSIntduv8daEkJE-bCr-za8Y:"))
         },
         success: function(data) {
-          this.setState({ data: data });
+          this.initData(data);
         }.bind(this),
         error: function(xhr, status, err) {
           console.error(this.state.url, status, err.toString());
@@ -366,9 +379,7 @@ class App extends React.Component {
         'height': '100%',
         // 'margin-left': '1%',
         'overflow': 'auto',
-        // 'overflow-x': 'visible',
-        // 'overflow-y': 'visible',
-        'width': '110px',
+        'width': '120px',
         'white-space': 'normal'
       });
     } else {
@@ -390,6 +401,7 @@ class App extends React.Component {
   toggleMap() {
     if ( this.state.mapIsVisible ) {
       this.setState({mapIsVisible: false })
+      this.setState({photoSize: 'thumbnail'})
       this.mediaquery.removeListener(this.orientationChange);
       // and actually remove any previous styles:
       $('.photoList').css({
@@ -403,6 +415,7 @@ class App extends React.Component {
     }
     else {
       this.setState({mapIsVisible: true })
+      this.setState({photoSize: 'small'})
       this.orientationChange(this.mediaquery);
       this.mediaquery.addListener(this.orientationChange);
     }
@@ -425,7 +438,7 @@ class App extends React.Component {
       return (
         <div>
           <NavBar toggleMap={this.toggleMap.bind(this)} />
-          <PhotoList ref="photoList" data={this.state.data} />
+          <PhotoList ref="photoList" data={this.state.data} photoSize={this.state.photoSize} />
           <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
           <PhotoSwipeContainer data={this.state.data} />
         </div>

@@ -31,10 +31,7 @@ class PhotoSchema(marsh.Schema):
   longitude = marsh.Float()
   date = marsh.String()
   albums = marsh.Nested('AlbumSchema', many=True, only=('album_id',))
-  # for getting individual sizes -- may be better way to do this, but
-  # this is the first working way I've found to get sizes as attributes
-  # of photo rather than just an unordered list of sizes that requires iteration:
-  sizes = marsh.Nested(PhotoSizeSchema, many=True)
+  # sizes = marsh.Nested(PhotoSizeSchema, many=True)
   thumbnail = marsh.Function(lambda x: PhotoSchema.get_size(x, 'thumbnail'))
   full = marsh.Function(lambda x: PhotoSchema.get_size(x, 'full'))
   small = marsh.Function(lambda x: PhotoSchema.get_size(x, 'small'))

@@ -4,69 +4,71 @@
 }
 
 html, body {
-	margin: 0;
-	height: 100%;
-}
-
-.mapCanvas { 
-	height: 100%;
+  margin: 0;
+  height: 100%;
 }
 
 /*@media all and (orientation:landscape) {
-	.photoList {
-		float: left;	
-		height: 100%;
-		margin-left: 1%;
-		overflow: auto; 
-		width: 140px; 
-	}
+  .photoList {
+    float: left;  
+    height: 100%;
+    margin-left: 1%;
+    overflow: auto; 
+    width: 140px; 
+  }
 }
 
 @media all and (orientation:portrait) {
     .photoList {
         overflow-x: scroll;
         overflow-y: hidden;
-		width: auto; 
-		white-space: nowrap;
+    width: auto; 
+    white-space: nowrap;
     }
 }
 */
 
 .thumbnail {
-	margin: 1px;
-	cursor: pointer;
-	cursor: hand;
+  margin: 1px;
+  cursor: pointer;
+  cursor: hand;
 }
 
 .border {
-	width: 100%;
-	height: 5%;
+  width: 100%;
+  height: 5%;
 }
 
 .pswp__bg {
-	opacity: .7 !important; 
+  opacity: .7 !important; 
 }
 
 .pswp__img--placeholder--blank  {
-	opacity: 0 !important;
+  opacity: 0 !important;
 }
 
 .listItem {
-	display: inline-block;
-	text-align: center;
-	font-weight: bold;
+  display: inline-block;
+  text-align: center;
+  font-weight: bold;
 }
 
 .header {
-    background: #bf2148;
-	position: fixed;
-	top: 0;
-	right: 0;
-	z-index: 2000;
-	width: 100%;
-	opacity: .8;
+/*  background: #bf2148;
+*/  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 100%;
 }
 
 .mapToggler {
-	float: right;
+  float: right;
+  margin: 10px;
+  padding: 10px;
 }
+
+.mapCanvas { 
+  height: 100%;
+}
+
