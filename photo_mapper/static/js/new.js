@@ -364,17 +364,23 @@ class App extends React.Component {
       $('.photoList').css({
         'float': 'left',
         'height': '100%',
-        'margin-left': '1%',
+        // 'margin-left': '1%',
         'overflow': 'auto',
-        'width': '140px'
+        // 'overflow-x': 'visible',
+        // 'overflow-y': 'visible',
+        'width': '110px',
+        'white-space': 'normal'
       });
     } else {
       // portrait
       console.log('matches portrait');
       $('.photoList').css({
+        'float': 'none',
         'overflow-x': 'scroll',
         'overflow-y': 'hidden',
+        'overflow': 'auto',
         'width': 'auto',
+        'height': 'auto',
         'white-space': 'nowrap'
       });
     }
@@ -385,11 +391,14 @@ class App extends React.Component {
     if ( this.state.mapIsVisible ) {
       this.setState({mapIsVisible: false })
       this.mediaquery.removeListener(this.orientationChange);
-      // and actually remove any previous styles
+      // and actually remove any previous styles:
       $('.photoList').css({
-        'overflow': 'none',
-        'width': '100%',
-        'height': '100%'
+        'overflow': 'auto',
+        'overflow-x': 'visible',
+        'overflow-y': 'visible',
+        'width': 'auto',
+        'height': 'auto',
+        'white-space': 'normal'
       });      
     }
     else {
