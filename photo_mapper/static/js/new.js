@@ -306,11 +306,23 @@ class NavBar extends React.Component {
 
   render() {
     return (
-      <div className="header" onClick={this.props.toggleMap} >
-        <MapToggler/>
-        <div className="spacer"></div>
-      </div>
+      <nav className="navbar navbar-default navbar-fixed-top navbar-light bg-faded">
+        <Logo src="/static/lib/img/logo.png" width="35px" height="50px" />
+        <MapToggler toggleMap={this.props.toggleMap} />
+      </nav>
     );
+  }
+}
+
+class Logo extends React.Component {
+  constructor(props) {
+    super(props);
+  }  
+
+  render() {
+    return (
+        <img className="img-thumbnail logo" src={this.props.src} width={this.props.width} height={this.props.height} ></img>
+    )
   }
 }
 
@@ -322,7 +334,7 @@ class MapToggler extends React.Component {
 
   render() {
     return (
-      <button className="mapToggler" type="button">Toggle Map</button>
+      <button onClick={this.props.toggleMap} className="mapToggler btn btn-default" type="button">Toggle Map</button>
     );
   }
 }
@@ -331,7 +343,6 @@ class MapToggler extends React.Component {
 class App extends React.Component {
   constructor(props) {
     super(props);
-    this.pollInterval = 30000;
     this.state = { data: null , url: this.props.url, mapIsVisible: false, photoSize: 'thumbnail' };
     this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
@@ -379,7 +390,7 @@ class App extends React.Component {
         'height': '100%',
         // 'margin-left': '1%',
         'overflow': 'auto',
-        'width': '120px',
+        'width': '130px',
         'white-space': 'normal'
       });
     } else {
@@ -400,6 +411,7 @@ class App extends React.Component {
 
   toggleMap() {
     if ( this.state.mapIsVisible ) {
+      console.log('toggleMap triggered -- turning map OFF');
       this.setState({mapIsVisible: false })
       this.setState({photoSize: 'thumbnail'})
       this.mediaquery.removeListener(this.orientationChange);
@@ -414,6 +426,7 @@ class App extends React.Component {
       });      
     }
     else {
+      console.log('toggleMap triggered -- turning map ON');
       this.setState({mapIsVisible: true })
       this.setState({photoSize: 'small'})
       this.orientationChange(this.mediaquery);
@@ -424,7 +437,7 @@ class App extends React.Component {
 
   startPolling() {
     console.log('starting polling')
-    setInterval(this.poll.bind(this), this.pollInterval);
+    setInterval(this.poll.bind(this), this.props.pollInterval);
   }
 
   componentDidMount() {
@@ -449,7 +462,7 @@ class App extends React.Component {
 
 
 ReactDOM.render(
-  <App url="/api/users/8/photos"/>,
+  <App url="/api/users/8/photos" pollInterval="1800000"/>,
   document.getElementById('content')
 );
 
