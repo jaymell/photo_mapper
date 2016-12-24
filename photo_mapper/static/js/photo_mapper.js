@@ -11,21 +11,11 @@ var photoSwipeMapButtonEvents = $.Callbacks();
 // item div you want to move to top of list:
 var scrollToSelected = function($ctDiv, $itDiv) {
   var scrollSpeed = 250;
-  // portrait
-  if (window.orientation == 0 || window.innerHeight > window.innerWidth ) {
-        $ctDiv.animate({
-           scrollLeft: $itDiv.offset().left 
-            + $ctDiv.scrollLeft() 
-            - $ctDiv.offset().left
-        }, scrollSpeed);
-  // landscape
-  } else {
-       $ctDiv.animate({ 
-      scrollTop: $itDiv.offset().top 
-            + $ctDiv.scrollTop() 
-            - $ctDiv.offset().top
-       }, scrollSpeed);
-  }
+  $ctDiv.animate({
+     scrollLeft: $itDiv.offset().left 
+      + $ctDiv.scrollLeft() 
+      - $ctDiv.offset().left
+  }, scrollSpeed);
 };
 
 
@@ -69,7 +59,7 @@ class MapContainer extends React.Component {
 class Map extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { initialized: false, map: null };
+    this.state = { initialized: false };
   }
 
   // hackish way to avoid having to pass around
@@ -83,14 +73,15 @@ class Map extends React.Component {
       }
     }
     if (locale) {
-      this.state.map.setCenter(locale);
-      if (this.state.map.getZoom() < 18 ) {
-        this.state.map.setZoom(18);
+      this.map.setCenter(locale);
+      if (this.map.getZoom() < 18 ) {
+        this.map.setZoom(18);
       }      
     }
   }
 
   initialize() {
+    setMapSize();
     let locale = new google.maps.LatLng(30,0);
     let mapOptions = {
       center: locale,
@@ -100,19 +91,22 @@ class Map extends React.Component {
       mapTypeId: google.maps.MapTypeId.ROADMAP // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
     photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton.bind(this));
-    this.setState({ 
-      map: new google.maps.Map(this.refs.mapCanvas, mapOptions), 
-      initialized: true 
-    });
+    this.map = new google.maps.Map(this.refs.mapCanvas, mapOptions), 
+    this.setState({initialized: true});
   }
 
   componentDidMount() {
     if (!this.state.initialized) {
       console.log('initializing');
       this.initialize();
-      // properly size map on load:
-      $(window).resize(setMapSize).resize();
+      // properly size map on resize:
+      $(window).resize(setMapSize);
     }
+  }
+
+  componentWillUnmount() {
+    console.log('removing map');
+    this.map = null;
   }
 
   render() {
@@ -120,7 +114,7 @@ class Map extends React.Component {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker activePhoto={this.props.activePhoto} map={this.state.map} photo={p} key={p.md5sum}></Marker>
+          <Marker activePhoto={this.props.activePhoto} map={this.map} photo={p} key={p.md5sum}></Marker>
         );
       }
     }.bind(this));
@@ -176,9 +170,10 @@ class Marker extends React.Component {
     this.setState({initialized: true});
   }
 
-  // shouldComponentUpdate(nextProps, nextState) {
-  //   return this.props.value !== nextProps.value;
-  // }
+  componentWillUnmount() {
+    console.log('removing marker');
+    this.marker.setMap(null);
+  }
 
   componentDidUpdate(prevProps) {
     if (this.props.map) {
@@ -210,8 +205,6 @@ class PhotoList extends React.Component {
     photoEvents.add(this.handleEvent.bind(this));
   }
 
-  componentDidUpdate() {
-  }
   onPhotoClick(photoId) {
     photoEvents.fire(photoId);
   }
@@ -248,8 +241,6 @@ class Photo extends React.Component {
           <img onClick={this._onClick.bind(this)} 
                className="thumbnail img-responsive" 
                src={photo.name}
-               // height={photo.height < photo.width ? (photo.height + photo.height/3) : photo.height} 
-               // width={photo.height < photo.width ? (photo.width + photo.width/3) : photo.width} 
             >
           </img>
       </div>
@@ -278,6 +269,7 @@ class PhotoSwipeContainer extends React.Component {
     });
     // subscribe to events:
     photoEvents.add(this.handleEvent.bind(this));
+    // set list width to change on resize:
   }
 
   handleClose() {
@@ -309,8 +301,23 @@ class NavBar extends React.Component {
   render() {
     return (
       <nav className="navbar navbar-default navbar-fixed-top navbar-light bg-faded">
-        <Logo src="/static/lib/img/logo.png" width="35px" height="50px" />
-        <MapToggler toggleMap={this.props.toggleMap} />
+        <button className="navbar-toggle" 
+                type="button" 
+                data-toggle="collapse"
+                data-target="#navbarResponsive"
+        >
+        <span className="icon-bar"></span>
+        <span className="icon-bar"></span>
+        <span className="icon-bar"></span>       
+        </button>
+        <Logo src="/static/lib/img/logo.png" width="30px" height="40px" />
+        <div className="collapse navbar-collapse" id="navbarResponsive">
+          <ul className="nav navbar-nav navbar-right">
+            <li className="nav-item">
+              <MapToggler toggleMap={this.props.toggleMap} />
+            </li>
+          </ul>
+        </div>
       </nav>
     );
   }
@@ -323,7 +330,7 @@ class Logo extends React.Component {
 
   render() {
     return (
-        <img className="img-thumbnail logo" src={this.props.src} width={this.props.width} height={this.props.height} ></img>
+        <img className="img-thumbnail logo navbar-left" src={this.props.src} width={this.props.width} height={this.props.height} ></img>
     )
   }
 }
@@ -336,7 +343,7 @@ class MapToggler extends React.Component {
 
   render() {
     return (
-      <button onClick={this.props.toggleMap} className="mapToggler btn btn-default" type="button">Toggle Map</button>
+      <button onClick={this.props.toggleMap} className="mapToggler btn btn-default nav-item" type="button">Toggle Map</button>
     );
   }
 }
@@ -382,42 +389,11 @@ class App extends React.Component {
     this.setState({ url: url })
   }
 
-  // media query change
-  orientationChange(mq) {
-    if (mq.matches) {
-      // landscape
-      console.log('matches landscape');
-      $('.photoList').css({
-        'float': 'left',
-        'height': '100%',
-        'overflow': 'auto',
-        'width': '130px',    
-        'white-space': 'normal',
-        'position': 'absolute'
-      });
-    } else {
-      // portrait
-      console.log('matches portrait');
-      $('.photoList').css({
-        'float': 'none',
-        'overflow-x': 'scroll',
-        'overflow-y': 'hidden',
-        'overflow': 'auto',
-        'width': 'auto',
-        'height': 'auto',
-        'white-space': 'nowrap',
-        'position': 'initial'
-      });
-    }
-  }
-
-
   toggleMap() {
     if ( this.state.mapIsVisible ) {
       console.log('toggleMap triggered -- turning map OFF');
       this.setState({mapIsVisible: false })
       this.setState({photoSize: 'thumbnail'})
-      this.mediaquery.removeListener(this.orientationChange);
       // and actually remove any previous styles:
       $('.photoList').css({
         'overflow': 'auto',
@@ -425,15 +401,44 @@ class App extends React.Component {
         'overflow-y': 'visible',
         'width': 'auto',
         'height': 'auto',
-        'white-space': 'normal'
+        'white-space': 'normal',
+        'position': 'relative',
+        'bottom': 'initial',
+        'z-index': 'initial',
+        'left': 'initial',
+        'margin-left': 'initial'
       });      
     }
     else {
       console.log('toggleMap triggered -- turning map ON');
       this.setState({mapIsVisible: true })
       this.setState({photoSize: 'small'})
-      this.orientationChange(this.mediaquery);
-      this.mediaquery.addListener(this.orientationChange);
+
+      // ensures width of horizontal list is 
+      // only as long as multiple of whole image
+      // and centers it:
+      var imageWidth = 110;
+      var w  = $(window).width() - ($(window).width() % imageWidth );
+      var leftMargin = -(w/2);      
+
+      $('.photoList').css({
+        'overflow-x': 'scroll',
+        'overflow-y': 'hidden',
+        'overflow': 'auto',
+        'height': 'auto',
+        'white-space': 'nowrap',
+        'position': 'fixed',
+        'bottom': '0',
+        'z-index': '1',
+        'left': '50%',
+        'margin-left': leftMargin
+      });
+
+      $(window).resize(setPhotoListSize).resize();
+      $('.photoList').bind('mousewheel', function(event, delta) {
+        this.scrollLeft -= (delta * 30);
+        event.preventDefault();
+      });
     }
 
   }
@@ -454,8 +459,8 @@ class App extends React.Component {
       return (
         <div>
           <NavBar toggleMap={this.toggleMap.bind(this)} />
-          <PhotoList ref="photoList" data={this.state.data} photoSize={this.state.photoSize} />
           <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+          <PhotoList ref="photoList" data={this.state.data} photoSize={this.state.photoSize} />
           <PhotoSwipeContainer data={this.state.data} />
         </div>
       );
@@ -511,27 +516,23 @@ var html = ' \
 
 $(document.body).append(html);
 
-
-// detect orientation change and make sure list
-// stays in proper location:
-$(window).on('orientationchange', function() {
-  var offset = {
-      scrollTop: $('#mapLeft').scrollTop(),
-      scrollLeft: $('#mapLeft').scrollLeft()
-  };
-  setTimeout(function() {
-    $('#mapLeft').scrollTop(offset.scrollLeft);
-    $('#mapLeft').scrollLeft(offset.scrollTop);
-  }, 500);
-});
-
-
 function setMapSize() {
+  console.log('called SetMapSize');
   var h = $(window).height();
   var offsetTop = 65; // Calculate the top offset
   $('.mapCanvas ').css('height', (h - offsetTop));
 }
 
+function setPhotoListSize() {
+  var imageWidth = 110;
+  var w  = $(window).width() - ($(window).width() % imageWidth );
+  var leftMargin = -(w/2);
+  $('.photoList').css({
+    'width': w,
+    'margin-left': leftMargin,
+    'left': '50%'
+  });
+}
 
 function openPhotoSwipe(photoArray, index, closeCallback) {
 
@@ -554,12 +555,6 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
     photoEvents.fire(gallery.currItem.id);
     prepareMapButton();
   });
-
-  // scroll once load is complete:
-  // gallery.listen('afterChange', function() {
-  //   var itemId = gallery.currItem.id;
-  //   scrollToSelected($('#mapLeft'), $('#'+itemId+'-img'));
-  // });
 
   // create variable that will store real size of viewport
   var realViewportWidth,
