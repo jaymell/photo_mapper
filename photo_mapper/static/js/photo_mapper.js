@@ -210,6 +210,8 @@ class PhotoList extends React.Component {
     photoEvents.add(this.handleEvent.bind(this));
   }
 
+  componentDidUpdate() {
+  }
   onPhotoClick(photoId) {
     photoEvents.fire(photoId);
   }
@@ -388,10 +390,10 @@ class App extends React.Component {
       $('.photoList').css({
         'float': 'left',
         'height': '100%',
-        // 'margin-left': '1%',
         'overflow': 'auto',
-        'width': '130px',
-        'white-space': 'normal'
+        'width': '130px',    
+        'white-space': 'normal',
+        'position': 'absolute'
       });
     } else {
       // portrait
@@ -403,7 +405,8 @@ class App extends React.Component {
         'overflow': 'auto',
         'width': 'auto',
         'height': 'auto',
-        'white-space': 'nowrap'
+        'white-space': 'nowrap',
+        'position': 'initial'
       });
     }
   }
