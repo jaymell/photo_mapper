@@ -48,7 +48,10 @@ class MapContainer extends React.Component {
   render() {
     if (this.props.mapIsVisible) {
       return (
-        <Map activePhoto={this.state.activePhoto} mapCanvas={this.refs.mapCanvas} data={this.props.data}></Map>
+        <Map activePhoto={this.state.activePhoto} 
+             mapCanvas={this.refs.mapCanvas} 
+             data={this.props.data}>
+        </Map>
       );
     }
     return null;
@@ -114,7 +117,11 @@ class Map extends React.Component {
       // only render marker if it actually has coordinates:
       if (p.longitude && p.latitude) {
         return (
-          <Marker activePhoto={this.props.activePhoto} map={this.map} photo={p} key={p.md5sum}></Marker>
+          <Marker activePhoto={this.props.activePhoto} 
+                  map={this.map} 
+                  photo={p} 
+                  key={p.md5sum}>
+          </Marker>
         );
       }
     }.bind(this));
@@ -330,7 +337,11 @@ class Logo extends React.Component {
 
   render() {
     return (
-        <img className="img-thumbnail logo navbar-left" src={this.props.src} width={this.props.width} height={this.props.height} ></img>
+        <img className="img-thumbnail logo navbar-left" 
+             src={this.props.src} 
+             width={this.props.width} 
+             height={this.props.height} >
+       </img>
     )
   }
 }
@@ -343,7 +354,11 @@ class MapToggler extends React.Component {
 
   render() {
     return (
-      <button onClick={this.props.toggleMap} className="mapToggler btn btn-default nav-item" type="button">Toggle Map</button>
+      <button onClick={this.props.toggleMap} 
+              className="mapToggler btn btn-default nav-item" 
+              type="button">
+              Toggle Map
+      </button>
     );
   }
 }
