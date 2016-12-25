@@ -1,6 +1,15 @@
+var PhotoSwipe = require('photoswipe/dist/photoswipe.js');
+var PhotoSwipeUI_Default = require('photoswipe/dist/photoswipe-ui-default.js');
+var $ = jQuery = require('jquery-browserify');
+require('jquery-mousewheel')($);
+var React = require('react');
+var ReactDOM = require('react-dom');
+require('../css/app.css');
+
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
 var photoEvents = $.Callbacks();
+
 // handle events for clicking on map button that
 // shows in photoswipe display for geo-tagged photos;
 // handled separately b/c I only want auto-zoom ( and 
