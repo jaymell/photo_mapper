@@ -8,3 +8,4 @@ config
 photo_mapper/static/img
 photo_mapper/static/lib
 app.log
+photo_mapper/static/js/bundle.js

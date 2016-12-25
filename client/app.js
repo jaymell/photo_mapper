@@ -4,7 +4,7 @@ var $ = jQuery = require('jquery-browserify');
 require('jquery-mousewheel')($);
 var React = require('react');
 var ReactDOM = require('react-dom');
-require('../css/app.css');
+require('./app.css');
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
