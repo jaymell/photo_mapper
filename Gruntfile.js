@@ -2,9 +2,10 @@
 
 // init Grunt
 var grunt = require('grunt');
+require('load-grunt-tasks')(grunt);
 
 grunt.loadNpmTasks('grunt-browserify');
-grunt.loadNpmTasks('photoswipe');
+// grunt.loadNpmTasks('photoswipe');
 
 // define configuration
 grunt.initConfig({
@@ -21,8 +22,18 @@ grunt.initConfig({
           ]
         }
       }
+    },
+    shell: {
+        target: {
+          command: [
+            "./hack.sh",
+            'cd node_modules/photoswipe',
+            'npm i',
+            'grunt'
+     ].join('&&')
+        }
     }
 });
 
-grunt.registerTask('default', ['browserify']);
+grunt.registerTask('default', ['shell', 'browserify']);
 

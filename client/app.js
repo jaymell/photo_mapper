@@ -1,6 +1,7 @@
 var PhotoSwipe = require('photoswipe/dist/photoswipe.js');
 var PhotoSwipeUI_Default = require('photoswipe/dist/photoswipe-ui-default.js');
-var $ = jQuery = require('jquery-browserify');
+var $ = require('jquery');
+global.jQuery = require('jquery');
 require('jquery-mousewheel')($);
 var React = require('react');
 var ReactDOM = require('react-dom');
