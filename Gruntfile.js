@@ -5,7 +5,7 @@ var grunt = require('grunt');
 require('load-grunt-tasks')(grunt);
 
 grunt.loadNpmTasks('grunt-browserify');
-// grunt.loadNpmTasks('photoswipe');
+grunt.loadNpmTasks('grunt-contrib-watch');
 
 // define configuration
 grunt.initConfig({
@@ -32,7 +32,16 @@ grunt.initConfig({
             'grunt'
      ].join('&&')
         }
-    }
+    },
+    watch: {
+      scripts: {
+        files: ['client/*'],
+        tasks: ['browserify'],
+        options: {
+          spawn: false,
+        },
+      },
+    },
 });
 
 grunt.registerTask('default', ['shell', 'browserify']);

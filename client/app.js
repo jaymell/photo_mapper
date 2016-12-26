@@ -28,6 +28,10 @@ var scrollToSelected = function($ctDiv, $itDiv) {
   }, scrollSpeed);
 };
 
+function horizontalMouseWheelScroll(event, delta) {
+  this.scrollLeft -= (delta * 30);
+  event.preventDefault();
+}
 
 function setPinColor(pinColor) {
 // you want to append one of the above colors to this url:
@@ -432,7 +436,8 @@ class App extends React.Component {
         'z-index': 'initial',
         'left': 'initial',
         'margin-left': 'initial'
-      });      
+      });
+      $('.photoList').off('mousewheel', horizontalMouseWheelScroll);
     }
     else {
       console.log('toggleMap triggered -- turning map ON');
@@ -460,10 +465,7 @@ class App extends React.Component {
       });
 
       $(window).resize(setPhotoListSize).resize();
-      $('.photoList').bind('mousewheel', function(event, delta) {
-        this.scrollLeft -= (delta * 30);
-        event.preventDefault();
-      });
+      $('.photoList').on('mousewheel', horizontalMouseWheelScroll);
     }
 
   }
