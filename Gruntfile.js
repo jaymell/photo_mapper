@@ -6,6 +6,7 @@ require('load-grunt-tasks')(grunt);
 
 grunt.loadNpmTasks('grunt-browserify');
 grunt.loadNpmTasks('grunt-contrib-watch');
+grunt.loadNpmTasks('grunt-contrib-copy');
 
 // define configuration
 grunt.initConfig({
@@ -21,6 +22,12 @@ grunt.initConfig({
             [ 'browserify-css', { global: true } ]
           ]
         }
+      }
+    },
+    copy: {
+      main: {
+        src: 'node_modules/jquery-lazyload/jquery.lazyload.js',
+        dest: 'photo_mapper/static/lib/js/'
       }
     },
     shell: {

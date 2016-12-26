@@ -19,7 +19,7 @@ var photoSwipeMapButtonEvents = $.Callbacks();
 
 // pass it the name of the container div and the
 // item div you want to move to top of list:
-var scrollToSelected = function($ctDiv, $itDiv) {
+function scrollToSelected($ctDiv, $itDiv) {
   var scrollSpeed = 250;
   $ctDiv.animate({
      scrollLeft: $itDiv.offset().left 
@@ -32,6 +32,7 @@ function horizontalMouseWheelScroll(event, delta) {
   this.scrollLeft -= (delta * 30);
   event.preventDefault();
 }
+
 
 function setPinColor(pinColor) {
 // you want to append one of the above colors to this url:
@@ -219,11 +220,18 @@ class PhotoList extends React.Component {
   }
 
   handleEvent(e) {
-    scrollToSelected($('.photoList'), $('#'+e));
+    scrollToSelected($(this.refs.photoList), $('#'+e));
   }
 
   componentWillMount() {
     photoEvents.add(this.handleEvent.bind(this));
+  }
+
+  componentDidMount() {
+    $("img.lazy").lazyload({
+      effect: "fadeIn",
+      effectspeed: 500
+    });
   }
 
   onPhotoClick(photoId) {
@@ -238,7 +246,7 @@ class PhotoList extends React.Component {
     }.bind(this));
 
     return (
-      <div className="photoList">
+      <div className="photoList" ref="photoList">
         {Photos}
       </div>
     );
@@ -260,8 +268,11 @@ class Photo extends React.Component {
     return (
       <div className="listItem" id={this.props.photo.md5sum} >
           <img onClick={this._onClick.bind(this)} 
-               className="thumbnail img-responsive" 
-               src={photo.name}
+               className="thumbnail img-responsive lazy" 
+               data-original={photo.name}
+               src="http://placehold.it/350x150"
+               width={photo.width}
+               height={photo.height}
             >
           </img>
       </div>
@@ -391,7 +402,7 @@ class App extends React.Component {
     let sorted = data.sort(function(a,b) {
       return new Date(a.date) - new Date(b.date);
     });
-    this.setState({ data: sorted });    
+    this.setState({ data: sorted });
   }
 
   poll() {
@@ -421,7 +432,7 @@ class App extends React.Component {
   toggleMap() {
     if ( this.state.mapIsVisible ) {
       console.log('toggleMap triggered -- turning map OFF');
-      this.setState({mapIsVisible: false })
+      this.setState({mapIsVisible: false})
       this.setState({photoSize: 'thumbnail'})
       // and actually remove any previous styles:
       $('.photoList').css({
@@ -438,6 +449,10 @@ class App extends React.Component {
         'margin-left': 'initial'
       });
       $('.photoList').off('mousewheel', horizontalMouseWheelScroll);
+      $("img.lazy").lazyload({
+        effect: "fadeIn",
+        effectspeed: 500
+      });
     }
     else {
       console.log('toggleMap triggered -- turning map ON');
@@ -466,6 +481,9 @@ class App extends React.Component {
 
       $(window).resize(setPhotoListSize).resize();
       $('.photoList').on('mousewheel', horizontalMouseWheelScroll);
+      $("img.lazy").lazyload({
+        container: $('.photoList'),
+      });
     }
 
   }
