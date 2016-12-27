@@ -4,6 +4,7 @@
   "description": "map yourself some photos",
   "main": "python",
   "dependencies": {
+    "bootstrap": "^3.3.7",
     "jquery": "^3.1.1",
     "jquery-lazyload": "^1.9.7",
     "jquery-mousewheel": "^3.1.13",

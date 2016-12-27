@@ -24,12 +24,6 @@ grunt.initConfig({
         }
       }
     },
-    copy: {
-      main: {
-        src: 'node_modules/jquery-lazyload/jquery.lazyload.js',
-        dest: 'photo_mapper/static/lib/js/'
-      }
-    },
     shell: {
         target: {
           command: [

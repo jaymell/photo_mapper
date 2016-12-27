@@ -5,6 +5,8 @@ global.jQuery = require('jquery');
 require('jquery-mousewheel')($);
 var React = require('react');
 var ReactDOM = require('react-dom');
+require('../node_modules/bootstrap/dist/js/bootstrap.min.js')
+require('../node_modules/jquery-lazyload/jquery.lazyload.js')
 require('./app.css');
 
 // handle events when markers or photoList are clicked,
