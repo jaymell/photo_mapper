@@ -217,6 +217,8 @@ class Marker extends React.Component {
 class PhotoList extends React.Component {
   constructor(props) {
     super(props);
+    // required to properly handle 'off' method for resize event:
+    this.setPhotoListSize = this.setPhotoListSize.bind(this);
   }
 
   setStyle() {
@@ -258,9 +260,8 @@ class PhotoList extends React.Component {
   }
 
   setPhotoListSize() {
-    console.log('called setPhotoListSize');
+    console.log('called setPhotoListSize -- current width: ', $(this.refs.photoList).css('width'));
     // only do this if map is visible:
-    if (this.props.mapIsVisible) {
       var imageWidth = 100;
       var w  = $(window).width() - ($(window).width() % imageWidth );
       var leftMargin = -(w/2);
@@ -269,7 +270,7 @@ class PhotoList extends React.Component {
         'marginLeft': leftMargin,
         'left': '50%'
       });    
-    }
+    console.log('setPhotoListSize -- new width: ', $(this.refs.photoList).css('width'));
   }
 
   handleMapVisible() {
@@ -277,9 +278,8 @@ class PhotoList extends React.Component {
     this.setState({photoSize: 'small'});
     this.setStyle();
     $(this.refs.photoList).on('mousewheel', horizontalMouseWheelScroll);
-    // call and set it:
-    this.setPhotoListSize();
-    $(window).resize(this.setPhotoListSize.bind(this)).resize();
+    $(window).on('resize', this.setPhotoListSize);
+    setTimeout(function() { this.setPhotoListSize(); }.bind(this), 0);
     $("img.lazy").lazyload({
       container: $('.photoList'),
     });
@@ -290,6 +290,7 @@ class PhotoList extends React.Component {
     this.setState({photoSize: 'thumbnail'})
     this.setStyle();
     $(this.refs.photoList).off('mousewheel', horizontalMouseWheelScroll);
+    $(window).off('resize', this.setPhotoListSize);
     $("img.lazy").lazyload({
       effect: "fadeIn",
       effectspeed: 500
@@ -301,7 +302,7 @@ class PhotoList extends React.Component {
   }
 
   componentWillMount() {
-    console.log('photoList: componentWillMount called')
+    console.log('photoList: consructor called: ', this.props);
     photoEvents.add(this.handleEvent.bind(this));
     this.setStyle();
     if (this.props.mapIsVisible) {
@@ -310,12 +311,17 @@ class PhotoList extends React.Component {
     else {
       this.handleMapNotVisible();
     }
-
   }
 
   componentDidMount() {
-    this.handleMapNotVisible();
+     if (this.props.mapIsVisible) {
+      this.handleMapVisible();
+    }
+    else {
+      this.handleMapNotVisible();
+    }
   }
+
   componentDidUpdate(prevProps) {
     if (prevProps.mapIsVisible != this.props.mapIsVisible) {
       if (this.props.mapIsVisible) {
