@@ -224,7 +224,7 @@ class PhotoList extends React.Component {
   setStyle() {
     if (this.props.mapIsVisible) {
       // FIXME: don't duplicate this -- alreday done in setPhotoListSize
-      var imageWidth = 110;
+      var imageWidth = 100;
       var w  = $(window).width() - ($(window).width() % imageWidth );
       var leftMargin = -(w/2);
       this.setState({style: {
