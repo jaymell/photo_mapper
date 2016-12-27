@@ -219,19 +219,112 @@ class PhotoList extends React.Component {
     super(props);
   }
 
+  setStyle() {
+    if (this.props.mapIsVisible) {
+      // FIXME: don't duplicate this -- alreday done in setPhotoListSize
+      var imageWidth = 110;
+      var w  = $(window).width() - ($(window).width() % imageWidth );
+      var leftMargin = -(w/2);
+      this.setState({style: {
+        'overflowX': 'scroll',
+        'overflowY': 'hidden',
+        'overflow': 'auto',
+        'height': 'auto',
+        'whiteSpace': 'nowrap',
+        'position': 'fixed',
+        'bottom': '0',
+        'zIndex': '1',
+        'left': '50%',
+        'marginLeft': leftMargin
+        }
+      });
+    }
+    else {
+      this.setState({style: {
+        'overflow': 'auto',
+        'overflowX': 'visible',
+        'overflowY': 'visible',
+        'width': 'auto',
+        'height': 'auto',
+        'whiteSpace': 'normal',
+        'position': 'relative',
+        'bottom': 'initial',
+        'zIndex': 'initial',
+        'left': 'initial',
+        'marginLeft': 'initial'
+        }
+      });      
+    }
+  }
+
+  setPhotoListSize() {
+    console.log('called setPhotoListSize');
+    // only do this if map is visible:
+    if (this.props.mapIsVisible) {
+      var imageWidth = 100;
+      var w  = $(window).width() - ($(window).width() % imageWidth );
+      var leftMargin = -(w/2);
+      $(this.refs.photoList).css({
+        'width': w,
+        'marginLeft': leftMargin,
+        'left': '50%'
+      });    
+    }
+  }
+
+  handleMapVisible() {
+    console.log('photoList: turning map ON');
+    this.setState({photoSize: 'small'});
+    this.setStyle();
+    $(this.refs.photoList).on('mousewheel', horizontalMouseWheelScroll);
+    // call and set it:
+    this.setPhotoListSize();
+    $(window).resize(this.setPhotoListSize.bind(this)).resize();
+    $("img.lazy").lazyload({
+      container: $('.photoList'),
+    });
+  }  
+
+  handleMapNotVisible() {
+    console.log('photoList: turning map OFF');
+    this.setState({photoSize: 'thumbnail'})
+    this.setStyle();
+    $(this.refs.photoList).off('mousewheel', horizontalMouseWheelScroll);
+    $("img.lazy").lazyload({
+      effect: "fadeIn",
+      effectspeed: 500
+    });
+  }
+
   handleEvent(e) {
     scrollToSelected($(this.refs.photoList), $('#'+e));
   }
 
   componentWillMount() {
+    console.log('photoList: componentWillMount called')
     photoEvents.add(this.handleEvent.bind(this));
+    this.setStyle();
+    if (this.props.mapIsVisible) {
+      this.handleMapVisible();
+    }
+    else {
+      this.handleMapNotVisible();
+    }
+
   }
 
   componentDidMount() {
-    $("img.lazy").lazyload({
-      effect: "fadeIn",
-      effectspeed: 500
-    });
+    this.handleMapNotVisible();
+  }
+  componentDidUpdate(prevProps) {
+    if (prevProps.mapIsVisible != this.props.mapIsVisible) {
+      if (this.props.mapIsVisible) {
+        this.handleMapVisible();
+      }
+      else {
+        this.handleMapNotVisible();
+      }        
+    }
   }
 
   onPhotoClick(photoId) {
@@ -241,12 +334,12 @@ class PhotoList extends React.Component {
   render() {
     var Photos = this.props.data.map(function(p) {
       return (
-        <Photo onPhotoClick={this.onPhotoClick} photo={p} key={p.md5sum} size={this.props.photoSize}></Photo>
+        <Photo onPhotoClick={this.onPhotoClick} photo={p} key={p.md5sum} size={this.state.photoSize}></Photo>
       );
     }.bind(this));
 
     return (
-      <div className="photoList" ref="photoList">
+      <div className="photoList" ref="photoList" style={this.state.style}>
         {Photos}
       </div>
     );
@@ -431,61 +524,11 @@ class App extends React.Component {
 
   toggleMap() {
     if ( this.state.mapIsVisible ) {
-      console.log('toggleMap triggered -- turning map OFF');
-      this.setState({mapIsVisible: false})
-      this.setState({photoSize: 'thumbnail'})
-      // and actually remove any previous styles:
-      $('.photoList').css({
-        'overflow': 'auto',
-        'overflow-x': 'visible',
-        'overflow-y': 'visible',
-        'width': 'auto',
-        'height': 'auto',
-        'white-space': 'normal',
-        'position': 'relative',
-        'bottom': 'initial',
-        'z-index': 'initial',
-        'left': 'initial',
-        'margin-left': 'initial'
-      });
-      $('.photoList').off('mousewheel', horizontalMouseWheelScroll);
-      $("img.lazy").lazyload({
-        effect: "fadeIn",
-        effectspeed: 500
-      });
+      this.setState({mapIsVisible: false })
     }
     else {
-      console.log('toggleMap triggered -- turning map ON');
       this.setState({mapIsVisible: true })
-      this.setState({photoSize: 'small'})
-
-      // ensures width of horizontal list is 
-      // only as long as multiple of whole image
-      // and centers it:
-      var imageWidth = 110;
-      var w  = $(window).width() - ($(window).width() % imageWidth );
-      var leftMargin = -(w/2);      
-
-      $('.photoList').css({
-        'overflow-x': 'scroll',
-        'overflow-y': 'hidden',
-        'overflow': 'auto',
-        'height': 'auto',
-        'white-space': 'nowrap',
-        'position': 'fixed',
-        'bottom': '0',
-        'z-index': '1',
-        'left': '50%',
-        'margin-left': leftMargin
-      });
-
-      $(window).resize(setPhotoListSize).resize();
-      $('.photoList').on('mousewheel', horizontalMouseWheelScroll);
-      $("img.lazy").lazyload({
-        container: $('.photoList'),
-      });
     }
-
   }
 
   startPolling() {
@@ -505,7 +548,7 @@ class App extends React.Component {
         <div>
           <NavBar toggleMap={this.toggleMap.bind(this)} />
           <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-          <PhotoList ref="photoList" data={this.state.data} photoSize={this.state.photoSize} />
+          <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
           <PhotoSwipeContainer data={this.state.data} />
         </div>
       );
@@ -566,17 +609,6 @@ function setMapSize() {
   var h = $(window).height();
   var offsetTop = 65; // Calculate the top offset
   $('.mapCanvas ').css('height', (h - offsetTop));
-}
-
-function setPhotoListSize() {
-  var imageWidth = 110;
-  var w  = $(window).width() - ($(window).width() % imageWidth );
-  var leftMargin = -(w/2);
-  $('.photoList').css({
-    'width': w,
-    'margin-left': leftMargin,
-    'left': '50%'
-  });
 }
 
 function openPhotoSwipe(photoArray, index, closeCallback) {
