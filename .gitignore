@@ -6,6 +6,7 @@ cfg/config.js
 *.swp
 config
 photo_mapper/static/img
-photo_mapper/static/lib
+photo_mapper/static/lib/js
 app.log
 photo_mapper/static/js/bundle.js
+/static
