@@ -358,6 +358,7 @@ class PhotoList extends React.Component {
 class Photo extends React.Component {
   constructor(props) {
     super(props);
+    this.placeholder = '/static/lib/img/placeholder.png';
   }
 
   _onClick() {
@@ -371,7 +372,7 @@ class Photo extends React.Component {
           <img onClick={this._onClick.bind(this)} 
                className="thumbnail img-responsive lazy" 
                data-original={photo.name}
-               src="http://placehold.it/350x150"
+               src={this.placeholder}
                width={photo.width}
                height={photo.height}
             >
