@@ -23,6 +23,15 @@ var photoEvents = $.Callbacks();
 // maybe center) to happen in this case:
 var photoSwipeMapButtonEvents = $.Callbacks();
 
+
+function setStorage(k, v) {
+  if (typeof(Storage) !== "undefined") {
+    localStorage.setItem(k,v);
+  } else {
+    console.log('no local storage available');
+  }
+}
+
 // pass it the name of the container div and the
 // item div you want to move to top of list:
 function scrollToSelected($ctDiv, $itDiv) {
@@ -596,6 +605,8 @@ class Login extends React.Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleUser = this.handleUser.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
+    this.handleLoginFailure = this.handleLoginFailure.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillUnmount() {
@@ -605,10 +616,24 @@ class Login extends React.Component {
   handleSubmit(e) {
     e.preventDefault();
     console.log(this.state.user, this.state.pass);
-    // $.ajax({
-    //   url: '/api/token',
-    //   user: 
-    // })
+    $.ajax({
+      url: '/api/token',
+      user: this.state.user,
+      password: this.state.pass
+    })
+      .done(function() { setStorage("token", result.token); })
+      .fail(this.handleLoginFailure);
+  }
+
+  showLoginFailure() {
+    
+  }
+
+  handleLoginFailure() {
+    var that = this;
+    $(this.refs.loginFailed).fadeIn("slow", function() {
+      setTimeout(function() { $(this.refs.loginFailed).fadeOut("slow")}.bind(that), 3000);
+    });
   }
 
   handleUser(e) {
@@ -634,6 +659,7 @@ class Login extends React.Component {
         <div className="modal-dialog">
           <div className="loginmodal-container">
             <h1>Login to Your Account</h1><br />
+            <h2 ref="loginFailed" id="loginFailed">Login Failed</h2><br/>
             <form>
               <input type="text"
                      name="user"

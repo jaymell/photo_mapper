@@ -19,6 +19,14 @@
   font-family: roboto;
 }
 
+#loginFailed {
+  text-align: center;
+  font-size: 1.6em;
+  font-family: roboto;
+  color: red;
+  display: none;
+}
+
 .loginmodal-container input[type=submit] {
   width: 100%;
   display: block;
