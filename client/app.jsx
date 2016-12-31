@@ -7,11 +7,13 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var Router = require('react-router').Router;
 var Route = require('react-router').Route;
-var Link = require('react-router').Link;
 var hashHistory = require('react-router').hashHistory;
 require('../node_modules/bootstrap/dist/js/bootstrap.min.js')
-require('../node_modules/jquery-lazyload/jquery.lazyload.js')
+require('../node_modules/jquery-lazyload/jquery.lazyload.js');
 require('./app.css');
+var Register = require('./register.jsx').Register;
+var Reset = require('./reset.jsx').Reset;
+var Login = require('./login.jsx').Login;
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
@@ -597,120 +599,6 @@ class AuthRequired extends React.Component {
   }
 
 }
-
-class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { user: '', pass: '' };
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleUser = this.handleUser.bind(this);
-    this.handlePassword = this.handlePassword.bind(this);
-    this.handleLoginFailure = this.handleLoginFailure.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentWillUnmount() {
-    $(this.refs.loginModal).removeClass('fade').modal('hide');
-  }
-
-  handleSubmit(e) {
-    e.preventDefault();
-    console.log(this.state.user, this.state.pass);
-    $.ajax({
-      url: '/api/token',
-      user: this.state.user,
-      password: this.state.pass
-    })
-      .done(function() { setStorage("token", result.token); })
-      .fail(this.handleLoginFailure);
-  }
-
-  showLoginFailure() {
-    
-  }
-
-  handleLoginFailure() {
-    var that = this;
-    $(this.refs.loginFailed).fadeIn("slow", function() {
-      setTimeout(function() { $(this.refs.loginFailed).fadeOut("slow")}.bind(that), 3000);
-    });
-  }
-
-  handleUser(e) {
-    this.setState({user: e.target.value });
-  }
-
-  handlePassword(e) {
-    this.setState({pass: e.target.value });
-  }
-
-  render() {
-    return (
-      <div>
-      <a href="#" data-toggle="modal" data-target="#login-modal">Login</a>
-      <div ref="loginModal" 
-           className="modal fade" 
-           id="login-modal" 
-           tabIndex="-1" 
-           role="dialog" 
-           aria-labelledby="myModalLabel" 
-           aria-hidden="true" 
-           style={{display: "none"}}>
-        <div className="modal-dialog">
-          <div className="loginmodal-container">
-            <h1>Login to Your Account</h1><br />
-            <h2 ref="loginFailed" id="loginFailed">Login Failed</h2><br/>
-            <form>
-              <input type="text"
-                     name="user"
-                     value={this.state.user} 
-                     placeholder="Username"
-                     onChange={this.handleUser}
-              />
-              <input type="password" 
-                     name="password"
-                     value={this.state.pass} 
-                     placeholder="Password"
-                     onChange={this.handlePassword}
-              />
-              <input type="submit" 
-                     name="login" 
-                     className="login loginmodal-submit" 
-                     value="Login" 
-                     onClick={this.handleSubmit}
-              />
-            </form>
-            <div className="login-help">
-              <a href='/#/register'>Register</a> - <Link to='/reset'>Forgot Password</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-      </div>
-    );
-  }
-}
-
-class Register extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return <h1>Register</h1>
-  }
-}
-
-class Reset extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return <h1>Reset</h1>
-  }
-}
-
 
 class App extends React.Component {
   constructor(props) {

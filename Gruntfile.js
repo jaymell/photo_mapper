@@ -14,7 +14,7 @@ grunt.initConfig({
     browserify: {
       dist: {
         files: {
-          'photo_mapper/static/js/bundle.js': ['client/*.js']
+          'photo_mapper/static/js/bundle.js': ['client/*.js', 'client/*.jsx']
         },
         options: {
           transform: [ 

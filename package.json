@@ -25,7 +25,8 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-shell": "^2.1.0",
     "load-grunt-tasks": "^3.5.2",
-    "photoswipe": "^4.1.1"
+    "photoswipe": "^4.1.1",
+    "react-bootstrap": "^0.30.7"
   },
   "scripts": {
     "test": "none"

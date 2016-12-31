@@ -1,7 +1,6 @@
 @import url(http://fonts.googleapis.com/css?family=Roboto);
 
-/****** LOGIN MODAL ******/
-.loginmodal-container {
+.myModalContainer {
   padding: 30px;
   max-width: 350px;
   width: 100% !important;
@@ -13,28 +12,20 @@
   font-family: roboto;
 }
 
-.loginmodal-container h1 {
+.myModalContainer h1 {
   text-align: center;
   font-size: 1.8em;
   font-family: roboto;
 }
 
-#loginFailed {
-  text-align: center;
-  font-size: 1.6em;
-  font-family: roboto;
-  color: red;
-  display: none;
-}
-
-.loginmodal-container input[type=submit] {
+.myModalSubmit {
   width: 100%;
   display: block;
   margin-bottom: 10px;
   position: relative;
 }
 
-.loginmodal-container input[type=text], input[type=password] {
+.myModalInputField {
   height: 44px;
   font-size: 16px;
   width: 100%;
@@ -49,7 +40,7 @@
   -moz-box-sizing: border-box;
 }
 
-.loginmodal-container input[type=text]:hover, input[type=password]:hover {
+.myModalInputField:hover {
   border: 1px solid #b9b9b9;
   border-top: 1px solid #a0a0a0;
   -moz-box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
@@ -57,7 +48,7 @@
   box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 }
 
-.loginmodal {
+.myModal {
   text-align: center;
   font-size: 14px;
   font-family: 'Arial', sans-serif;
@@ -69,7 +60,7 @@
   user-select: none; */
 }
 
-.loginmodal-submit {
+.myModalSubmit {
   /* border: 1px solid #3079ed; */
   border: 0px;
   color: #fff;
@@ -81,7 +72,7 @@
   /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#4787ed)); */
 }
 
-.loginmodal-submit:hover {
+.myModalSubmit:hover {
   /* border: 1px solid #2f5bb7; */
   border: 0px;
   text-shadow: 0 1px rgba(0,0,0,0.3);
@@ -89,7 +80,7 @@
   /* background-image: -webkit-gradient(linear, 0 0, 0 100%,   from(#4d90fe), to(#357ae8)); */
 }
 
-.loginmodal-container a {
+.myModalContainer a {
   text-decoration: none;
   color: #666;
   font-weight: 400;
@@ -99,6 +90,18 @@
   transition: opacity ease 0.5s;
 } 
 
-.login-help {
+.myModalLinks {
   font-size: 12px;
+}
+
+.myModalSubmitFailure {
+  text-align: center;
+  font-size: 1.6em;
+  font-family: roboto;
+  color: red;
+  display: none;
+}
+
+#mySubmitButton {
+  height: initial;
 }

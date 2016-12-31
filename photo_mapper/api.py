@@ -376,7 +376,7 @@ class TokenAPI(fr.Resource):
   @auth.login_required
   def get(self):
     try: 
-      token = flask.g.user.generate_token()
+      token, expires = flask.g.user.generate_token()
     except Exception as e:
       print('error generating token: %s' % e)
       fr.abort(500)
