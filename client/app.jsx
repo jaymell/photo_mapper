@@ -3,17 +3,20 @@ var PhotoSwipeUI_Default = require('photoswipe/dist/photoswipe-ui-default.js');
 var $ = require('jquery');
 global.jQuery = require('jquery');
 require('jquery-mousewheel')($);
-var React = require('react');
+import React from 'react';
 var ReactDOM = require('react-dom');
 var Router = require('react-router').Router;
 var Route = require('react-router').Route;
+import { withRouter } from 'react-router';
 var hashHistory = require('react-router').hashHistory;
 require('../node_modules/bootstrap/dist/js/bootstrap.min.js')
 require('../node_modules/jquery-lazyload/jquery.lazyload.js');
 require('./app.css');
-var Register = require('./register.jsx').Register;
-var Reset = require('./reset.jsx').Reset;
-var Login = require('./login.jsx').Login;
+import  Reset  from './reset.jsx';
+import  Register  from './register.jsx';
+import  Login  from './login.jsx';
+import { Auth } from './auth.jsx';
+import  Home  from './home.jsx';
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
@@ -25,14 +28,8 @@ var photoEvents = $.Callbacks();
 // maybe center) to happen in this case:
 var photoSwipeMapButtonEvents = $.Callbacks();
 
-
-function setStorage(k, v) {
-  if (typeof(Storage) !== "undefined") {
-    localStorage.setItem(k,v);
-  } else {
-    console.log('no local storage available');
-  }
-}
+// Auth singleton:
+export let auth = new Auth();
 
 // pass it the name of the container div and the
 // item div you want to move to top of list:
@@ -529,9 +526,7 @@ class Photos extends React.Component {
         url: this.state.url,
         dataType: 'json',
         cache: false,
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader("Authorization", "Basic " + btoa("eyJhbGciOiJIUzI1NiIsImV4cCI6MjQ4MTQwNTQzNCwiaWF0IjoxNDgxNDA1NDM1fQ.eyJ1c2VyX2lkIjo4fQ.QJgTpuHlzMgJ9eq7YA_ZSIntduv8daEkJE-bCr-za8Y:"))
-        },
+        headers: {Authorization: auth.getToken() },
         success: function(data) {
           this.initData(data);
         }.bind(this),
@@ -581,24 +576,16 @@ class Photos extends React.Component {
 }
 
 
-class AuthRequired extends React.Component {
-  constructor(props) {
-    super(props);
+function authRequired(nextState, replace) {
+  if (!auth.isLoggedIn()) {
+    replace({
+      pathname: '/login',
+      state: { nextPathname: nextState.location.pathname }
+    })
   }
-
-  getToken() {
-
-  }
-
-  isTokenExpired() {
-
-  }
-
-  isLoggedIn() {
-
-  }
-
 }
+
+
 
 class App extends React.Component {
   constructor(props) {
@@ -608,19 +595,20 @@ class App extends React.Component {
   render() {
     return (
       <Router history={hashHistory}>
+        <Route path='/' component={Home} />
         <Route path='/login' component={Login} />
         <Route path='/register' component={Register} />
         <Route path='/reset' component={Reset} />
-        <Route component={AuthRequired}>
-          <Route path='/photos' component={Photos} />
-        </Route>
+        <Route path='/photos' component={Photos} onEnter={authRequired} />
       </Router>
     )
   }    
 }
 
+/*url="/api/users/8/photos" pollInterval="1800000"*/
+
 ReactDOM.render(
-  <App url="/api/users/8/photos" pollInterval="1800000"/>,
+  <App />,
   document.getElementById('content')
 );
 

@@ -1,8 +1,10 @@
-var React = require('react');
+import React from 'react';
 var Link = require('react-router').Link;
 var $ = require('jquery');
+import { auth } from './app.jsx';
+import { withRouter } from 'react-router';
 
-export class Login extends React.Component {
+class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = { user: '', pass: '' };
@@ -10,11 +12,36 @@ export class Login extends React.Component {
     this.handleUser = this.handleUser.bind(this);
     this.handlePassword = this.handlePassword.bind(this);
     this.handleLoginFailure = this.handleLoginFailure.bind(this);
+    this.handleLoginSuccess = this.handleLoginSuccess.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   componentWillUnmount() {
     $(this.refs.loginModal).removeClass('fade').modal('hide');
+  }
+
+  redirect() {
+    if (location.state && location.state.nextPathname) {
+      this.props.router.replace(location.state.nextPathname);
+    } 
+    else {
+      this.props.router.replace('/');
+    }    
+  }
+
+  handleLoginSuccess(result) {
+    auth.setToken(result.token);
+  }
+
+  handleLoginFailure(err) {
+    console.log(err);
+    var that = this;
+    $(this.refs.loginFailed).fadeIn("slow", function() {
+      setTimeout(function() { 
+        $(this.refs.loginFailed).fadeOut("slow");
+      }.bind(that), 3000);
+    });
+    this.setState({user: '', pass: ''});
   }
 
   handleSubmit(e) {
@@ -25,18 +52,12 @@ export class Login extends React.Component {
       user: this.state.user,
       password: this.state.pass
     })
-      .done(function() { setStorage("token", result.token); })
-      .fail(this.handleLoginFailure);
-  }
-
-  handleLoginFailure() {
-    var that = this;
-    $(this.refs.loginFailed).fadeIn("slow", function() {
-      setTimeout(function() { 
-        $(this.refs.loginFailed).fadeOut("slow");
-      }.bind(that), 3000);
-    });
-    this.setState({user: '', pass: ''});
+      .done(function(result) { 
+        this.handleLoginSuccess(result);
+      })
+      .fail(function(err) { 
+        this.handleLoginFailure(err); 
+      });
   }
 
   handleUser(e) {
@@ -88,3 +109,4 @@ export class Login extends React.Component {
   }
 }
 
+export default withRouter(Login);

@@ -1,4 +1,5 @@
-var React = require('react');
+import React from 'react';
+import { withRouter } from 'react-router';
 
 export class Reset extends React.Component {
   constructor(props) {
@@ -10,3 +11,4 @@ export class Reset extends React.Component {
   }
 }
 
+export default withRouter(Reset);

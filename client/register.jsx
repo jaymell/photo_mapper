@@ -1,17 +1,19 @@
 import { FormControl, FormGroup, Modal } from 'react-bootstrap';
-var React = require('react');
+import React from 'react';
+import { withRouter } from 'react-router';
 var $ = require('jquery');
+import { auth } from './app.jsx';
 
-export class Register extends React.Component {
+class Register extends React.Component {
   constructor(props) {
     super(props);
-    this.handleName = this.handleName.bind(this);
-    this.handleEmail = this.handleEmail.bind(this);
-    this.handlePassword = this.handlePassword.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
+    this.handleEmailChange = this.handleEmailChange.bind(this);
+    this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.validatePassword = this.validatePassword.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleSubmitFailure = this.handleSubmitFailure.bind(this);
-
+    this.handleRegisterFailure = this.handleRegisterFailure.bind(this);
+    this.handleRegisterSuccess = this.handleRegisterSuccess.bind(this);
     this.initialState = { name: '', 
                           email: '',
                           password1: '',
@@ -23,7 +25,7 @@ export class Register extends React.Component {
     this.state = this.initialState;
   }
 
-  handleName(e) {
+  handleNameChange(e) {
     let re = /^[a-zA-Z]*$/;
     let name = e.target.value;
     this.setState({name: name});
@@ -45,7 +47,7 @@ export class Register extends React.Component {
     }
   }
 
-  handleEmail(e) {
+  handleEmailChange(e) {
     let email = e.target.value;
     this.setState({email: email});
     setTimeout(function() { this.validateEmail(); }.bind(this), 0);
@@ -60,7 +62,7 @@ export class Register extends React.Component {
     }
   }
 
-  handlePassword(num, e) {
+  handlePasswordChange(num, e) {
     if (num == 1) {
       this.setState({ password1: e.target.value });
     }
@@ -70,7 +72,20 @@ export class Register extends React.Component {
     setTimeout(function() { this.validatePassword(); }.bind(this), 0);
   }
 
-  handleSubmitFailure() {
+  handleRegisterSuccess(result) {
+    let userId = result.user_id;
+    let userUri = result.uri;
+    let userName = result.userName;
+    let userRoles = result.userRoles;
+    auth.setUserId(userId);
+    auth.setUserUri(userUri);
+    auth.setUserName(userName);
+    auth.setUserRoles(userRoles);
+    this.props.router.push('/login');
+  }
+
+  handleRegisterFailure(err) {
+    console.log(err);
     var that = this;
     $(this.refs.submitFailed).fadeIn("slow", function() {
       setTimeout(function() { 
@@ -97,11 +112,12 @@ export class Register extends React.Component {
       dataType: "json",
       contentType: "application/json"
     })
-      .done(function() { 
-        // FIXME
-        // this.props.history.push('/login');
+      .done(function(result) { 
+        this.handleRegisterSucess(result);
       })
-      .fail(this.handleSubmitFailure);
+      .fail(function(err) { 
+        this.handleRegisterFailure(err);
+      });
   }
 
   render() {
@@ -119,7 +135,7 @@ export class Register extends React.Component {
                   name="name"
                   value={this.state.name} 
                   placeholder="Name"
-                  onChange={this.handleName}
+                  onChange={this.handleNameChange}
                 />
               </FormGroup>
               <FormGroup validationState={this.state.emailValidation} >
@@ -129,7 +145,7 @@ export class Register extends React.Component {
                   name="email"
                   value={this.state.email} 
                   placeholder="Email Address"
-                  onChange={this.handleEmail}
+                  onChange={this.handleEmailChange}
                 />
               </FormGroup>
               <FormGroup validationState={this.state.passwordValidation} >
@@ -139,7 +155,7 @@ export class Register extends React.Component {
                   name="password1"
                   value={this.state.password1}
                   placeholder="Password"
-                  onChange={function(e) { this.handlePassword(1, e); }.bind(this) }
+                  onChange={function(e) { this.handlePasswordChange(1, e); }.bind(this) }
                 />
                 <FormControl
                   className="myModalInputField"
@@ -147,7 +163,7 @@ export class Register extends React.Component {
                   name="password2"
                   value={this.state.password2} 
                   placeholder="Repeat Password"
-                  onChange={function(e) { this.handlePassword(2, e); }.bind(this) }
+                  onChange={function(e) { this.handlePasswordChange(2, e); }.bind(this) }
                 />
               </FormGroup>
               <FormControl
@@ -166,3 +182,4 @@ export class Register extends React.Component {
   }
 }
 
+export default withRouter(Register);
