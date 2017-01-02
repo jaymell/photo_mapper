@@ -30,7 +30,19 @@ class Login extends React.Component {
   }
 
   handleLoginSuccess(result) {
-    auth.setToken(result.token);
+    let userId = result.user_id;
+    let userUri = result.uri;
+    let userName = result.user_name;
+    let userRoles = result.roles;
+    let token = result.token;
+    let tokenExpiration = result.expires;
+    auth.setToken(token);
+    auth.setTokenExpiration(tokenExpiration);
+    auth.setUserId(userId);
+    auth.setUserUri(userUri);
+    auth.setUserName(userName);
+    auth.setUserRoles(userRoles);
+    this.redirect();
   }
 
   handleLoginFailure(err) {
@@ -46,18 +58,17 @@ class Login extends React.Component {
 
   handleSubmit(e) {
     e.preventDefault();
-    console.log(this.state.user, this.state.pass);
     $.ajax({
       url: '/api/token',
-      user: this.state.user,
+      username: this.state.user,
       password: this.state.pass
     })
       .done(function(result) { 
         this.handleLoginSuccess(result);
-      })
+      }.bind(this))
       .fail(function(err) { 
         this.handleLoginFailure(err); 
-      });
+      }.bind(this));
   }
 
   handleUser(e) {
@@ -78,11 +89,11 @@ class Login extends React.Component {
             <h1>Login to Your Account</h1><br />
             <h2 ref="loginFailed" className="myModalSubmitFailure">Login Failed</h2><br/>
             <form>
-              <input type="text"
-                     name="user"
+              <input type="email"
+                     name="email"
                      className="myModalInputField"
                      value={this.state.user} 
-                     placeholder="Username"
+                     placeholder="Email"
                      onChange={this.handleUser}
               />
               <input type="password" 

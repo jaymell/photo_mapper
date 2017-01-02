@@ -75,8 +75,8 @@ class Register extends React.Component {
   handleRegisterSuccess(result) {
     let userId = result.user_id;
     let userUri = result.uri;
-    let userName = result.userName;
-    let userRoles = result.userRoles;
+    let userName = result.user_name;
+    let userRoles = result.roles;
     auth.setUserId(userId);
     auth.setUserUri(userUri);
     auth.setUserName(userName);
@@ -103,7 +103,6 @@ class Register extends React.Component {
                  password1: this.state.password1, 
                  password2: this.state.password2
                };
-    console.log(data);
     e.preventDefault();
     $.ajax({
       url: '/api/users',
@@ -113,11 +112,11 @@ class Register extends React.Component {
       contentType: "application/json"
     })
       .done(function(result) { 
-        this.handleRegisterSucess(result);
-      })
+        this.handleRegisterSuccess(result);
+      }.bind(this))
       .fail(function(err) { 
         this.handleRegisterFailure(err);
-      });
+      }.bind(this));
   }
 
   render() {

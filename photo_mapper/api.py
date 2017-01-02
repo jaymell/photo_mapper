@@ -61,7 +61,7 @@ def verify_pw(user_or_token, pw):
   """ try token auth, if fails try to verify as pw (plaintext) 
       against pw hash in db """
 
-  print("verify_pw called")
+  print("verify_pw called: %s" % user_or_token)
   # assume it's a token first:
   try:
     user = models.User.verify_token(user_or_token)
@@ -70,7 +70,7 @@ def verify_pw(user_or_token, pw):
     fr.abort(500)
   if not user:
     # try password auth if token failed:
-    user = models.User.query.filter_by(user_name = user_or_token).one_or_none()
+    user = models.User.query.filter_by(email = user_or_token).one_or_none()
     if not user:
       return False
     try: 
@@ -375,11 +375,13 @@ class TokenAPI(fr.Resource):
 
   @auth.login_required
   def get(self):
-    try: 
+    try:
       token, expires = flask.g.user.generate_token()
     except Exception as e:
       print('error generating token: %s' % e)
       fr.abort(500)
-    return { 'token': token }
+    user_schema = schema.UserSchema().dump(flask.g.user).data
+    user_schema.update({ 'token': token, 'expires': expires })
+    return user_schema
 api.add_resource(TokenAPI, '/api/token')
 

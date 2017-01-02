@@ -11,6 +11,15 @@ class Auth {
     this.storage.token = token;
   }
 
+  getTokenExpiration() {
+    return this.storage.tokenExpiration;
+  }
+
+  // takes iso-formatted string, saves as Date object:
+  setTokenExpiration(expiration) {
+    this.storage.tokenExpiration = new Date(expiration); 
+  }
+
   getUserName() {
     return this.storage.userName;
   }

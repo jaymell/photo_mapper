@@ -6,6 +6,7 @@ import photo_mapper as pm
 import passlib.apps
 import itsdangerous as itsd
 import hashlib
+import datetime
 
 # class names are InitialCaps
 # table names are camelCase
@@ -49,7 +50,10 @@ class User(db.Model):
                                                  signer_kwargs = {'digest_method': hashlib.sha256}, 
                                                  expires_in = expiration
                                                 )
-    return token.dumps( { 'user_id': self.user_id } )
+    expire_unix = float(datetime.datetime.now().strftime('%s')) + \
+                  float(expiration)
+    expire_time = datetime.datetime.utcfromtimestamp(expire_unix).isoformat()
+    return token.dumps( { 'user_id': self.user_id } ), expire_time
 
   @staticmethod
   def verify_token(token):
@@ -133,4 +137,3 @@ class PhotoSize(db.Model):
       'size': self.size,
       'name': pm.build_link(self.name),
     }
-
