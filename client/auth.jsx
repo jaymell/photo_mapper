@@ -1,6 +1,7 @@
 class Auth {
   constructor() {
     this.storage = localStorage;
+    this.isLoggedIn = this.isLoggedIn.bind(this);
   }
 
   getToken() {
@@ -17,7 +18,7 @@ class Auth {
 
   // takes iso-formatted string, saves as Date object:
   setTokenExpiration(expiration) {
-    this.storage.tokenExpiration = new Date(expiration); 
+    this.storage.tokenExpiration = expiration; 
   }
 
   getUserName() {
@@ -54,14 +55,16 @@ class Auth {
 
   isLoggedIn() {
     let token = this.getToken();
-    let tokenExpiration = this.getTokenExpiration();
+    let tokenExpiration = new Date(this.getTokenExpiration());
     let curTime = new Date();
-    if (token) {
-      return false;
+    if (!!token && curTime < tokenExpiration) {
+      console.log('logged in');
+      return true;
     }
-    if (curTime > tokenExpiration) {
-      return false;
-    }
+    console.log(!!token);
+    console.log(curTime < tokenExpiration);
+    console.log('not logged in');
+    return false;
   }
 
   logOut() {

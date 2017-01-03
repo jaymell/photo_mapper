@@ -5,11 +5,10 @@ import { auth } from './app.jsx';
 class Home extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { isLoggedIn: auth.isLoggedIn() };
   }
 
   componentDidMount() {
-    if (this.state.isLoggedIn) {
+    if (auth.isLoggedIn()) {
       this.props.router.push('/photos');
     }
     else {

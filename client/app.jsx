@@ -581,7 +581,7 @@ class Photos extends React.Component {
     }
   }
 }
-
+// const Photos = withRouter(_Photos);
 
 function authRequired(nextState, replace) {
   if (!auth.isLoggedIn()) {
