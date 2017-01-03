@@ -506,8 +506,11 @@ class MapToggler extends React.Component {
 class Photos extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { data: null , url: this.props.url, mapIsVisible: false, photoSize: 'thumbnail' };
-    this.mediaquery = window.matchMedia("(orientation:landscape)");
+    this.state = { data: undefined, mapIsVisible: false, photoSize: 'thumbnail' };
+    this.userId = auth.getUserId();
+    this.url = '/api/users/' + this.userId + '/photos';
+    this.pollInterval = 36000;
+    // this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
 
   // sort array by date
@@ -520,21 +523,20 @@ class Photos extends React.Component {
   }
 
   poll() {
-    if (this.state.url) {
-      $.ajax({
-        type: 'GET',
-        url: this.state.url,
-        dataType: 'json',
-        cache: false,
-        headers: {Authorization: auth.getToken() },
-        success: function(data) {
-          this.initData(data);
-        }.bind(this),
-        error: function(xhr, status, err) {
-          console.error(this.state.url, status, err.toString());
-        }.bind(this)
-      });
-    }
+    $.ajax({
+      url: this.url,
+      cache: false,
+      username: auth.getToken(),
+      password: ''
+    })
+      .done(function(data) {
+        console.log('data: ', data);
+        this.initData(data);
+      }.bind(this))
+      .fail(function(err) {
+        console.log('err: ', err.toString());
+        this.props.router.push('/login');
+      }.bind(this));
   }
 
   setUrl(url) {
@@ -552,7 +554,7 @@ class Photos extends React.Component {
 
   startPolling() {
     console.log('starting polling')
-    setInterval(this.poll.bind(this), this.props.pollInterval);
+    setInterval(this.poll.bind(this), this.pollInterval);
   }
 
   componentDidMount() {
@@ -561,7 +563,12 @@ class Photos extends React.Component {
   }
     
   render() {
-    if (!this.state.data) return ( <div><b>Loading ...</b></div> )
+    if (this.state.data === undefined) {
+      return ( <div><b>Loading ...</b></div> ); 
+    }
+    else if (Array.isArray(this.state.data) && this.state.data.length === 0) {
+      return ( <div><b>No photos found. Please upload some.</b></div>)
+    }
     else { 
       return (
         <div>

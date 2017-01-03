@@ -52,10 +52,20 @@ class Auth {
     this.storage.userRoles = roles;
   }
 
-  // FIXME: this needs to account
-  // for token expiration as well:
   isLoggedIn() {
-    return !!this.getToken();
+    let token = this.getToken();
+    let tokenExpiration = this.getTokenExpiration();
+    let curTime = new Date();
+    if (token) {
+      return false;
+    }
+    if (curTime > tokenExpiration) {
+      return false;
+    }
+  }
+
+  logOut() {
+    
   }
 }
 
