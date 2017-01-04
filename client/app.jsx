@@ -11,12 +11,14 @@ import { withRouter } from 'react-router';
 var hashHistory = require('react-router').hashHistory;
 require('../node_modules/bootstrap/dist/js/bootstrap.min.js')
 require('../node_modules/jquery-lazyload/jquery.lazyload.js');
-require('./app.css');
+require('./css/app.css');
 import  Reset  from './reset.jsx';
 import  Register  from './register.jsx';
 import  Login  from './login.jsx';
 import { Auth } from './auth.jsx';
 import  Home  from './home.jsx';
+import UploadForm from './upload.jsx';
+import { Button } from 'react-bootstrap';
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
@@ -460,6 +462,11 @@ class NavBar extends React.Component {
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
+              <Button onClick={this.props.uploadButtonHandler} 
+                      bsStyle="primary"
+              >
+              Upload
+              </Button>
               <MapToggler toggleMap={this.props.toggleMap} />
             </li>
           </ul>
@@ -506,10 +513,17 @@ class MapToggler extends React.Component {
 class Photos extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { data: undefined, mapIsVisible: false, photoSize: 'thumbnail' };
+    this.state = { 
+      data: undefined, 
+      mapIsVisible: false, 
+      photoSize: 'thumbnail',
+      showUploadForm: false,
+    };
     this.userId = auth.getUserId();
     this.url = '/api/users/' + this.userId + '/photos';
     this.pollInterval = 36000;
+    this.toggleUploadForm = this.toggleUploadForm.bind(this);
+    this.toggleMap = this.toggleMap.bind(this);
     // this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
 
@@ -543,6 +557,15 @@ class Photos extends React.Component {
     this.setState({ url: url })
   }
 
+  toggleUploadForm() {
+    if (this.state.showUploadForm) {
+      this.setState({showUploadForm: false});      
+    }
+    else {
+      this.setState({showUploadForm: true});
+    }
+  }
+
   toggleMap() {
     if ( this.state.mapIsVisible ) {
       this.setState({mapIsVisible: false })
@@ -567,17 +590,38 @@ class Photos extends React.Component {
       return ( <div><b>Loading ...</b></div> ); 
     }
     else if (Array.isArray(this.state.data) && this.state.data.length === 0) {
-      return ( <div><b>No photos found. Please upload some.</b></div>)
+      return ( <div>
+                 <b>No photos found. Please upload some.</b>
+                 <UploadForm />
+               </div>
+             );
     }
     else { 
-      return (
-        <div>
-          <NavBar toggleMap={this.toggleMap.bind(this)} />
-          <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-          <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-          <PhotoSwipeContainer data={this.state.data} />
-        </div>
-      );
+      if ( this.state.showUploadForm ) { 
+        return (
+          <div>
+            <NavBar uploadButtonHandler={this.toggleUploadForm}
+                    toggleMap={this.toggleMap}
+            />
+            <UploadForm toggleUploadForm={this.toggleUploadForm}/>
+            <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+            <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+            <PhotoSwipeContainer data={this.state.data} />
+          </div>
+        );
+      } 
+      else {
+        return (
+          <div>
+            <NavBar uploadButtonHandler={this.toggleUploadForm}
+                    toggleMap={this.toggleMap} 
+            />
+            <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+            <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+            <PhotoSwipeContainer data={this.state.data} />
+          </div>
+        );    
+      }
     }
   }
 }

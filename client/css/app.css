@@ -1,0 +1,5 @@
+@import "../../node_modules/photoswipe/dist/photoswipe.css";
+@import "../../node_modules/photoswipe/dist/default-skin/default-skin.css";
+@import "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
+@import "./photo_mapper.css";
+@import url(http://fonts.googleapis.com/css?family=Roboto);
