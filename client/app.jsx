@@ -18,7 +18,7 @@ import  Login  from './login.jsx';
 import { Auth } from './auth.jsx';
 import  Home  from './home.jsx';
 import UploadForm from './upload.jsx';
-import { Button } from 'react-bootstrap';
+import { Button, ButtonToolbar } from 'react-bootstrap';
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
@@ -462,12 +462,20 @@ class NavBar extends React.Component {
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
-              <Button onClick={this.props.uploadButtonHandler} 
-                      bsStyle="primary"
-              >
-              Upload
-              </Button>
-              <MapToggler toggleMap={this.props.toggleMap} />
+              <ButtonToolbar>
+                <Button onClick={this.props.uploadButtonHandler}
+                        bsStyle="default"
+                        className="navBarButton"
+                >
+                  Upload
+                </Button>
+                <Button onClick={this.props.toggleMap} 
+                        bsStyle="default"
+                        className="navBarButton"
+                >        
+                  Toggle Map 
+                </Button>
+              </ButtonToolbar>
             </li>
           </ul>
         </div>
@@ -493,23 +501,6 @@ class Logo extends React.Component {
 }
 
 
-class MapToggler extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  render() {
-    return (
-      <button onClick={this.props.toggleMap} 
-              className="mapToggler btn btn-default nav-item" 
-              type="button">
-              Toggle Map
-      </button>
-    );
-  }
-}
-
-
 class Photos extends React.Component {
   constructor(props) {
     super(props);
@@ -524,6 +515,7 @@ class Photos extends React.Component {
     this.pollInterval = 36000;
     this.toggleUploadForm = this.toggleUploadForm.bind(this);
     this.toggleMap = this.toggleMap.bind(this);
+    this.poll = this.poll.bind(this);
     // this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
 
@@ -547,6 +539,7 @@ class Photos extends React.Component {
         console.log('data: ', data);
         this.initData(data);
       }.bind(this))
+      // FIXME: don't just redirect to login page on error:
       .fail(function(err) {
         console.log('err: ', err.toString());
         this.props.router.push('/login');
@@ -575,16 +568,16 @@ class Photos extends React.Component {
     }
   }
 
-  startPolling() {
-    console.log('starting polling')
-    setInterval(this.poll.bind(this), this.pollInterval);
-  }
-
   componentDidMount() {
     this.poll();
-    this.startPolling();
+    this.poller = setInterval(this.poll, this.pollInterval); 
+    this.props.router.setRouteLeaveHook(this.props.route, function() { clearInterval(this.poller); }.bind(this));
   }
-    
+  
+  componentWillUnmount() {
+    clearInterval(this.poll);
+  }
+
   render() {
     if (this.state.data === undefined) {
       return ( <div><b>Loading ...</b></div> ); 
