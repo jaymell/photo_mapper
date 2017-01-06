@@ -236,6 +236,7 @@ class PhotoList extends React.Component {
     // required to properly handle 'off' method for resize event:
     this.setPhotoListSize = this.setPhotoListSize.bind(this);
     this.handleEvent = this.handleEvent.bind(this);
+    this.toggleMap = this.toggleMap.bind(this);
   }
 
   setStyle() {
@@ -318,10 +319,7 @@ class PhotoList extends React.Component {
     scrollToSelected($(this.refs.photoList), $('#'+e));
   }
 
-  componentWillMount() {
-    console.log('photoList: consructor called: ', this.props);
-    photoEvents.add(this.handleEvent);
-    this.setStyle();
+  toggleMap() {
     if (this.props.mapIsVisible) {
       this.handleMapVisible();
     }
@@ -330,23 +328,21 @@ class PhotoList extends React.Component {
     }
   }
 
+  componentWillMount() {
+    console.log('photoList: consructor called: ', this.props);
+    photoEvents.add(this.handleEvent);
+    this.setStyle();
+    this.toggleMap();
+  }
+
+  
   componentDidMount() {
-     if (this.props.mapIsVisible) {
-      this.handleMapVisible();
-    }
-    else {
-      this.handleMapNotVisible();
-    }
+    this.toggleMap();
   }
 
   componentDidUpdate(prevProps) {
     if (prevProps.mapIsVisible != this.props.mapIsVisible) {
-      if (this.props.mapIsVisible) {
-        this.handleMapVisible();
-      }
-      else {
-        this.handleMapNotVisible();
-      }        
+      this.toggleMap();
     }
   }
 

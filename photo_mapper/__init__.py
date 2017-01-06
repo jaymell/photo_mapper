@@ -45,8 +45,8 @@ app.config.update(
     LOCAL_URL = os.environ.get('LOCAL_URL', p.get('STORAGE', 'LOCAL_URL')),
     UPLOAD_FOLDER = os.environ.get('UPLOAD_FOLDER', p.get('STORAGE', 'UPLOAD_FOLDER')),
     TOKEN_LIFE = int(os.environ.get('TOKEN_LIFE', p.get('SECURITY', 'TOKEN_LIFE'))),
-    # 100 MB upload limit:
-    MAX_CONTENT_LENGTH = 100 * 1024 * 1024,
+    # 10GB upload limit:
+    MAX_CONTENT_LENGTH = 10000 * 1024 * 1024,
     PROPAGATE_EXCEPTIONS = True,
     Debug = True
 )

@@ -33,7 +33,10 @@ export default class UploadForm extends React.Component {
     let files = ReactDOM.findDOMNode(this.refs.fileButton).files;  
     let num_completed = 0;
     let data = new FormData(); 
+    // FIXME: this needs to run in parallel
+    // and handle when all done by at least, toggling off the modal
     for ( var i=0; i<files.length; i++) {
+      console.log('appending')
       data.append(files[i].name,files[i]); 
       $.ajax({ 
         url: '/api/users/' + auth.getUserId() + '/photos', 
@@ -53,9 +56,6 @@ export default class UploadForm extends React.Component {
           num_completed += 1;
           // if (num_completed == files.length) uploadsComplete();
         })
-        .always(function() { 
-          this.toggleUploadForm();
-        });
     }
   }
 
