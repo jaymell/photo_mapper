@@ -235,6 +235,7 @@ class PhotoList extends React.Component {
     super(props);
     // required to properly handle 'off' method for resize event:
     this.setPhotoListSize = this.setPhotoListSize.bind(this);
+    this.handleEvent = this.handleEvent.bind(this);
   }
 
   setStyle() {
@@ -319,7 +320,7 @@ class PhotoList extends React.Component {
 
   componentWillMount() {
     console.log('photoList: consructor called: ', this.props);
-    photoEvents.add(this.handleEvent.bind(this));
+    photoEvents.add(this.handleEvent);
     this.setStyle();
     if (this.props.mapIsVisible) {
       this.handleMapVisible();
@@ -516,6 +517,7 @@ class Photos extends React.Component {
     this.toggleUploadForm = this.toggleUploadForm.bind(this);
     this.toggleMap = this.toggleMap.bind(this);
     this.poll = this.poll.bind(this);
+    this.handlePhotoSwipeMapButton = this.handlePhotoSwipeMapButton.bind(this);
     // this.mediaquery = window.matchMedia("(orientation:landscape)");
   }
 
@@ -568,10 +570,19 @@ class Photos extends React.Component {
     }
   }
 
+  // allow photoSwipeMapButton to turn on map when clicked:
+  handlePhotoSwipeMapButton() {
+    if ( ! this.state.mapIsVisible ) {
+      this.setState({mapIsVisible: true });
+    }
+  }
+
   componentDidMount() {
     this.poll();
     this.poller = setInterval(this.poll, this.pollInterval); 
     this.props.router.setRouteLeaveHook(this.props.route, function() { clearInterval(this.poller); }.bind(this));
+    photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton);
+
   }
   
   componentWillUnmount() {
