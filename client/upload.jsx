@@ -1,9 +1,10 @@
-import { FormControl, FormGroup, Modal } from 'react-bootstrap';
+import { FormControl, FormGroup, Modal, ProgressBar } from 'react-bootstrap';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { withRouter } from 'react-router';
 var $ = require('jquery');
 import { auth } from './app.jsx';
+var Promise = require('bluebird');
 
 export default class UploadForm extends React.Component {
   constructor(props) {
@@ -11,7 +12,7 @@ export default class UploadForm extends React.Component {
     this.handleFileButtonClick = this.handleFileButtonClick.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.defaultLabelText = "Choose Files..."
-    this.state = { labelText: this.defaultLabelText };
+    this.state = { labelText: this.defaultLabelText, totalDone: 0, total: 1, progressBarVisibility: "hidden" };
   }
 
   handleFileButtonClick(e) {
@@ -29,34 +30,42 @@ export default class UploadForm extends React.Component {
     this.setState({labelText: labelText});
   }
 
-  handleSubmit() {
+  handleSubmit(e) {
+    var that = this;
+    e.preventDefault();
     let files = ReactDOM.findDOMNode(this.refs.fileButton).files;  
-    let num_completed = 0;
-    let data = new FormData(); 
-    // FIXME: this needs to run in parallel
-    // and handle when all done by at least, toggling off the modal
+    let userId = auth.getUserId();
+    let tasks = [];
+    this.setState({ total: files.length });
     for ( var i=0; i<files.length; i++) {
-      console.log('appending')
-      data.append(files[i].name,files[i]); 
-      $.ajax({ 
-        url: '/api/users/' + auth.getUserId() + '/photos', 
-        type: 'POST', 
-        data: data, 
-        cache: false, 
-        processData: false, 
-        contentType: false
-      })
-        .done(function(resp) { 
-          console.log('success', resp);
-          num_completed += 1;
-          // if (num_completed == files.length) uploadsComplete();
-        }) 
-        .fail(function(resp) { 
-          console.log('failure', resp);
-          num_completed += 1;
-          // if (num_completed == files.length) uploadsComplete();
-        })
+      let data = new FormData(); 
+      data.append(files[i].name, files[i]);
+      tasks.push(function() {
+        return new Promise(function(resolve) {
+          $.ajax({ 
+            url: '/api/users/' + userId + '/photos', 
+            type: 'POST', 
+            data: data, 
+            cache: false, 
+            processData: false, 
+            contentType: false
+          })
+            .done(function(resp) {
+              console.log('upload sucess: ', resp);
+              resolve();
+            }.bind(that)) 
+            .fail(function(resp) { 
+              console.log('upload failure: ', resp);
+              resolve();
+            }.bind(that))
+            .always(function() {
+              this.setState({ totalDone: this.state.totalDone+1, progressBarVisibility: "visible" });
+            }.bind(that));      
+        });
+      }());
     }
+    Promise.all(tasks)
+      .then(this.props.toggleUploadForm);
   }
 
   render() {
@@ -91,6 +100,8 @@ export default class UploadForm extends React.Component {
             </form>
           </div>
         </div>
+        <div style={{width: "80%", margin: "auto", visibility: this.state.progressBarVisibility }}>
+          <ProgressBar active now={Math.floor((this.state.totalDone/this.state.total)*100)} /></div>
       </div>
 	  );	
   }

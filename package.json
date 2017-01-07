@@ -4,6 +4,7 @@
   "description": "map yourself some photos",
   "main": "python",
   "dependencies": {
+    "bluebird": "^3.4.7",
     "bootstrap": "^3.3.7",
     "jquery": "^3.1.1",
     "jquery-lazyload": "^1.9.7",
