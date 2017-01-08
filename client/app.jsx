@@ -459,7 +459,6 @@ class NavBar extends React.Component {
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
-              <ButtonToolbar>
                 <Button onClick={this.props.uploadButtonHandler}
                         bsStyle="default"
                         className="navBarButton"
@@ -472,7 +471,6 @@ class NavBar extends React.Component {
                 >        
                   Toggle Map 
                 </Button>
-              </ButtonToolbar>
             </li>
           </ul>
         </div>
