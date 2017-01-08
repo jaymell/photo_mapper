@@ -80,7 +80,7 @@ export default class UploadForm extends React.Component {
             <h2 ref="submitFile" className="myModalSubmitFailure">Registration Failed</h2><br/>
             <form>
                 <label ref="fileButtonLabel"
-                       className="btn btn-default btn-file" 
+                       className="btn btn-default btn-file fileButton" 
                 >
                   {this.state.labelText}
                   <FormControl
