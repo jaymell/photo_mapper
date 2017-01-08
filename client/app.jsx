@@ -19,6 +19,7 @@ import { Auth } from './auth.jsx';
 import  Home  from './home.jsx';
 import UploadForm from './upload.jsx';
 import { Button, ButtonToolbar } from 'react-bootstrap';
+var jsonArray = require('./json.js');
 
 // handle events when markers or photoList are clicked,
 // or when scrolling happens within photoSwipe:
@@ -598,11 +599,8 @@ class Photos extends React.Component {
   }
 
   componentDidMount() {
-    this.poll();
-    this.poller = setInterval(this.poll, this.pollInterval); 
-    this.props.router.setRouteLeaveHook(this.props.route, function() { clearInterval(this.poller); }.bind(this));
+    this.initData(jsonArray);
     photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton);
-
   }
   
   componentWillUnmount() {
@@ -667,17 +665,11 @@ class App extends React.Component {
   render() {
     return (
       <Router history={hashHistory}>
-        <Route path='/' component={Home} />
-        <Route path='/login' component={Login} />
-        <Route path='/register' component={Register} />
-        <Route path='/reset' component={Reset} />
-        <Route path='/photos' component={Photos} onEnter={authRequired} />
+        <Route path='/' component={Photos} />
       </Router>
     )
   }    
 }
-
-/*url="/api/users/8/photos" pollInterval="1800000"*/
 
 ReactDOM.render(
   <App />,
