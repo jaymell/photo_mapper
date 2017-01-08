@@ -24,19 +24,16 @@ grunt.initConfig({
         }
       }
     },
-    pre_shell: {
-        target: {
+    shell: {
+        pre: {
           command: [
-            "./hack.sh",
             'cd node_modules/photoswipe',
             'npm i',
             'grunt'
-     ].join('&&')
-        }
-    },
-    post_shell: {
-        target: {
-          command: "./post-hack.sh"
+          ].join('&&')
+        },
+        post: {
+          command: './hack.sh'
         }
     },
     watch: {
@@ -58,5 +55,5 @@ grunt.initConfig({
     }
 });
 
-grunt.registerTask('default', ['pre_shell', 'browserify', 'copy', 'post_shell']);
+grunt.registerTask('default', ['shell:pre', 'browserify', 'copy', 'shell:post']);
 
