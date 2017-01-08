@@ -73,6 +73,9 @@ export default class UploadForm extends React.Component {
       <div className="modal" style={{display: "block"}}>
         <div className="modal-dialog">
           <div className="myModalContainer">
+            <button onClick={this.props.toggleUploadForm} type="button" className="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
             <h1>Upload Photos</h1><br />
             <h2 ref="submitFile" className="myModalSubmitFailure">Registration Failed</h2><br/>
             <form>
