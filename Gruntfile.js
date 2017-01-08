@@ -24,7 +24,7 @@ grunt.initConfig({
         }
       }
     },
-    shell: {
+    pre_shell: {
         target: {
           command: [
             "./hack.sh",
@@ -32,6 +32,11 @@ grunt.initConfig({
             'npm i',
             'grunt'
      ].join('&&')
+        }
+    },
+    post_shell: {
+        target: {
+          command: "./post-hack.sh"
         }
     },
     watch: {
@@ -53,5 +58,5 @@ grunt.initConfig({
     }
 });
 
-grunt.registerTask('default', ['shell', 'browserify', 'copy']);
+grunt.registerTask('default', ['pre_shell', 'browserify', 'copy', 'post_shell']);
 
