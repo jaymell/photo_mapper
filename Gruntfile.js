@@ -24,7 +24,6 @@ grunt.initConfig({
         }
       }
     },
-<<<<<<< bc1cc64a06977b78fcf3e082a5aec8f53d3b7ce8
     shell: {
       pre: {
         command: [
@@ -37,22 +36,6 @@ grunt.initConfig({
       post: {
         command: './post-hack.sh'
       }
-=======
-    pre_shell: {
-        target: {
-          command: [
-            "./hack.sh",
-            'cd node_modules/photoswipe',
-            'npm i',
-            'grunt'
-     ].join('&&')
-        }
->>>>>>> more forkage
-    },
-    post_shell: {
-        target: {
-          command: "./post-hack.sh"
-        }
     },
     watch: {
       scripts: {
@@ -73,9 +56,5 @@ grunt.initConfig({
     }
 });
 
-<<<<<<< bc1cc64a06977b78fcf3e082a5aec8f53d3b7ce8
 grunt.registerTask('default', ['shell:pre', 'browserify', 'copy', 'shell:post']);
-=======
-grunt.registerTask('default', ['pre_shell', 'browserify', 'copy', 'post_shell']);
->>>>>>> more forkage
 
