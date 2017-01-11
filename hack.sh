@@ -1,6 +1,7 @@
 #!/bin/bash
 
-sed -i 's_/static/_\./photo_mapper/static/_g' \
-  photo_mapper/static/js/bundle.js
-
-
+# set css path for photoswipe png -- there
+# must be a smarter way to do this, but this
+# currently working:
+sed -i $'s/$pswp__assets-path:.*$/$pswp__assets-path: \'\/static\/lib\/img\/\';/' \
+  node_modules/photoswipe/src/css/_main-settings.scss

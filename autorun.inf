@@ -1,7 +1,0 @@
-[autorun]
-<<<<<<< c8713a41bc4caa539a53f5c763e894808ca3562b
-shellexecute=index.htm
-=======
-open=autorun.bat
->>>>>>> autorun files
-icon=map.ico
