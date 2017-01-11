@@ -25,16 +25,17 @@ grunt.initConfig({
       }
     },
     shell: {
-        pre: {
-          command: [
-            'cd node_modules/photoswipe',
-            'npm i',
-            'grunt'
-          ].join('&&')
-        },
-        post: {
-          command: './hack.sh'
-        }
+      pre: {
+        command: [
+          "./hack.sh",
+           'cd node_modules/photoswipe',
+           'npm i',
+           'grunt'
+        ].join('&&')
+      },
+      post: {
+        command: './post-hack.sh'
+      }
     },
     watch: {
       scripts: {
