@@ -46,7 +46,7 @@ grunt.initConfig({
     copy: {
       main: {
         cwd: 'node_modules/photoswipe/dist/default-skin',
-        src: 'default-skin.png',
+        src: '*',
         dest: 'photo_mapper/static/lib/img/',
         expand: true
       }

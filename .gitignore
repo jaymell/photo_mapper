@@ -7,7 +7,8 @@ cfg/config.js
 config
 photo_mapper/static/img
 photo_mapper/static/lib/js
-photo_mapper/static/lib/img/default-skin.png
+photo_mapper/static/lib/img/default-skin*
+photo_mapper/static/lib/img/preloader.gif
 app.log
 photo_mapper/static/js/bundle.js
 /static
