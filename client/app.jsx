@@ -94,6 +94,7 @@ class Map extends React.Component {
   constructor(props) {
     super(props);
     this.state = { initialized: false };
+    this.handlePhotoSwipeMapButton = this.handlePhotoSwipeMapButton.bind(this);
   }
 
   // hackish way to avoid having to pass around
@@ -124,8 +125,8 @@ class Map extends React.Component {
       keyboardShortcuts: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP // TERRAIN, SATELLITE, HYBRID, ROADMAP
     };
-    photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton.bind(this));
-    this.map = new google.maps.Map(this.refs.mapCanvas, mapOptions), 
+    this.map = new google.maps.Map(this.refs.mapCanvas, mapOptions);
+    photoSwipeMapButtonEvents.add(this.handlePhotoSwipeMapButton);
     this.setState({initialized: true});
   }
 
@@ -140,6 +141,7 @@ class Map extends React.Component {
 
   componentWillUnmount() {
     console.log('removing map');
+    photoSwipeMapButtonEvents.remove(this.handlePhotoSwipeMapButton);
     this.map = null;
   }
 
@@ -772,7 +774,7 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
   gallery.listen('gettingData', function(index, item) {
     // Set image source & size based on real viewport width,
     // but only if the scaled images actuallly exist:
-    if( useLargeImages || item.scaled !== null ) {
+    if( useLargeImages || item.scaled === null ) {
       item.src = item.full.name;
       item.w = item.full.width;
       item.h = item.full.height;
