@@ -35,13 +35,24 @@ export let auth = new Auth();
 
 // pass it the name of the container div and the
 // item div you want to move to top of list:
-function scrollToSelected($ctDiv, $itDiv) {
+function scrollToSelected($ctDiv, $itDiv, orientation) {
   var scrollSpeed = 250;
-  $ctDiv.animate({
-     scrollLeft: $itDiv.offset().left 
-      + $ctDiv.scrollLeft() 
-      - $ctDiv.offset().left
-  }, scrollSpeed);
+  if ( orientation == 'horizontal') {
+    console.log('scrollToSelected HORIZONTAL called');
+    $ctDiv.animate({
+       scrollLeft: $itDiv.offset().left 
+        + $ctDiv.scrollLeft() 
+        - $ctDiv.offset().left
+    }, scrollSpeed);    
+  }
+  else if ( orientation == 'vertical' ) {
+    console.log('scrollToSelected VERTICAL called');
+    var $body = $('body');
+    $body.animate({
+       scrollTop: $itDiv.offset().top 
+        + $ctDiv.scrollTop()
+    }, scrollSpeed);    
+  }
 };
 
 function horizontalMouseWheelScroll(event, delta) {
@@ -263,9 +274,9 @@ class PhotoList extends React.Component {
     }
     else {
       this.setState({style: {
-        'overflow': 'auto',
-        'overflowX': 'visible',
-        'overflowY': 'visible',
+        // 'overflow': 'auto',
+        // 'overflowX': 'visible',
+        // 'overflowY': 'visible',
         'width': 'auto',
         'height': 'auto',
         'whiteSpace': 'normal',
@@ -318,7 +329,7 @@ class PhotoList extends React.Component {
   }
 
   handleEvent(e) {
-    scrollToSelected($(this.refs.photoList), $('#'+e));
+    scrollToSelected($(this.refs.photoList), $('#'+e), this.props.mapIsVisible ? 'horizontal' : 'vertical');
   }
 
   toggleMap() {
@@ -509,7 +520,7 @@ class Photos extends React.Component {
     };
     this.userId = auth.getUserId();
     this.url = '/api/users/' + this.userId + '/photos';
-    this.pollInterval = 36000;
+    this.pollInterval = 360000;
     this.toggleUploadForm = this.toggleUploadForm.bind(this);
     this.toggleMap = this.toggleMap.bind(this);
     this.poll = this.poll.bind(this);
