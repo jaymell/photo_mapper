@@ -13,5 +13,6 @@ RUN apt-get update && apt-get install -y python-dev \
 		python-pip \
 		git \
 		wget &&  \
+		libmysqlclient-dev \
+		python-dev
 	apt-get clean
-

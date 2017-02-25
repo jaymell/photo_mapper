@@ -1,4 +1,5 @@
 #!/bin/bash -e
 
-login=$(aws ecr get-login --region us-east-1)
+REGION=$1
+login=$(aws ecr get-login --region $REGION)
 $login
