@@ -306,7 +306,7 @@ class PhotoList extends React.Component {
 
   handleMapVisible() {
     console.log('photoList: turning map ON');
-    this.setState({photoSize: 'small'});
+    this.setState({photoSize: 'thumbnail'});
     this.setStyle();
     $(this.refs.photoList).on('mousewheel', horizontalMouseWheelScroll);
     $(window).on('resize', this.setPhotoListSize);
@@ -318,7 +318,7 @@ class PhotoList extends React.Component {
 
   handleMapNotVisible() {
     console.log('photoList: turning map OFF');
-    this.setState({photoSize: 'thumbnail'})
+    this.setState({photoSize: 'small'})
     this.setStyle();
     $(this.refs.photoList).off('mousewheel', horizontalMouseWheelScroll);
     $(window).off('resize', this.setPhotoListSize);
@@ -515,7 +515,7 @@ class Photos extends React.Component {
     this.state = { 
       data: undefined, 
       mapIsVisible: false, 
-      photoSize: 'thumbnail',
+      photoSize: 'small',
       showUploadForm: false,
     };
     this.userId = auth.getUserId();
