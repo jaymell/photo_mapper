@@ -2,8 +2,8 @@
 
 ENV=$1
 [[ -z $ENV ]] && ENV="local"
-[[ -z $NGINX_TAG ]] && NGINX_TAG=latest
-[[ -z $PM_TAG ]] && PM_TAG=latest
+[[ -z $NGINX_TAG ]] && export NGINX_TAG=latest
+[[ -z $PM_TAG ]] && export PM_TAG=latest
 [[ -z $BUCKET ]] && echo "export Bucket name" && exit 1
 
 pushd $ENV

@@ -8,7 +8,7 @@ TAG=$1
 login=$(aws ecr get-login --region $REGION)
 bash -c "$login"
 
-docker build -t $TAG . --build-arg BRANCH=$BRANCH --build-arg RANDOM=$RANDOM
+docker build -t $TAG . --build-arg BRANCH=$BRANCH --build-arg RANDOM=$RANDOM --no-cache
 
 docker push $TAG
 
