@@ -17,6 +17,7 @@ import models
 from flask.ext.httpauth import HTTPBasicAuth
 import schema
 import flask.ext.principal as pr
+import re
 
 api = fr.Api(app)
 auth = HTTPBasicAuth()
@@ -46,13 +47,23 @@ def on_identity_loaded(sender, identity):
   print(identity)
   
 
-def valid_pw(pw1, pw2):
-  """ TODO: add minimum password requirements here""" 
+def valid_email(email):
+  ''' verify email address syntactically valid '''
 
+  EMAIL_REGEX = '[^@]+@[^@]+\.[^@]+'
+  if not re.match(EMAIL_REGEX, email):
+    return False
+  return True
+
+def valid_pw(pw1, pw2):
+  """ add minimum password requirements here""" 
+
+  MIN_PASS_LENGTH = 8
   if pw1 != pw2:
     print('not valid password')
     return False
-
+  elif len(pw1) < MIN_PASS_LENGTH:
+    return False
   return True
 
 
@@ -162,6 +173,8 @@ class UserListAPI(fr.Resource):
   def post(self):
     args = self.reqparse.parse_args()
     if not valid_pw(args.password1, args.password2):
+      fr.abort(400)
+    if not valid_email(args.email):
       fr.abort(400)
     user = models.User(args.user_name, args.email)
     user.hash_pw(args.password1)

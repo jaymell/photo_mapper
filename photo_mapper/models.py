@@ -8,9 +8,10 @@ import itsdangerous as itsd
 import hashlib
 import datetime
 
-# class names are InitialCaps
-# table names are camelCase
-# id field names are tablename_id
+''' class names are InitialCaps
+    table names are camelCase
+    id field names are tablename_id
+'''
 
 class Role(db.Model):
   __tablename__ = 'role'
@@ -18,10 +19,12 @@ class Role(db.Model):
   role_name = db.Column(db.String(64), unique=True)
   users = db.relationship('User', secondary='userRoleLink')
 
+
 class UserRoleLink(db.Model):
   __tablename__  = 'userRoleLink'
   user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), primary_key=True)
   role_id = db.Column(db.Integer, db.ForeignKey('role.role_id'), primary_key=True)
+
 
 class User(db.Model):
   __tablename__  = 'user'
