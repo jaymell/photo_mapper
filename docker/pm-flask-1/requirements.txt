@@ -1,3 +1,4 @@
+awscli>=1.11.55
 aniso8601==1.1.0
 blinker==1.4
 boto==2.39.0

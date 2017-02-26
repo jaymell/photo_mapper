@@ -8,4 +8,5 @@ RUN mkdir static/img
 RUN wget https://raw.githubusercontent.com/jaymell/jpgps/master/jpgps.py 
 EXPOSE 5000
 WORKDIR $BASE_DIR
+RUN node_modules/grunt/bin/grunt 
 CMD ["./run.sh"]
