@@ -7,10 +7,11 @@ TAG=$1
 login=$(aws ecr get-login --region $REGION)
 bash -c "$login"
 
-# copy requirements.txt from top-level:
-cp ../../requirements.txt ./
+rsync -avP ../../requirements.txt ./artifacts/
+rsync -avP ../../package.json ./artifacts/
 
 docker build -t $TAG .
 
 docker push $TAG
 
+rm -rf ./artifacts

@@ -8,7 +8,10 @@ TAG=$1
 login=$(aws ecr get-login --region $REGION)
 bash -c "$login"
 
+rsync -avP --exclude=.git --exclude=docker --exclude=node_modules ../../ ./artifacts/
+
 docker build -t $TAG . --build-arg BRANCH=$BRANCH --build-arg RANDOM=$RANDOM --no-cache
 
 docker push $TAG
 
+rm -rf ./artifacts/

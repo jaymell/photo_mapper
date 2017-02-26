@@ -162,7 +162,7 @@ class UserListAPI(fr.Resource):
   def post(self):
     args = self.reqparse.parse_args()
     if not valid_pw(args.password1, args.password2):
-      abort(400)
+      fr.abort(400)
     user = models.User(args.user_name, args.email)
     user.hash_pw(args.password1)
     insert_or_fail(user)
