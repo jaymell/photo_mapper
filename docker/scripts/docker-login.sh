@@ -1,5 +1,4 @@
 #!/bin/bash -e
 
-REGION=$1
-login=$(aws ecr get-login --region $REGION)
+[[ -n $1 ]] && login=$(aws ecr get-login --region $REGION) || login=$(aws ecr get-login)
 $login
