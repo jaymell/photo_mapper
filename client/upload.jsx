@@ -6,7 +6,7 @@ var $ = require('jquery');
 import { auth } from './app.jsx';
 var Promise = require('bluebird');
 
-export default class UploadForm extends React.Component {
+class UploadForm extends React.Component {
   constructor(props) {
     super(props);
     this.handleFileButtonClick = this.handleFileButtonClick.bind(this);
@@ -64,8 +64,9 @@ export default class UploadForm extends React.Component {
         });
       }());
     }
+
     Promise.all(tasks)
-      .then(this.props.toggleUploadForm);
+      .finally(this.props.toggleUploadForm);
   }
 
   render() {
@@ -109,3 +110,5 @@ export default class UploadForm extends React.Component {
 	  );	
   }
 }
+
+export default withRouter(UploadForm);

@@ -10,7 +10,7 @@ bash -c "$login"
 
 rsync -avP --exclude=.git --exclude=docker --exclude=node_modules ../../ ./artifacts/
 
-docker build -t $TAG . --build-arg BRANCH=$BRANCH --build-arg RANDOM=$RANDOM --no-cache
+docker build -t $TAG . --build-arg BRANCH=$BRANCH --no-cache
 
 docker push $TAG
 

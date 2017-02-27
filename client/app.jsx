@@ -560,8 +560,9 @@ class Photos extends React.Component {
   }
 
   toggleUploadForm() {
+    console.log('toggleUploadForm called');
     if (this.state.showUploadForm) {
-      this.setState({showUploadForm: false});      
+      this.setState({showUploadForm: false});
     }
     else {
       this.setState({showUploadForm: true});
@@ -603,7 +604,7 @@ class Photos extends React.Component {
     else if (Array.isArray(this.state.data) && this.state.data.length === 0) {
       return ( <div>
                  <b>No photos found. Please upload some.</b>
-                 <UploadForm />
+                 <UploadForm toggleUploadForm={this.toggleUploadForm}/>
                </div>
              );
     }
