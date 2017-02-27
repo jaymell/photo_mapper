@@ -3,7 +3,8 @@ pm-flask:
   environment:
     - MYSQL_HOST
     - USE_S3=True
-    
+    - CONFIG_BUCKET
+ 
 pm-nginx:
   image: 799617403160.dkr.ecr.us-east-1.amazonaws.com/pm-nginx:${NGINX_TAG}
   links:

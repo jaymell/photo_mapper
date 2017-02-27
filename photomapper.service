@@ -1,0 +1,14 @@
+# Example systemd unit file
+[Unit]
+Description=Photomapper -- nginx and app
+Requires=docker.service
+After=docker.service mysql.service
+
+[Service]
+Restart=always
+ExecStart=/usr/bin/docker-compose -f <PATH>/docker-compose.yml up
+ExecStop=/usr/bin/docker-compose -f <PATH>/docker-compose.yml stop
+
+[Install]
+WantedBy=local.target
+
