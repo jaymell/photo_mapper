@@ -63,7 +63,7 @@ function horizontalMouseWheelScroll(event, delta) {
 
 function setPinColor(pinColor) {
 // you want to append one of the above colors to this url:
-  var pinLink = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
+  var pinLink = "https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|"
   return new google.maps.MarkerImage(
     pinLink + pinColor,
     new google.maps.Size(21, 34),
