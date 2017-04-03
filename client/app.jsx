@@ -609,31 +609,22 @@ class Photos extends React.Component {
              );
     }
     else { 
-      if ( this.state.showUploadForm ) { 
         return (
           <div>
             <NavBar uploadButtonHandler={this.toggleUploadForm}
                     toggleMap={this.toggleMap}
             />
-            <UploadForm toggleUploadForm={this.toggleUploadForm}/>
+            <div>
+              {this.state.showUploadForm ? (
+                <UploadForm toggleUploadForm={this.toggleUploadForm}/>
+                ) : null
+              }
+            </div>
             <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
             <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
             <PhotoSwipeContainer data={this.state.data} />
           </div>
         );
-      } 
-      else {
-        return (
-          <div>
-            <NavBar uploadButtonHandler={this.toggleUploadForm}
-                    toggleMap={this.toggleMap} 
-            />
-            <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-            <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-            <PhotoSwipeContainer data={this.state.data} />
-          </div>
-        );    
-      }
     }
   }
 }
