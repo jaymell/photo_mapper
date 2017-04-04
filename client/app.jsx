@@ -169,7 +169,7 @@ class Map extends React.Component {
         );
       }
     }.bind(this));
-
+ 
     return (
       <div>
         <div className="mapCanvas" ref="mapCanvas"></div>
@@ -457,6 +457,10 @@ class NavBar extends React.Component {
   }
 
   render() {
+    const inlineDivStyle = {
+      display: "inline-block"
+    };
+
     return (
       <nav className="navbar navbar-default navbar-fixed-top navbar-light bg-faded">
         <button className="navbar-toggle" 
@@ -472,18 +476,23 @@ class NavBar extends React.Component {
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
-                <Button onClick={this.props.uploadButtonHandler}
-                        bsStyle="default"
-                        className="navBarButton"
-                >
-                  Upload
-                </Button>
-                <Button onClick={this.props.toggleMap} 
-                        bsStyle="default"
-                        className="navBarButton"
-                >        
-                  Toggle Map 
-                </Button>
+              <Button onClick={this.props.uploadButtonHandler}
+                      bsStyle="default"
+                      className="navBarButton"
+              >
+                Upload
+              </Button>
+              <div style={inlineDivStyle}>
+                {this.props.showMap ? (
+                  <Button onClick={this.props.toggleMap} 
+                          bsStyle="default"
+                          className="navBarButton"
+                  >
+                    Toggle Map 
+                  </Button>                  
+                  ) : null
+                }
+              </div>
             </li>
           </ul>
         </div>
@@ -491,6 +500,7 @@ class NavBar extends React.Component {
     );
   }
 }
+
 
 class Logo extends React.Component {
   constructor(props) {
@@ -517,6 +527,8 @@ class Photos extends React.Component {
       mapIsVisible: false, 
       photoSize: 'small',
       showUploadForm: false,
+      googleApiAvailable: 
+        (typeof google === 'object' && typeof google.maps === 'object') ? true : false,
     };
     this.userId = auth.getUserId();
     this.url = '/api/users/' + this.userId + '/photos';
@@ -612,6 +624,7 @@ class Photos extends React.Component {
         return (
           <div>
             <NavBar uploadButtonHandler={this.toggleUploadForm}
+                    showMap={this.state.googleApiAvailable}
                     toggleMap={this.toggleMap}
             />
             <div>
@@ -620,7 +633,12 @@ class Photos extends React.Component {
                 ) : null
               }
             </div>
-            <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
+            <div>
+              {this.state.googleApiAvailable ? (
+                <MapContainer data={this.state.data} mapIsVisible={this.state.mapIsVisible} />                
+                ) : null
+              }
+            </div>
             <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
             <PhotoSwipeContainer data={this.state.data} />
           </div>
