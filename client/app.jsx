@@ -477,12 +477,6 @@ class NavBar extends React.Component {
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
-              <Button onClick={this.props.uploadButtonHandler}
-                      bsStyle="default"
-                      className="navBarButton"
-              >
-                Upload
-              </Button>
               <div style={inlineDivStyle}>
                 {this.props.showMap ? (
                   <Button onClick={this.props.toggleMap} 
