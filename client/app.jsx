@@ -38,7 +38,7 @@ export let auth = new Auth();
 function scrollToSelected($ctDiv, $itDiv, orientation) {
   var scrollSpeed = 250;
   if ( orientation == 'horizontal') {
-    console.log('scrollToSelected HORIZONTAL called');
+    // console.log('scrollToSelected HORIZONTAL called');
     $ctDiv.animate({
        scrollLeft: $itDiv.offset().left 
         + $ctDiv.scrollLeft() 
@@ -46,7 +46,7 @@ function scrollToSelected($ctDiv, $itDiv, orientation) {
     }, scrollSpeed);    
   }
   else if ( orientation == 'vertical' ) {
-    console.log('scrollToSelected VERTICAL called');
+    // console.log('scrollToSelected VERTICAL called');
     var $body = $('body');
     $body.animate({
        scrollTop: $itDiv.offset().top 
@@ -440,7 +440,7 @@ class PhotoSwipeContainer extends React.Component {
     });
     if (this.state.isOpen === false) {
       this.setState({isOpen: true}, function() {
-        openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this));  
+        openPhotoSwipe(this.photoArray, curPhoto.index, this.handleClose.bind(this), this.props.mapIsAvailable);  
       }.bind(this));
     }
   }
@@ -640,7 +640,7 @@ class Photos extends React.Component {
               }
             </div>
             <PhotoList ref="photoList" data={this.state.data} mapIsVisible={this.state.mapIsVisible} />
-            <PhotoSwipeContainer data={this.state.data} />
+            <PhotoSwipeContainer data={this.state.data} mapIsAvailable={this.state.googleApiAvailable} />
           </div>
         );
     }
@@ -733,7 +733,7 @@ function setMapSize() {
   $('.mapCanvas ').css('height', (h - offsetTop));
 }
 
-function openPhotoSwipe(photoArray, index, closeCallback) {
+function openPhotoSwipe(photoArray, index, closeCallback, mapIsAvailable) {
 
   var pswpElement = $('.pswp')[0];
   var options = {
@@ -744,7 +744,7 @@ function openPhotoSwipe(photoArray, index, closeCallback) {
   // make show map button invisible or not depending on
   // whether photo is geo-tagged:
   var prepareMapButton = function() {
-    if ( gallery.currItem.geo )
+    if ( gallery.currItem.geo && mapIsAvailable )
       $('.pswp__button--mapIt').css('display', 'block');
     else 
       $('.pswp__button--mapIt').css('display', 'none');
