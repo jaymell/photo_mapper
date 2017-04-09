@@ -473,7 +473,7 @@ class NavBar extends React.Component {
         <span className="icon-bar"></span>
         <span className="icon-bar"></span>       
         </button>
-        {/* <Logo src="/static/lib/img/logo.png" width="30px" height="40px" /> */}
+        <Logo src="/static/lib/img/logo.png" width="28px" height="40px" />
         <div className="collapse navbar-collapse" id="navbarResponsive">
           <ul className="nav navbar-nav navbar-right">
             <li className="nav-item">
